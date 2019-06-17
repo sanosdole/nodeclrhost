@@ -215,12 +215,12 @@ JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc, Do
 }
 
 Napi::Function Context::CreateFunction(DotNetHandle* handle) {
-    auto release_func = handle->ReleaseFunc;
-    auto value = handle->Value;
-    handle->ReleaseFunc = nullptr; // We delay the release
+    auto release_func = handle->release_func_;
+    auto function_value = handle->function_value_;
+    handle->release_func_ = nullptr; // We delay the release
 
     // TODO: Check if using data instead of capture is better
-    auto function = Napi::Function::New(env_, [this, value](const Napi::CallbackInfo& info) {
+    auto function = Napi::Function::New(env_, [this, function_value](const Napi::CallbackInfo& info) {
         
         ThreadInstance _(this);        
         auto argc = info.Length();
@@ -230,17 +230,16 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
             arguments.push_back(JsHandle::FromValue(info[c]));            
         }
         
-        DotNetHandle resultIntern;
-        void (*fptr)(int,JsHandle*, DotNetHandle&) = (void (*)(int, JsHandle*, DotNetHandle&))value;
-        (*fptr)(argc, arguments.data(), resultIntern);
+        DotNetHandle resultIntern;       
+        (*function_value)(argc, arguments.data(), resultIntern);
 
         return resultIntern.ToValue(info.Env(), this->function_factory_);
     });            
 
     auto releaseCopy = new DotNetHandle;
-    releaseCopy->Type = DotNetTypeFunction;
-    releaseCopy->Value = value;
-    releaseCopy->ReleaseFunc = release_func;
+    releaseCopy->type_ = DotNetType::Function;
+    releaseCopy->function_value_ = function_value;
+    releaseCopy->release_func_ = release_func;
 
     napi_add_finalizer(env_,
         function,

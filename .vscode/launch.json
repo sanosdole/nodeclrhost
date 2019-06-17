@@ -43,7 +43,8 @@
             "type": "coreclr",
             "request": "attach",
             "processId": "${command:pickProcess}",
-            "justMyCode": false
+            "justMyCode": false,
+            "requireExactSource": false
         }
     ]
 }

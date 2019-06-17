@@ -5,96 +5,62 @@
 
 #include "jshandle.h"
 
+namespace DotNetType {
 typedef enum
 {
-    DotNetTypeUndefined,
-    DotNetTypeNull,
-    DotNetTypeBoolean,
-    DotNetTypeInt32,
-    DotNetTypeInt64,
-    DotNetTypeDouble,
-    DotNetTypeString, // Do we need encodings or do we assume UTF8?
-    DotNetTypeJsHandle, // A handle that was received from node
-    DotNetTypeFunction
-} DotNetType;
-
+    Undefined,
+    Null,
+    Boolean,
+    Int32,
+    Int64,
+    Double,
+    String, // Do we need encodings or do we assume UTF8?
+    JsHandle, // A handle that was received from node
+    Function
+} Enum;
+}
 
 extern "C" struct DotNetHandle
 {
-    DotNetType Type;
-    void* Value;
-    void (*ReleaseFunc)(DotNetHandle*);    
+    DotNetType::Enum type_;
+    union {
+        void* value_;
+        JsHandle* jshandle_value_;
+        char* string_value_;
+        bool bool_value_;
+        int32_t int32_value_;
+        int64_t int64_value_;
+        double double_value_;
+        void (*function_value_)(int,JsHandle*, DotNetHandle&);
+    };
+    void (*release_func_)(DotNetHandle*);    
 
     void Release()
     {
-        if (nullptr != ReleaseFunc)
-            ReleaseFunc(this);        
+        if (nullptr != release_func_)
+            release_func_(this);        
     }
 
     Napi::Value ToValue(const Napi::Env& env, std::function<Napi::Function(DotNetHandle*)> function_factory)
     {
-        if (Type == DotNetTypeNull)
+        if (type_ == DotNetType::Null)
             return env.Null();
-        if (Type == DotNetTypeJsHandle)
-            return reinterpret_cast<JsHandle*>(Value)->ToValue(env);
-        if (Type == DotNetTypeString)
-            return Napi::String::New(env, (const char*)Value); // TODO: string is copied, we could use char16_t to prevent a copy
-        if (Type == DotNetTypeBoolean)
-            return Napi::Boolean::New(env, Value != nullptr);
-        if (Type == DotNetTypeInt32)
-            return Napi::Number::New(env, (int)Value);
+        if (type_ == DotNetType::JsHandle)
+            return jshandle_value_->ToValue(env);
+        if (type_ == DotNetType::String)
+            return Napi::String::New(env, string_value_); // TODO: string is copied, we could use char16_t to prevent a copy
+        if (type_ == DotNetType::Boolean)
+            return Napi::Boolean::New(env, bool_value_);
+        if (type_ == DotNetType::Int32)
+            return Napi::Number::New(env, int32_value_);
+        if (type_ == DotNetType::Int64)
+            return Napi::Number::New(env, int64_value_);
+        if (type_ == DotNetType::Double)
+            return Napi::Number::New(env, double_value_);
 
-        if (Type == DotNetTypeFunction)
+        if (type_ == DotNetType::Function)
         {
             return function_factory(this);
-            /*auto releaseFunc = ReleaseFunc;
-            auto value = Value;
-            ReleaseFunc = nullptr;
-
-            // TODO: Check if using data instead of capture is better
-            auto function = Napi::Function::New(env, [value, env](const Napi::CallbackInfo& info) {
-                //context->SetThreadInstance();
-                printf("Building arguments for Calling back to .NET\n");
-                auto argc = info.Length();
-                std::vector<JsHandle> arguments;
-                for (auto c = 0; c<argc; c++)
-                {
-                    //arguments[c] = JsHandle::FromValue(info[c]);
-                    arguments.push_back(JsHandle::FromValue(info[c]));
-                    //printf("Arg %d is %d \n", c, argv[c].Type);
-                }
-                
-                DotNetHandle resultIntern;
-                void (*fptr)(int,JsHandle*, DotNetHandle&) = (void (*)(int, JsHandle*, DotNetHandle&))value;
-                printf("Calling back to .NET\n");
-                if (argc > 0)
-                    (*fptr)(argc, arguments.data(), resultIntern);
-                else
-                    (*fptr)(0, nullptr, resultIntern);
-                printf("Called back to .NET\n");
-
-                return resultIntern.ToValue(env);
-            });            
-
-            auto releaseCopy = new DotNetHandle;
-            releaseCopy->Type = DotNetTypeFunction;
-            releaseCopy->Value = value;
-            releaseCopy->ReleaseFunc = releaseFunc;
-
-            napi_add_finalizer(env,
-             function,
-              (void*)releaseCopy,
-               [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) 
-               {
-                   auto toRelease = (DotNetHandle*)finalize_data;
-                   toRelease->Release();
-                   delete toRelease;
-                                      
-                },
-                nullptr,
-                 nullptr);
-            
-            return function;       */
         }
         
         // TODO: Support other types

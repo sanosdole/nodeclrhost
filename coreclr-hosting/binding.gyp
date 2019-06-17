@@ -5,7 +5,6 @@
         #"cflags_cc!": [ "-fno-exceptions" ],
         "sources": [
             "cppsrc/main.cc",
-            #"cppsrc/loader.cc",
             "cppsrc/dotnethost.cc",
             "cppsrc/context.cc",
             "cppsrc/dotnetexports.cc"

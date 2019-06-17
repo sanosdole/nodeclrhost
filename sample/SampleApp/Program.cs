@@ -17,7 +17,7 @@
                                         host.Dispose();
                                     }),
                                    1500);
-            //RunAsyncApp(host);
+            RunAsyncApp(host);
             return 5;
         }
 

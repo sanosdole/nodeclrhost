@@ -5,8 +5,8 @@ console.log('hosting:', coreclrhosting);
 console.log('hosting:', BrowserWindow);
 global.electron = require('electron');
 
-
-global.createBrowserWindow = function(/*options*/) {
+/*
+global.createBrowserWindow = function(options) {
     //return new BrowserWindow(options);
     var mainWindow = new BrowserWindow({webPreferences: {
         nodeIntegration: true,
@@ -14,7 +14,7 @@ global.createBrowserWindow = function(/*options*/) {
     }});
     mainWindow.loadFile("renderer.html");
     return mainWindow;
-}
+}*/
 
 
 var runResult = coreclrhosting.runCoreApp(__dirname + '\\BrowserApp\\bin\\published', 'BrowserApp.dll');

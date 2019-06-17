@@ -40,7 +40,6 @@ namespace NodeHostEnvironment
         private readonly HashSet<CallbackHolder> _registry = new HashSet<CallbackHolder>();
         public IntPtr MarshallCallback(DotNetCallback callback, out ReleaseDotNetValue releaseCallback)
         {
-            Console.WriteLine("Adding callback to registry");
             var holder = new CallbackHolder(callback, this);
             _registry.Add(holder);
             releaseCallback = ReleaseCallback;
