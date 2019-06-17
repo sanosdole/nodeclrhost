@@ -1,0 +1,15 @@
+{
+  "name": "sample",
+  "version": "1.0.0",
+  "description": "Sample for using coreclr-hosting module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --expose-gc ./index.js"
+  },
+  "author": "Daniel Martin",
+  "license": "ISC",
+  "dependencies": {
+    "coreclr-hosting": "file:../coreclr-hosting"
+  }
+}

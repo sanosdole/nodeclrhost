@@ -1,0 +1,21 @@
+{
+  "name": "coreclr-hosting",
+  "version": "1.0.0",
+  "description": "Hosting coreclr in node",
+  "main": "bindings.js",
+  "gypfile": true,
+  "scripts": {
+    "build": "node-gyp rebuild",
+    "clean": "node-gyp clean",    
+    "test": "mocha"
+  },
+  "author": "Daniel Martin",
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^6.1.4",
+    "node-gyp": "^3.8.0"
+  },
+  "dependencies": {
+    "node-addon-api": "*"
+  }
+}

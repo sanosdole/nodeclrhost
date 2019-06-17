@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Hello World!</title>
+  </head>
+  <body>
+    <h1>Hello World!</h1>
+    We are using node <script>document.write(process.versions.node)</script>,
+    Chrome <script>document.write(process.versions.chrome)</script>,
+    and Electron <script>document.write(process.versions.electron)</script>.
+    <br/>
+    We are in process <script>document.write(process.pid)</script>.
+    <br/>
+    <div id="AnimateDiv">WILL BE REPLACED</div>
+
+    Result from .Net = 
+    <script>
+        global.ToReplace = global.window.document.getElementById("AnimateDiv");
+        console.log('TATA: ', global.ToReplace);
+        const coreclrhosting = require('coreclr-hosting');
+        var result = coreclrhosting.runCoreApp(__dirname + '\\RendererApp\\bin\\published', 'RendererApp.dll');
+        document.write(result);
+    </script>
+    
+  </body>
+</html>
