@@ -47,7 +47,6 @@
                     var div = host.Global.window.document.getElementById("AnimateDiv");
                     for (var c = 0; c < 30; c++)
                     {
-                        // Merge test 2
                         await Task.Delay(1000);
                         //host.Global.console.log("Replacing ", c);                        
                         div.innerHTML = $@"{c} replaced @ {DateTime.Now} from {Process.GetCurrentProcess().Id}";
