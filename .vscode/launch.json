@@ -44,7 +44,14 @@
             "request": "attach",
             "processId": "${command:pickProcess}",
             "justMyCode": false,
-            "requireExactSource": false
+            "requireExactSource": false,
+            "logging": {
+                "engineLogging": true,
+                "moduleLoad": true,
+                "browserStdOut": true,
+                "programOutput": true,
+                "exceptions": true
+            }
         }
     ]
 }

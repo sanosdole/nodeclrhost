@@ -13,9 +13,9 @@
   "license": "ISC",
   "devDependencies": {
     "mocha": "^6.1.4",
-    "node-gyp": "^3.8.0"
+    "node-gyp": "^5.0.0"
   },
   "dependencies": {
-    "node-addon-api": "*"
+    "node-addon-api": "1.6.3"
   }
 }

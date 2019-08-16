@@ -3,6 +3,7 @@
     using System.Threading.Tasks;
     using System;
     using NodeHostEnvironment;
+    using System.Diagnostics;
 
     class Program
     {
@@ -48,7 +49,7 @@
                     {
                         await Task.Delay(1000);
                         //host.Global.console.log("Replacing ", c);                        
-                        div.innerHTML = $@"{c} replaced @ {DateTime.Now}";
+                        div.innerHTML = $@"{c} replaced @ {DateTime.Now} from {Process.GetCurrentProcess().Id}";
                     }
                 }
                 catch (Exception e)

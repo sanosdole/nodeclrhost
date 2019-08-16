@@ -24,9 +24,9 @@
                     var webPreferences = host.New();
                     options.webPreferences = webPreferences;
                     webPreferences.nodeIntegration = true;
-                    webPreferences.contextIsolation = false;
+                    /*webPreferences.contextIsolation = false;
                     webPreferences.sandbox = false;
-                    webPreferences.devTools = false;
+                    webPreferences.devTools = false;*/
 
                     //console.log("options:", options);
                     
