@@ -12,10 +12,10 @@
   "author": "Daniel Martin",
   "license": "ISC",
   "devDependencies": {
-    "mocha": "^6.1.4",
-    "node-gyp": "^5.0.0"
+    "mocha": "^6.2.0",
+    "node-gyp": "^5.0.3"
   },
   "dependencies": {
-    "node-addon-api": "1.6.3"
+    "node-addon-api": "1.7.1"
   }
 }

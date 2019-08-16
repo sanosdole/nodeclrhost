@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "coreclr-hosting": "file:../coreclr-hosting",
-    "electron": "^5.0.4"
+    "electron": "^6.0.2"
   }
 }
