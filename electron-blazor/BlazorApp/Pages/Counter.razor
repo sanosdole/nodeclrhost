@@ -1,0 +1,28 @@
+﻿@page "/counter"
+
+<h1>Counter</h1>
+<br/>
+<p>Current count: @currentCount</p>
+<br/>
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<br/>
+<p>@text</p>
+
+@code {
+    string text = "Initial";
+    int currentCount = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //System.Diagnostics.Debugger.Launch();
+        text = "OnInitializedAsync";
+        await Task.Delay(500);
+        currentCount = 5;
+        text = "OnInitializedAsync after delay";
+    }
+
+    void IncrementCount()
+    {
+        currentCount++;
+    }
+}

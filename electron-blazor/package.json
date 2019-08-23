@@ -1,0 +1,28 @@
+{
+  "name": "electron-blazor",
+  "version": "1.0.0",
+  "description": "Test for hosting blazor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-ts": "tsc -p ./BlazorJsGlue",
+    "build-service": "dotnet publish LocalService\\LocalService.csproj --self-contained -r win-x64 -o bin\\published\\LocalService -f netcoreapp3.0",
+    "build-blazorapp": "dotnet publish BlazorApp\\BlazorApp.csproj --self-contained -r win-x64 -o bin\\published\\BlazorApp -f netcoreapp3.0",
+    "watch-ts": "npm run build-ts -- -w",
+    "start": "npm run build-service && npm run build-blazorapp && npm run build-ts && electron .",
+    "electron": "electron ."
+  },
+  "author": "Daniel Martin",
+  "license": "MIT",
+  "dependencies": {
+    "@dotnet/jsinterop": "^3.0.0-preview8.19405.4",
+    "coreclr-hosting": "file:../coreclr-hosting",
+    "typescript": "^3.5.3"
+  },
+  "devDependencies": {
+    "@types/node": "^12.7.2",
+    "electron": "^6.0.3",
+    "webpack": "^4.39.2",
+    "webpack-cli": "^3.3.7"
+  }
+}

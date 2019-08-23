@@ -29,7 +29,7 @@ namespace NodeHostEnvironment
             if (obj is bool)
                 return FromBool((bool) obj);
             if (obj is int)
-                return FromInt((int)obj);
+                return FromInt((int) obj);
             if (obj is Delegate)
                 return FromDelegate((Delegate) obj, host);
             if (obj is JsValue)
@@ -38,6 +38,8 @@ namespace NodeHostEnvironment
                 return FromJsValue(((JsDynamicObject) obj).Handle);
             if (obj is string)
                 return FromString((string) obj);
+            if (obj is byte[])
+                return FromByteArray((byte[]) obj);
 
             throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
         }
@@ -120,7 +122,18 @@ namespace NodeHostEnvironment
             };
         }
 
-        private static ReleaseDotNetValue ReleaseHGlobal = ReleaseHGlobalIntern;
+        public static DotNetValue FromByteArray(byte[] value)
+        {
+            return new DotNetValue
+            {
+                Type = DotNetType.ByteArray,
+                    Value = ArrayPointer(value),
+                    ReleaseFunc = ReleaseArrayPointer
+            };
+        }
+
+        private static readonly ReleaseDotNetValue ReleaseHGlobal = ReleaseHGlobalIntern;
+        private static readonly ReleaseDotNetValue ReleaseArrayPointer = ReleaseArrayPointerIntern;
 
         private static void ReleaseHGlobalIntern(DotNetType type, IntPtr value)
         {
@@ -137,6 +150,22 @@ namespace NodeHostEnvironment
             Marshal.Copy(buffer, 0, nativeUtf8, buffer.Length);
             //Console.WriteLine($"Passing pointer {nativeUtf8.ToInt64():X8}");
             return nativeUtf8;
+        }
+
+        private static void ReleaseArrayPointerIntern(DotNetValue value)
+        {
+            // TODO DM 22.08.2019: Do not copy the array!
+            Marshal.FreeHGlobal(value.Value);
+        }
+
+        private static IntPtr ArrayPointer(byte[] array)
+        {
+            // TODO DM 22.08.2019: Do not copy the array!
+            int length = array.Length;
+            IntPtr native = Marshal.AllocHGlobal(array.Length + Marshal.SizeOf(length));
+            Marshal.WriteInt32(native, length);
+            Marshal.Copy(array, 0, new IntPtr(native.ToInt64() + Marshal.SizeOf(length)), length);
+            return native;
         }
 
     }
