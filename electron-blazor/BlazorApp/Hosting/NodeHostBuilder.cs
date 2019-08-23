@@ -2,7 +2,6 @@ namespace BlazorApp.Hosting
 {
     using System;
     using System.Collections.Generic;
-    using System.Net.Http;
     using BlazorApp.Services;
     using Microsoft.AspNetCore.Components;
     using Microsoft.AspNetCore.Components.Routing;
