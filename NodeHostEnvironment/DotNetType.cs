@@ -10,6 +10,7 @@ namespace NodeHostEnvironment
         Double,
         String, // Do we need encodings or do we assume UTF8?
         JsHandle, // A handle that was received from node
-        Function, 
+        Function,
+        ByteArray,
     }
 }
