@@ -5,7 +5,8 @@
 
 #include "jshandle.h"
 
-namespace DotNetType {
+namespace DotNetType
+{
 typedef enum
 {
     Undefined,
@@ -14,9 +15,10 @@ typedef enum
     Int32,
     Int64,
     Double,
-    String, // Do we need encodings or do we assume UTF8?
+    String,   // Do we need encodings or do we assume UTF8?
     JsHandle, // A handle that was received from node
-    Function
+    Function,
+    ByteArray
 } Enum;
 }
 
@@ -24,24 +26,24 @@ extern "C" struct DotNetHandle
 {
     DotNetType::Enum type_;
     union {
-        void* value_;
-        JsHandle* jshandle_value_;
-        char* string_value_;
+        void *value_;
+        JsHandle *jshandle_value_;
+        char *string_value_;
         bool bool_value_;
         int32_t int32_value_;
         int64_t int64_value_;
         double double_value_;
-        void (*function_value_)(int,JsHandle*, DotNetHandle&);
+        void (*function_value_)(int, JsHandle *, DotNetHandle &);
     };
-    void (*release_func_)(DotNetHandle*);    
+    void (*release_func_)(DotNetHandle *);
 
     void Release()
     {
         if (nullptr != release_func_)
-            release_func_(this);        
+            release_func_(this);
     }
 
-    Napi::Value ToValue(const Napi::Env& env, std::function<Napi::Function(DotNetHandle*)> function_factory)
+    Napi::Value ToValue(const Napi::Env &env, std::function<Napi::Function(DotNetHandle *)> function_factory)
     {
         if (type_ == DotNetType::Null)
             return env.Null();
@@ -62,7 +64,23 @@ extern "C" struct DotNetHandle
         {
             return function_factory(this);
         }
-        
+        if (type_ == DotNetType::ByteArray)
+        {
+            auto release_func = release_func_;
+            release_func_ = nullptr; // We delay the release
+
+            return Napi::ArrayBuffer::New(env,
+                                          reinterpret_cast<void*>(reinterpret_cast<int32_t*>(value_) + 1),
+                                          *reinterpret_cast<int32_t *>(value_),
+                                          [release_func](napi_env env, void *finalize_data) {
+                                              DotNetHandle copy;
+                                              copy.type_ = DotNetType::ByteArray;
+                                              copy.value_ = reinterpret_cast<void*>(reinterpret_cast<int32_t*>(finalize_data) - 1);
+                                              copy.release_func_ = release_func;
+                                              copy.Release();
+                                          });
+        }
+
         // TODO: Support other types
         return Napi::Value::Value();
     }
