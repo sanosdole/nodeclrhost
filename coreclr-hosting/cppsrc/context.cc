@@ -91,7 +91,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
     if (info.Length() != 2 || !info[0].IsString() || !info[1].IsString() /*|| !info[2].IsFunction()*/)
     {
         Napi::Error::New(env, "Expected path and assembly name in call to runCoreApp.").ThrowAsJavaScriptException();
-        return Napi::Value::Value();
+        return Napi::Value();
     }
 
     std::unique_ptr<DotNetHost> host;
@@ -103,16 +103,16 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
             break;
         case DotNetHostCreationResult::kCoreClrNotFound:
             Napi::Error::New(env, "Could not find coreclr at given base path").ThrowAsJavaScriptException();
-            return Napi::Value::Value();
+            return Napi::Value();
         case DotNetHostCreationResult::kInvalidCoreClr:
             Napi::Error::New(env, "The coreclr found at base path is invalid. Probably incompatible version").ThrowAsJavaScriptException();
-            return Napi::Value::Value();
+            return Napi::Value();
         case DotNetHostCreationResult::kInitializeFailed:
             Napi::Error::New(env, "Failed to initialize the coreclr runtime.").ThrowAsJavaScriptException();
-            return Napi::Value::Value();
+            return Napi::Value();
         default:
             Napi::Error::New(env, "Unexpected error while creating coreclr host.").ThrowAsJavaScriptException();
-            return Napi::Value::Value();
+            return Napi::Value();
     }
 
     // Set up context on current thread
@@ -131,11 +131,11 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
         case coreclrhosting::DotNetHostExecuteAssemblyResult::kAssemblyNotFound:
             context->Release();
             Napi::Error::New(env, "Could not find assembly to execute.").ThrowAsJavaScriptException();
-            return Napi::Value::Value();
+            return Napi::Value();
         default:
             context->Release();
             Napi::Error::New(env, "Unexpected error while executing assembly.").ThrowAsJavaScriptException();
-            return Napi::Value::Value();
+            return Napi::Value();
     }    
 }
 

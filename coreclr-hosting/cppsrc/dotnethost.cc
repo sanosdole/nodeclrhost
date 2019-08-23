@@ -69,7 +69,7 @@ namespace {
         }
     }
 
-#elif LINUX
+#else
     #include <dirent.h>
     #include <dlfcn.h>
     #include <limits.h>
@@ -90,7 +90,7 @@ namespace {
         return dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
     }
 
-    template<TFuncPointer>
+    template<typename TFuncPointer>
     TFuncPointer GetFunction(LibraryHandle library, const char* name) {
         return reinterpret_cast<TFuncPointer>(dlsym(library, name));
     }

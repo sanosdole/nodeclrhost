@@ -93,7 +93,7 @@ struct JsHandle
             return function_value_->Value();
 
         // TODO: Support blittable types
-        return Napi::Value::Value();
+        return Napi::Value();
     }
 
     static JsHandle FromValue(Napi::Value value)

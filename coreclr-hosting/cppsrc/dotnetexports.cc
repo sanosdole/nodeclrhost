@@ -2,7 +2,11 @@
 
 using namespace coreclrhosting;
 
+#ifdef WINDOWS
 #define EXPORT_TO_DOTNET extern "C" __declspec(dllexport)
+#else
+#define EXPORT_TO_DOTNET extern "C" __attribute__((visibility("default")))
+#endif
 
 EXPORT_TO_DOTNET void* GetContext() {
     return Context::CurrentInstance();

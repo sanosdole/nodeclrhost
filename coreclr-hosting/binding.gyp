@@ -31,7 +31,8 @@
             ],
           }, { # OS != "win",
             'defines': [
-              'NON_WINDOWS_DEFINE',              
+              'NON_WINDOWS_DEFINE', 
+              'OSX'             
             ],
           }]
         ]

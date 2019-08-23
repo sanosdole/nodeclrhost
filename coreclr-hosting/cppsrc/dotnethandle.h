@@ -64,7 +64,7 @@ extern "C" struct DotNetHandle
         }
         
         // TODO: Support other types
-        return Napi::Value::Value();
+        return Napi::Value();
     }
 };
 

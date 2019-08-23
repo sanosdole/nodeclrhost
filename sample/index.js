@@ -34,7 +34,8 @@ global.callLater = function(cb) {
   }, 1000)
 }
 // console.log(testAddon.hello());
-var runResult = coreclrHosting.runCoreApp(__dirname + '\\SampleApp\\bin\\published', 'SampleApp.dll'/*,
+console.log(__dirname + '/SampleApp/bin/published');
+var runResult = coreclrHosting.runCoreApp(__dirname + '/SampleApp/bin/published', 'SampleApp.dll'/*,
 function (error, result) {
     
     console.log('AsyncResult=' + result);
