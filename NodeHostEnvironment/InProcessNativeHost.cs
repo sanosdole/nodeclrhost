@@ -48,10 +48,10 @@ namespace NodeHostEnvironment
 
         private ReleaseDotNetValue ReleaseCallback;
 
-        private void ReleaseCallbackIntern(DotNetValue toRelease)
+        private void ReleaseCallbackIntern(DotNetType type, IntPtr value)
         {
-            Console.WriteLine("Removing callback from registry");
-            _registry.Remove(_registry.First(ch => ch.CallbackPtr == toRelease.Value));
+            //Console.WriteLine($"Removing callback {value} from registry");
+            _registry.Remove(_registry.First(ch => ch.CallbackPtr == value));
         }
 
         /// <summary>
@@ -71,6 +71,7 @@ namespace NodeHostEnvironment
                 Wrapped = toWrap;
                 _wrapper = OnCalled;
                 CallbackPtr = Marshal.GetFunctionPointerForDelegate(_wrapper);
+                //Console.WriteLine($"Marshalling callback {CallbackPtr} from registry");
                 _parent = parent;
             }
 

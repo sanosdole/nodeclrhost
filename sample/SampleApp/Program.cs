@@ -10,14 +10,16 @@
         {
             var host = NodeHost.InProcess();
             var console = host.Global.console;
-            console.log("Starting timeout");
+            console.log("Starting timeout"); // TODO: Release of string crashes
+            // TODO: Invocation of delegates crashes
             host.Global.setTimeout(new Action(() => 
                                     {
                                         console.log("Timeout from node");
-                                        host.Dispose();
+                                        //host.Dispose();
                                     }),
                                    1500);
-            RunAsyncApp(host);
+            RunAsyncApp(host); 
+            //host.Dispose();
             return 5;
         }
 

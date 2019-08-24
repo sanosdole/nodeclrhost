@@ -33,12 +33,13 @@ extern "C" struct DotNetHandle
         double double_value_;
         void (*function_value_)(int,JsHandle*, DotNetHandle&);
     };
-    void (*release_func_)(DotNetHandle*);    
+    void (*release_func_)(DotNetType::Enum, void*);    
 
     void Release()
     {
+        //printf("Releasing handle with %p \n", value_);
         if (nullptr != release_func_)
-            release_func_(this);        
+            release_func_(type_, value_);        
     }
 
     Napi::Value ToValue(const Napi::Env& env, std::function<Napi::Function(DotNetHandle*)> function_factory)

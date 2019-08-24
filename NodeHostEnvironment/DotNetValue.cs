@@ -8,7 +8,7 @@ namespace NodeHostEnvironment
     using System;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void ReleaseDotNetValue(DotNetValue value);
+    public delegate void ReleaseDotNetValue(DotNetType type, IntPtr value);
 
     [StructLayout(LayoutKind.Sequential)]
     public struct DotNetValue
@@ -122,9 +122,11 @@ namespace NodeHostEnvironment
 
         private static ReleaseDotNetValue ReleaseHGlobal = ReleaseHGlobalIntern;
 
-        private static void ReleaseHGlobalIntern(DotNetValue value)
+        private static void ReleaseHGlobalIntern(DotNetType type, IntPtr value)
         {
-            Marshal.FreeHGlobal(value.Value);
+            //Console.WriteLine($"Releasing pointer {value.ToInt64():X8}");
+            // TODO: Crashes on macOS!
+            Marshal.FreeHGlobal(value);
         }
 
         private static IntPtr NativeUtf8FromString(string managedString)
@@ -134,6 +136,7 @@ namespace NodeHostEnvironment
             Encoding.UTF8.GetBytes(managedString, 0, managedString.Length, buffer, 0);
             IntPtr nativeUtf8 = Marshal.AllocHGlobal(buffer.Length);
             Marshal.Copy(buffer, 0, nativeUtf8, buffer.Length);
+            //Console.WriteLine($"Passing pointer {nativeUtf8.ToInt64():X8}");
             return nativeUtf8;
         }
 

@@ -207,8 +207,11 @@ JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc, Do
     for (int c = 0; c < argc; c++)
     {
         arguments[c] = argv[c].ToValue(env_, function_factory_);
+        // TODO: This crashes on macOS
+        //printf("Releasing ptr %p \n", reinterpret_cast<u_int64_t>(argv[c].value_));
         argv[c].Release();
     }
+    
     
     auto result = function.MakeCallback(receiver_handle.ToValue(env_), arguments);
     return JsHandle::FromValue(result);
@@ -230,7 +233,7 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
             arguments.push_back(JsHandle::FromValue(info[c]));            
         }
         
-        DotNetHandle resultIntern;       
+        DotNetHandle resultIntern;
         (*function_value)(argc, arguments.data(), resultIntern);
 
         return resultIntern.ToValue(info.Env(), this->function_factory_);
