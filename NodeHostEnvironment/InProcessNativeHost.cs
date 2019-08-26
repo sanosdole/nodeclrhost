@@ -1,13 +1,11 @@
 namespace NodeHostEnvironment
 {
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Security;
     using System.Text;
     using System.Threading.Tasks;
-    using System.Threading;
     using System;
 
     public sealed class InProcessNativeHost : INativeHost

@@ -17,7 +17,7 @@ global.createBrowserWindow = function(options) {
 }*/
 
 
-var runResult = coreclrhosting.runCoreApp(__dirname + '\\bin\\published', 'BrowserApp.dll');
+var runResult = coreclrhosting.runCoreApp(__dirname + '/BrowserApp/bin/published', 'BrowserApp.dll');
 
 /*
 electron = global.electron;

@@ -43,7 +43,7 @@
             {
                 try
                 {
-                    //System.Diagnostics.Debugger.Launch();
+                    System.Diagnostics.Debugger.Launch();
                     var div = host.Global.window.document.getElementById("AnimateDiv");
                     for (var c = 0; c < 30; c++)
                     {
