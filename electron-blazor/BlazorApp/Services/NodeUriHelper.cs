@@ -27,7 +27,8 @@ namespace BlazorApp.Services
             var window = NodeJSRuntime.Instance.Host.Global.window;
             var blazor = window.Blazor._internal;
             
-            blazor.uriHelper.listenForNavigationEvents(new Action<string,bool>(NotifyLocationChanged));
+            // TODO DM 26.08.2019: Use boolean once callbacks can convert Number to Boolean
+            blazor.uriHelper.listenForNavigationEvents(new Action<string,double>(NotifyLocationChanged));
             var baseUri = (string)blazor.uriHelper.getBaseURI();
             var uri = (string)blazor.uriHelper.getLocationHref();            
             /*string uri = window.location.href;
@@ -58,11 +59,27 @@ namespace BlazorApp.Services
         /// For framework use only.
         /// </summary>
         //[JSInvokable(nameof(NotifyLocationChanged))]
-        private static void NotifyLocationChanged(string newAbsoluteUri, bool isInterceptedLink)
+        private static void NotifyLocationChanged(string newAbsoluteUri, double isInterceptedLink)
         {
             Instance.SetAbsoluteUri(newAbsoluteUri);
-            Instance.TriggerOnLocationChanged(isInterceptedLink);
+            Instance.TriggerOnLocationChanged(isInterceptedLink > 0.0);
+
+ // TODO DM 26.08.2019: Remove test code
+            var _baseUri = Instance.GetBaseUri();
+        var _locationAbsolute = Instance.GetAbsoluteUri();
+        var LocationPath = Instance.ToBaseRelativePath(_baseUri, _locationAbsolute);
+        LocationPath = StringUntilAny(LocationPath, new[] { '?', '#' });     
+        NodeJSRuntime.Instance.Host.Global.window.console.info("New location: " + LocationPath);
+        NodeJSRuntime.Instance.Host.Global.console.info("New location glob: " + LocationPath);
         }
+
+        private  static string StringUntilAny(string str, char[] chars)
+    {
+        var firstIndex = str.IndexOfAny(chars);
+        return firstIndex < 0
+            ? str
+            : str.Substring(0, firstIndex);
+    }
 
         /// <summary>
         /// Given the document's document.baseURI value, returns the URI
