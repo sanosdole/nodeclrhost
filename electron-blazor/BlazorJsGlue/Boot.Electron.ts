@@ -29,25 +29,16 @@ async function boot(options?: any): Promise<void> {
     renderBatch(browserRendererId, new SharedMemoryRenderBatch(batchAddress));
   };*/
 
-<<<<<<< HEAD
   // TODO DM 26.08.2019: Navigation is different on trunk compared to preview 8
   // Configure navigation via JS Interop
   /*window['Blazor']._internal.navigationManager.listenForNavigationEvents(async (uri: string, intercepted: boolean): Promise<void> => {
-=======
-  // Configure navigation via JS Interop
-  window['Blazor']._internal.navigationManager.listenForNavigationEvents(async (uri: string, intercepted: boolean): Promise<void> => {
->>>>>>> Initial version of Blazor in Renderer process.
     await DotNet.invokeMethodAsync(
       'Microsoft.AspNetCore.Blazor',
       'NotifyLocationChanged',
       uri,
       intercepted
     );
-<<<<<<< HEAD
   });*/
-=======
-  });
->>>>>>> Initial version of Blazor in Renderer process.
 
 // DM 21.08.2019: Setting up the renderer
 window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddress: ArrayBuffer) => {
@@ -57,10 +48,7 @@ window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddres
 }
 
 // DM 21.08.2019: Start the blazor app
-<<<<<<< HEAD
 console.info("Running in process " + process.pid);
-=======
->>>>>>> Initial version of Blazor in Renderer process.
 console.info("Starting from " + __dirname + '\\..');
 var result = coreclrhosting.runCoreApp(__dirname + '\\..', 'BlazorApp.dll');
 console.info("Main returned: " + result);
