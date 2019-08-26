@@ -35,7 +35,7 @@ export class BrowserRenderer {
     if (!element) {
       throw new Error(`No element is currently associated with component ${componentId}`);
     }
-    console.info("updating element " + element);
+    //console.info("updating element " + element);
 
     // On the first render for each root component, clear any existing content (e.g., prerendered)
     const rootElementToClear = rootComponentsPendingFirstRender[componentId];
@@ -277,7 +277,7 @@ export class BrowserRenderer {
 
     const markupContent = batch.frameReader.markupContent(markupFrame);
     const parsedMarkup = parseMarkup(markupContent, isSvgElement(parent));
-    console.info("inserting markup " + parsedMarkup);    
+    //console.info("inserting markup " + parsedMarkup);    
     //console.info("ins mu");
     let logicalSiblingIndex = 0;
     while (parsedMarkup.firstChild) {
