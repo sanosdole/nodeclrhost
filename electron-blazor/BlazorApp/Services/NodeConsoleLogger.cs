@@ -12,7 +12,7 @@ namespace BlazorApp.Services
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return logLevel >= LogLevel.Warning;
+            return logLevel >= LogLevel.Debug;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
