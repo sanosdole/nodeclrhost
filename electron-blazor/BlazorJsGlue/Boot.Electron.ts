@@ -19,7 +19,8 @@ async function boot(options?: any): Promise<void> {
   }
   started = true;
 
-  setEventDispatcher((eventDescriptor, eventArgs) => DotNet.invokeMethodAsync('Microsoft.AspNetCore.Blazor', 'DispatchEvent', eventDescriptor, JSON.stringify(eventArgs)));
+  setEventDispatcher((eventDescriptor, eventArgs) => window['Blazor']._internal.HandleRendererEvent(JSON.stringify(eventDescriptor), JSON.stringify(eventArgs)));
+    //DotNet.invokeMethodAsync('Microsoft.AspNetCore.Blazor', 'DispatchEvent', eventDescriptor, JSON.stringify(eventArgs)));
 
   // Configure environment for execution under Mono WebAssembly with shared-memory rendering
   /*const platform = Environment.setPlatform(monoPlatform);
