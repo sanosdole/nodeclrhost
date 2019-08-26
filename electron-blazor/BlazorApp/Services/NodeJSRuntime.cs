@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using BlazorApp.Rendering;
 using Microsoft.JSInterop;
 using NodeHostEnvironment;
 
@@ -20,6 +21,7 @@ namespace BlazorApp.Services
                 {
                     Host.Dispose();
                 }));
+            RendererRegistryEventDispatcher.Register(this);
         }
 
         public Task<TValue> InvokeAsync<TValue>(string identifier, params object[] args)
