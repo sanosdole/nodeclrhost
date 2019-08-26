@@ -13,7 +13,7 @@ namespace BlazorApp
     {
         public static void Main(string[] args)
         {
-            System.Diagnostics.Debugger.Launch();
+            //System.Diagnostics.Debugger.Launch();
             CreateHostBuilder(args).Build().Run();
         }
 
