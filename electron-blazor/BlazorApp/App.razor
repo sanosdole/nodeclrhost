@@ -20,9 +20,10 @@
 
     protected override void OnInitialized()
     {
+        UriHelper.OnLocationChanged += OnLocationChanged;
         _baseUri = UriHelper.GetBaseUri();
         _locationAbsolute = UriHelper.GetAbsoluteUri();
-        var LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+        LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
         LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);
     }
 
@@ -32,5 +33,14 @@
         return firstIndex < 0
             ? str
             : str.Substring(0, firstIndex);
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        _baseUri = UriHelper.GetBaseUri();
+        _locationAbsolute = UriHelper.GetAbsoluteUri();
+        LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);        
+        StateHasChanged();
     }
 }

@@ -91,7 +91,7 @@ namespace BlazorApp.Hosting
 
             services.AddSingleton<AuthenticationStateProvider, NodeAuthenticationStateProvider>();
 
-            services.AddSingleton<IUriHelper, NodeUriHelper>();
+            services.AddSingleton<IUriHelper>(NodeUriHelper.Instance);
             services.AddSingleton<IComponentContext, NodeComponentContext>();
 
             // DM 19.08.2019: We do not need an HttpClient like WebAssembly does

@@ -33,6 +33,7 @@ namespace BlazorApp.Rendering
             }
             DispatchEventOriginal(new BrowserEventDescriptor
                 {
+                    // TODO DM 26.08.2019: Replace those casts once we support proper number handling
                     BrowserRendererId = (int) (double) eventDescriptor.browserRendererId,
                         EventHandlerId = (ulong) (double) eventDescriptor.eventHandlerId,
                         EventArgsType = eventDescriptor.eventArgsType,
