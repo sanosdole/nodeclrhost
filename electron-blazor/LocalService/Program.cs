@@ -23,6 +23,10 @@ namespace LocalService
                     console.log("app is ready");
                     var options = host.New();
                     options.title = ".NET rocks";
+                    options.backgroundColor = "#fff";
+                    options.useContentSize = true;
+                    //options.kiosk = true;
+
                     var webPreferences = host.New();
                     options.webPreferences = webPreferences;
                     webPreferences.nodeIntegration = true;
@@ -34,7 +38,7 @@ namespace LocalService
                     
                     browserWindow = electron.BrowserWindow.CreateNewInstance(options);
                                         
-                    browserWindow.loadFile("bin/published/BlazorApp/wwwroot/BlazorApp.html");
+                    browserWindow.loadFile("bin/published/BlazorApp/wwwroot/index.html");
 
                 }));
 

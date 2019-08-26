@@ -1,10 +1,36 @@
-﻿<div>
-<p>Hallo Blazor</p>
-<CascadingAuthenticationState>
+﻿@inject IUriHelper UriHelper
+
+<!-- <p>Hallo Blazor</p>
+<CascadingAuthenticationState> -->
     <Router AppAssembly="typeof(Startup).Assembly">
         <NotFoundContent>
-            <p>Sorry, there's nothing at this address.</p>
+            <p>Sorry, there's nothing at @LocationPath (diff from @_baseUri &amp; @_locationAbsolute)</p>
         </NotFoundContent>
     </Router>
+    <!--
 </CascadingAuthenticationState>
-</div>
+-->
+
+
+@code {
+    static readonly char[] _queryOrHashStartChar = new[] { '?', '#' };
+    string LocationPath = null;
+    string _baseUri;
+    string _locationAbsolute;
+
+    protected override void OnInitialized()
+    {
+        _baseUri = UriHelper.GetBaseUri();
+        _locationAbsolute = UriHelper.GetAbsoluteUri();
+        var LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);
+    }
+
+    private string StringUntilAny(string str, char[] chars)
+    {
+        var firstIndex = str.IndexOfAny(chars);
+        return firstIndex < 0
+            ? str
+            : str.Substring(0, firstIndex);
+    }
+}

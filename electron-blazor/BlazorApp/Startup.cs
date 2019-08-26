@@ -10,7 +10,7 @@ namespace BlazorApp
 
         public void Configure(IComponentsApplicationBuilder app)
         {
-            app.AddComponent<Counter>("app");
+            app.AddComponent<App>("app");
         }
     }
 }
