@@ -26,16 +26,15 @@ namespace BlazorApp.Rendering
             if (sourceFieldInfo != null)
             {
                 fieldInfo = new EventFieldInfo
-                        {
-                            ComponentId = eventDescriptor.eventFieldInfo.componentId,
-                                FieldValue = eventDescriptor.eventFieldInfo.fieldValue
-
-                        };
+                {
+                    ComponentId = eventDescriptor.eventFieldInfo.componentId,
+                    FieldValue = eventDescriptor.eventFieldInfo.fieldValue
+                };
             }
             DispatchEventOriginal(new BrowserEventDescriptor
                 {
-                    BrowserRendererId = (int)(double)eventDescriptor.browserRendererId,
-                        EventHandlerId = (ulong)(double)eventDescriptor.eventHandlerId,
+                    BrowserRendererId = (int) (double) eventDescriptor.browserRendererId,
+                        EventHandlerId = (ulong) (double) eventDescriptor.eventHandlerId,
                         EventArgsType = eventDescriptor.eventArgsType,
                         EventFieldInfo = fieldInfo
                 },

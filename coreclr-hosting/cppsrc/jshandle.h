@@ -66,8 +66,8 @@ struct JsHandle
     JsHandle(Napi::String value)
     {
         auto utf8 = value.Utf8Value();
-        string_value_ = new char[utf8.size()];
-        memcpy(string_value_, utf8.c_str(), utf8.size());
+        string_value_ = new char[utf8.size() + 1];
+        memcpy(string_value_, utf8.c_str(), utf8.size() + 1);
         type_ = JsType::String;
     }
     JsHandle(double double_value) {

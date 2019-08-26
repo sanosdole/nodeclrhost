@@ -19,7 +19,7 @@ async function boot(options?: any): Promise<void> {
   }
   started = true;
 
-  setEventDispatcher((eventDescriptor, eventArgs) => window['Blazor']._internal.HandleRendererEvent(JSON.stringify(eventDescriptor), JSON.stringify(eventArgs)));
+  setEventDispatcher((eventDescriptor, eventArgs) => window['Blazor']._internal.HandleRendererEvent(eventDescriptor, JSON.stringify(eventArgs)));
     //DotNet.invokeMethodAsync('Microsoft.AspNetCore.Blazor', 'DispatchEvent', eventDescriptor, JSON.stringify(eventArgs)));
 
   // Configure environment for execution under Mono WebAssembly with shared-memory rendering
@@ -47,6 +47,7 @@ window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddres
 }
 
 // DM 21.08.2019: Start the blazor app
+console.info("Running in process " + process.pid);
 console.info("Starting from " + __dirname + '\\..');
 var result = coreclrhosting.runCoreApp(__dirname + '\\..', 'BlazorApp.dll');
 console.info("Main returned: " + result);
