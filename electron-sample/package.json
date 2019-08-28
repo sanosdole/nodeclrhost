@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-browserapp": "dotnet publish --self-contained -r osx-x64 BrowserApp/BrowserApp.csproj -o bin/published",
-    "build-rendererapp": "dotnet publish --self-contained -r osx-x64 RendererApp/RendererApp.csproj -o bin/published",
+    "build-browserapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BrowserApp/BrowserApp.csproj bin/published",
+    "build-rendererapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js RendererApp/RendererApp.csproj bin/published",
     "start": "electron ."
   },
   "author": "",

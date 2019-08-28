@@ -6,7 +6,8 @@
   "gypfile": true,
   "scripts": {
     "build": "node-gyp rebuild",
-    "clean": "node-gyp clean",    
+    "clean": "node-gyp clean", 
+    "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj bin/published",
     "test": "mocha"
   },
   "author": "Daniel Martin",

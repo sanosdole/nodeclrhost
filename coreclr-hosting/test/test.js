@@ -4,10 +4,7 @@ global.assert = require('assert');
 
 const coreclrhosting = require('.././');
 
-const {execSync} = require('child_process');
-let output = execSync('dotnet publish --self-contained -r win10-x64 test/TestApp/TestApp.csproj -o bin/published /p:TrimUnusedDependencies=true');
-//console.log(output);
-var result = coreclrhosting.runCoreApp(__dirname + '\\TestApp\\bin\\published', 'TestApp.dll');
+var result = coreclrhosting.runCoreApp(__dirname + '/TestApp/bin/published', 'TestApp.dll');
 console.log('pid', process.pid);
 global.describe('coreclrhosting', function() {
 

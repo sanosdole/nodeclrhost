@@ -1,1 +1,0 @@
-dotnet publish --self-contained -r win10-x64 SampleApp\SampleApp.csproj -o bin\published /p:TrimUnusedDependencies=true
