@@ -152,7 +152,7 @@ namespace NodeHostEnvironment
         private static class NativeMethods
         {
             //private const string LibName = "../../../node_modules/coreclr-hosting/build/Release/coreclr-hosting.node";
-            private const string LibName = "./coreclr-hosting.node";
+            private const string LibName = "coreclr-hosting.node"; // TODO: Mac adds lib :( We need to manually load those...
             // TODO: LPStr => LPUTF8Str
 
             [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
