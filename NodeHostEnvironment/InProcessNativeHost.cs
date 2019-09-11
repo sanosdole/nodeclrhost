@@ -3,15 +3,17 @@ namespace NodeHostEnvironment
     using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;
-    using System.Security;
     using System.Text;
     using System.Threading.Tasks;
     using System;
+    using NodeHostEnvironment.NativeApi;
 
     public sealed class InProcessNativeHost : INativeHost
     {
         private readonly IntPtr _context;
         private readonly NodeTaskScheduler _scheduler;
+
+        private DelegateBasedNativeApi NativeMethods { get; } = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>("coreclr-hosting.node");
 
         public InProcessNativeHost()
         {
@@ -74,20 +76,20 @@ namespace NodeHostEnvironment
             }
 
             private void OnCalled(int argc, JsValue[] argv, out DotNetValue result)
-            {               
+            {
                 System.Diagnostics.Debug.Assert(argc == (argv?.Length ?? 0), "Marshalling is broken");
 
                 try
                 {
                     using(_parent._scheduler.SetNodeContext())
-                        Wrapped(argc, argv ?? new JsValue[0], out result);                    
+                    Wrapped(argc, argv ?? new JsValue[0], out result);
                 }
                 catch (System.Exception e)
                 {
                     Console.WriteLine("Exception while invoking callback: {0}", e);
                     throw; // TODO: put into result
                 }
-                
+
             }
         }
 
@@ -106,7 +108,7 @@ namespace NodeHostEnvironment
         public JsValue GetMember(JsValue ownerHandle, string name)
         {
             CheckInContext();
-            return NativeMethods.GetMember(_context, ownerHandle, name);            
+            return NativeMethods.GetMember(_context, ownerHandle, name);
         }
 
         // Convert handles to primitives can be done in managed code based on JsType
@@ -146,54 +148,6 @@ namespace NodeHostEnvironment
             byte[] buffer = new byte[len];
             Marshal.Copy(nativeUtf8, buffer, 0, buffer.Length);
             return Encoding.UTF8.GetString(buffer);
-        }
-
-        [SuppressUnmanagedCodeSecurity]
-        private static class NativeMethods
-        {
-            //private const string LibName = "../../../node_modules/coreclr-hosting/build/Release/coreclr-hosting.node";
-            private const string LibName = "coreclr-hosting.node"; // TODO: Mac adds lib :( We need to manually load those...
-            // TODO: LPStr => LPUTF8Str
-
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static IntPtr GetContext();
-
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static void ReleaseContext(IntPtr context);
-
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static int PostCallback(IntPtr context, NodeCallback callback, IntPtr data);
-
-            // Get a handle, ownerHandler == Zero => Global
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static JsValue GetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name); // A zero handle uses the global object.
-
-            // Convert handles to primitives can be done in managed code based on JsType
-            // ATTENTION: 32bit node exists :(
-
-            // Set a member
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static JsValue SetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name, DotNetValue value);
-
-            // Invoke handles that represent functions
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static JsValue Invoke(IntPtr context, JsValue handle, JsValue receiverHandle, int argc, DotNetValue[] argv);
-            /*
-                    // Create a JSON object
-                    [DllImport("coreclr-hosting.node", CallingConvention = CallingConvention.Cdecl)]
-                    public extern static JsHandle CreateJsonObject(int argc, [MarshalAs(UnmanagedType.LPStr)] string[] argn, DotNetValue[] argv);
-                    
-                    [DllImport("coreclr-hosting.node", CallingConvention = CallingConvention.Cdecl)]
-                    public extern static JsHandle CreateJsonObject(string json);
-                     */
-
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static JsValue CreateObject(IntPtr context, JsValue constructor, int argc, DotNetValue[] argv); // We use SetMember to define members
-
-            // Release a handle
-            [DllImport(LibName, CallingConvention = CallingConvention.Cdecl)]
-            public extern static void Release(JsValue handle);
-
         }
 
     }
