@@ -2,6 +2,7 @@
 #define __CORECLR_HOSTING_HOSTMAIN_H__
 
 #include <string>
+#include <memory>
 
 namespace coreclrhosting {
 
