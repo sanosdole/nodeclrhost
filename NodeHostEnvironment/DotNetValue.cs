@@ -125,7 +125,6 @@ namespace NodeHostEnvironment
         private static void ReleaseHGlobalIntern(DotNetType type, IntPtr value)
         {
             //Console.WriteLine($"Releasing pointer {value.ToInt64():X8}");
-            // TODO: Crashes on macOS!
             Marshal.FreeHGlobal(value);
         }
 

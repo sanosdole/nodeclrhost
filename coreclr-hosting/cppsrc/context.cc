@@ -165,6 +165,7 @@ JsHandle Context::SetMember(JsHandle owner_handle, const char* name, DotNetHandl
     auto owner = owner_handle.ToValue(env_);
     auto owner_object = owner.ToObject();
     auto value = dotnet_handle.ToValue(env_, function_factory_);
+    dotnet_handle.Release();
     owner_object.Set(name, value);
     return JsHandle::FromValue(value);
 }
@@ -207,7 +208,6 @@ JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc, Do
     for (int c = 0; c < argc; c++)
     {
         arguments[c] = argv[c].ToValue(env_, function_factory_);
-        // TODO: This crashes on macOS
         //printf("Releasing ptr %p \n", reinterpret_cast<u_int64_t>(argv[c].value_));
         argv[c].Release();
     }
@@ -236,7 +236,9 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         DotNetHandle resultIntern;
         (*function_value)(argc, arguments.data(), resultIntern);
 
-        return resultIntern.ToValue(info.Env(), this->function_factory_);
+        auto napiResultValue = resultIntern.ToValue(info.Env(), this->function_factory_);
+        resultIntern.Release();
+        return napiResultValue;
     });            
 
     auto releaseCopy = new DotNetHandle;
