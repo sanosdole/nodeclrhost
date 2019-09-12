@@ -4,24 +4,6 @@
     <ProjectReference Include="..\..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <!--<PackageReference Include="Microsoft.AspNetCore.Components" Version="3.0.0-preview8.19405.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="3.0.0-preview8.19405.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Build" Version="3.0.0-preview3-19153-02" />
-  
-    <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.0.0-preview8.19405.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components" Version="3.0.0-preview8.19405.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Analyzers" Version="3.0.0-preview8.19405.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Browser" Version="3.0.0-preview7.19365.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Build" Version="3.0.0-preview3-19153-02" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="3.0.0-preview8.19405.7" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="3.0.0-preview8.19405.4" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="3.0.0-preview8.19405.4" />
-    <PackageReference Include="Microsoft.JSInterop" Version="3.0.0-preview8.19405.4" />
-    <PackageReference Include="System.ComponentModel.Annotations" Version="4.6.0-preview8.19405.3" />
-    -->
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>    
     <LangVersion>7.3</LangVersion>
