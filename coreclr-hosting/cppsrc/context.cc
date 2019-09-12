@@ -1,6 +1,7 @@
 #include "context.h"
 
 #include <map>
+#include <sstream>
 
 namespace {
 
@@ -102,8 +103,12 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
         case DotNetHostCreationResult::kOK:
             break;
         case DotNetHostCreationResult::kCoreClrNotFound:
-            Napi::Error::New(env, "Could not find coreclr at given base path").ThrowAsJavaScriptException();
-            return Napi::Value();
+            {
+                std::ostringstream stringStream;
+                stringStream << "Could not find coreclr at given base path: " << (std::string)info[0].ToString();
+                Napi::Error::New(env, stringStream.str()).ThrowAsJavaScriptException();
+                return Napi::Value();
+            }
         case DotNetHostCreationResult::kInvalidCoreClr:
             Napi::Error::New(env, "The coreclr found at base path is invalid. Probably incompatible version").ThrowAsJavaScriptException();
             return Napi::Value();

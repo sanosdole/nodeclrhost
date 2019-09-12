@@ -49,8 +49,8 @@ window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddres
 
 // DM 21.08.2019: Start the blazor app
 console.info("Running in process " + process.pid);
-console.info("Starting from " + __dirname + '\\..');
-var result = coreclrhosting.runCoreApp(__dirname + '\\..', 'BlazorApp.dll');
+console.info("Starting from " + __dirname + '/..');
+var result = coreclrhosting.runCoreApp(__dirname + '/..', 'BlazorApp.dll');
 console.info("Main returned: " + result);
 //console.info(window["Blazor"]._internal);
 

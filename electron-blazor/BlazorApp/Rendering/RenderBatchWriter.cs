@@ -159,7 +159,7 @@ namespace BlazorApp.Rendering
                         var attributeValueString = frame.AttributeValue as string;
                         WriteString(attributeValueString, allowDeduplication: string.IsNullOrEmpty(attributeValueString));
                     }
-                    //_binaryWriter.Write(0);
+                    //_binaryWriter.Write(0); 
                     _binaryWriter.Write(frame.AttributeEventHandlerId); // 8 bytes
                     break;
                 case RenderTreeFrameType.Component:
