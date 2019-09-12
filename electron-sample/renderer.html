@@ -19,7 +19,7 @@
         global.ToReplace = global.window.document.getElementById("AnimateDiv");
         console.log('TATA: ', global.ToReplace);
         const coreclrhosting = require('coreclr-hosting');
-        var result = coreclrhosting.runCoreApp(__dirname + '/RendererApp/bin/published', 'RendererApp.dll');
+        var result = coreclrhosting.runCoreApp(__dirname + '/bin/published', 'RendererApp.dll');
         document.write(result);
     </script>
     

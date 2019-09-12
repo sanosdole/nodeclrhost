@@ -16,8 +16,8 @@ global.createBrowserWindow = function(options) {
     return mainWindow;
 }*/
 
-
-var runResult = coreclrhosting.runCoreApp(__dirname + '/BrowserApp/bin/published', 'BrowserApp.dll');
+console.log("PID:" + process.pid);
+var runResult = coreclrhosting.runCoreApp(__dirname + '/bin/published', 'BrowserApp.dll');
 
 /*
 electron = global.electron;

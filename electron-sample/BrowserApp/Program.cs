@@ -8,7 +8,7 @@
     {
         static dynamic browserWindow;
         static int Main(string[] args)
-        {
+        {            
             var host = NodeHost.InProcess();
             try
             {

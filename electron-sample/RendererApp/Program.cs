@@ -43,13 +43,13 @@
             {
                 try
                 {
-                    System.Diagnostics.Debugger.Launch();
                     var div = host.Global.window.document.getElementById("AnimateDiv");
                     for (var c = 0; c < 30; c++)
                     {
                         await Task.Delay(1000);
-                        //host.Global.console.log("Replacing ", c);                        
-                        div.innerHTML = $@"{c} replaced @ {DateTime.Now} from {Process.GetCurrentProcess().Id}";
+                        //host.Global.console.log("Replacing ", c);  
+                        for (var c2 = 0; c2 < 1000; c2++)                      
+                            div.innerHTML = $@"{c} replaced @ {DateTime.Now} from {Process.GetCurrentProcess().Id}";
                     }
                 }
                 catch (Exception e)
