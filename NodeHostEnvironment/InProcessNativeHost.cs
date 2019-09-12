@@ -13,7 +13,8 @@ namespace NodeHostEnvironment
         private readonly IntPtr _context;
         private readonly NodeTaskScheduler _scheduler;
 
-        private DelegateBasedNativeApi NativeMethods { get; } = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>("coreclr-hosting.node");
+        private DelegateBasedNativeApi NativeMethods { get; } 
+        = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>("./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node");
 
         public InProcessNativeHost()
         {
