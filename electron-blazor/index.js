@@ -5,4 +5,4 @@ console.log('hosting:', coreclrhosting);
 console.log('hosting:', BrowserWindow);
 global.electron = require('electron');
 
-coreclrhosting.runCoreApp(__dirname + '\\bin\\published\\LocalService', 'LocalService.dll');
+coreclrhosting.runCoreApp(__dirname + '/bin/published/LocalService', 'LocalService.dll');

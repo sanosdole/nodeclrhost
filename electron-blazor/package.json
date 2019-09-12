@@ -6,8 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-ts": "tsc -p ./BlazorJsGlue",
-    "build-service": "dotnet publish LocalService\\LocalService.csproj --self-contained -r win-x64 -o bin\\published\\LocalService -f netcoreapp3.0",
-    "build-blazorapp": "dotnet publish BlazorApp\\BlazorApp.csproj --self-contained -r win-x64 -o bin\\published\\BlazorApp -f netcoreapp3.0",
+    "build-service": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js LocalService/LocalService.csproj bin/published/LocalService",
+    "build-blazorapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BlazorApp/BlazorApp.csproj bin/published/BlazorApp",
     "watch-ts": "npm run build-ts -- -w",
     "start": "npm run build-service && npm run build-blazorapp && npm run build-ts && electron .",
     "electron": "electron ."
