@@ -152,10 +152,10 @@ namespace NodeHostEnvironment
             return nativeUtf8;
         }
 
-        private static void ReleaseArrayPointerIntern(DotNetValue value)
+        private static void ReleaseArrayPointerIntern(DotNetType type, IntPtr value)
         {
             // TODO DM 22.08.2019: Do not copy the array!
-            Marshal.FreeHGlobal(value.Value);
+            Marshal.FreeHGlobal(value);
         }
 
         private static IntPtr ArrayPointer(byte[] array)
