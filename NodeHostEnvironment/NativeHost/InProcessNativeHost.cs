@@ -6,6 +6,7 @@ namespace NodeHostEnvironment.NativeHost
     using System.Text;
     using System.Threading.Tasks;
     using System;
+    using NodeHostEnvironment.InProcess;
 
     internal sealed class NativeNodeHost : IHostInProcess
     {
