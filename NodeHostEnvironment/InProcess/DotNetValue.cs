@@ -1,23 +1,20 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.InProcess
 {
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Runtime.InteropServices;
-    using System.Security;
     using System.Text;
     using System;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void ReleaseDotNetValue(DotNetType type, IntPtr value);
+    internal delegate void ReleaseDotNetValue(DotNetType type, IntPtr value);
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct DotNetValue
+    internal struct DotNetValue
     {
         public DotNetType Type;
         public IntPtr Value;
         public ReleaseDotNetValue ReleaseFunc;
 
-        public static DotNetValue FromObject(object obj, INativeHost host)
+        public static DotNetValue FromObject(object obj, IHostInProcess host)
         {
             if (null == obj)
                 return new DotNetValue
@@ -44,7 +41,7 @@ namespace NodeHostEnvironment
             throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
         }
 
-        public static DotNetValue FromDelegate(Delegate @delegate, INativeHost host)
+        public static DotNetValue FromDelegate(Delegate @delegate, IHostInProcess host)
         {
             ReleaseDotNetValue releaseCallback;
             var value = host.MarshallCallback((int argc, JsValue[] argv, out DotNetValue result) =>

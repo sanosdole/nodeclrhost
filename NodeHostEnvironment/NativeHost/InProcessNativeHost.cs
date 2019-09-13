@@ -1,4 +1,4 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.NativeHost
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -6,17 +6,15 @@ namespace NodeHostEnvironment
     using System.Text;
     using System.Threading.Tasks;
     using System;
-    using NodeHostEnvironment.NativeApi;
 
-    public sealed class InProcessNativeHost : INativeHost
+    internal sealed class NativeNodeHost : IHostInProcess
     {
         private readonly IntPtr _context;
         private readonly NodeTaskScheduler _scheduler;
 
-        private DelegateBasedNativeApi NativeMethods { get; } 
-        = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>("./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node");
+        private DelegateBasedNativeApi NativeMethods { get; } = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>("./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node");
 
-        public InProcessNativeHost()
+        public NativeNodeHost()
         {
             _context = NativeMethods.GetContext();
             if (_context == IntPtr.Zero)
@@ -47,7 +45,7 @@ namespace NodeHostEnvironment
             return holder.CallbackPtr;
         }
 
-        private ReleaseDotNetValue ReleaseCallback;
+        private readonly ReleaseDotNetValue ReleaseCallback;
 
         private void ReleaseCallbackIntern(DotNetType type, IntPtr value)
         {
@@ -65,9 +63,9 @@ namespace NodeHostEnvironment
             public IntPtr CallbackPtr { get; }
             public DotNetCallback Wrapped { get; }
             private readonly DotNetCallback _wrapper;
-            private readonly InProcessNativeHost _parent;
+            private readonly NativeNodeHost _parent;
 
-            public CallbackHolder(DotNetCallback toWrap, InProcessNativeHost parent)
+            public CallbackHolder(DotNetCallback toWrap, NativeNodeHost parent)
             {
                 Wrapped = toWrap;
                 _wrapper = OnCalled;

@@ -1,26 +1,24 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.InProcess
 {
-    using System;
-    using System.Threading;
     using System.Threading.Tasks;
+    using System;
     using BridgeApi;
 
-    public sealed class InProcessNodeBridge : IBridgeToNode
+    internal sealed class NodeBridge : IBridgeToNode
     {
-        private readonly INativeHost _host;        
-                
-        public InProcessNodeBridge(INativeHost host)
-        {
-            
-            _host = host;
+        private readonly IHostInProcess _host;
 
+        public NodeBridge(IHostInProcess host)
+        {
+            _host = host;
             Global = new JsDynamicObject(JsValue.Global, _host);
         }
-        public dynamic Global {get;}
-        public dynamic New() 
+
+        public dynamic Global { get; }
+        public dynamic New()
         {
             var handle = _host.CreateObject(JsValue.Global, null);
-            handle.ThrowError(_host);                
+            handle.ThrowError(_host);
             if (handle.Value == IntPtr.Zero)
                 throw new InvalidOperationException("Could not create new JS object");
             return new JsDynamicObject(handle, _host);
@@ -32,9 +30,7 @@ namespace NodeHostEnvironment
         }
         public void Dispose()
         {
-            _host.ReleaseHost();            
+            _host.ReleaseHost();
         }
-
-
     }
 }

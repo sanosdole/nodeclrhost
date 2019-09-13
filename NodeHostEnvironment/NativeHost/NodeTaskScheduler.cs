@@ -1,13 +1,17 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.NativeHost
 {
    using System.Collections.Concurrent;
    using System.Collections.Generic;
    using System.Diagnostics;
+   using System.Runtime.InteropServices;
    using System.Threading.Tasks;
    using System.Threading;
    using System;
 
-   public sealed class NodeTaskScheduler : TaskScheduler
+   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+   internal delegate void NodeCallback(IntPtr data);
+
+   internal sealed class NodeTaskScheduler : TaskScheduler
    {
       private const int NoPendingCallback = 0;
       private const int PendingCallback = 1;

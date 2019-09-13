@@ -1,23 +1,18 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.InProcess
 {
     using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Threading;
     using System.Threading.Tasks;
     using System;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void NodeCallback(IntPtr data);
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void DotNetCallback(int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct, SizeParamIndex = 0)] JsValue[] argv, out DotNetValue result);
+    internal delegate void DotNetCallback(int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct, SizeParamIndex = 0)] JsValue[] argv, out DotNetValue result);
 
     /// <summary>
     /// Interface for enabling unit testing without node environment
     /// </summary>
-    public interface INativeHost
+    internal interface IHostInProcess
     {
-        TaskFactory Factory {get;}
+        TaskFactory Factory { get; }
         void ReleaseHost();
 
         // Get a handle, ownerHandler == Zero + Object => Global

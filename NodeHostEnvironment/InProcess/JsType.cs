@@ -1,6 +1,6 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.InProcess
 {
-    public enum JsType
+    internal enum JsType
     {
         // napi_value_type
         Undefined,
