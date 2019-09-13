@@ -1,9 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace NodeHostEnvironment.NativeApi
+namespace NodeHostEnvironment.NativeHost
 {
-    public sealed class DelegateBasedNativeApi
+    internal sealed class DelegateBasedNativeApi
     {
         public DelegateBasedNativeApi(GetContext getContext,
             ReleaseContext releaseContext,
@@ -36,28 +36,28 @@ namespace NodeHostEnvironment.NativeApi
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate IntPtr GetContext();
+    internal delegate IntPtr GetContext();
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void ReleaseContext(IntPtr context);
+    internal delegate void ReleaseContext(IntPtr context);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int PostCallback(IntPtr context, NodeCallback callback, IntPtr data);
+    internal delegate int PostCallback(IntPtr context, NodeCallback callback, IntPtr data);
 
     // Get a handle, ownerHandler == Zero => Global
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate JsValue GetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name); // A zero handle uses the global object.
+    internal delegate JsValue GetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name); // A zero handle uses the global object.
 
     // Convert handles to primitives can be done in managed code based on JsType
     // ATTENTION: 32bit node exists :(
 
     // Set a member
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate JsValue SetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name, DotNetValue value);
+    internal delegate JsValue SetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name, DotNetValue value);
 
     // Invoke handles that represent functions
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate JsValue Invoke(IntPtr context, JsValue handle, JsValue receiverHandle, int argc, DotNetValue[] argv);
+    internal delegate JsValue Invoke(IntPtr context, JsValue handle, JsValue receiverHandle, int argc, DotNetValue[] argv);
     /*
             // Create a JSON object
             [DllImport("coreclr-hosting.node", CallingConvention = CallingConvention.Cdecl)]
@@ -68,9 +68,9 @@ namespace NodeHostEnvironment.NativeApi
              */
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate JsValue CreateObject(IntPtr context, JsValue constructor, int argc, DotNetValue[] argv); // We use SetMember to define members
+    internal delegate JsValue CreateObject(IntPtr context, JsValue constructor, int argc, DotNetValue[] argv); // We use SetMember to define members
 
     // Release a handle
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate void Release(JsValue handle);
+    internal delegate void Release(JsValue handle);
 }

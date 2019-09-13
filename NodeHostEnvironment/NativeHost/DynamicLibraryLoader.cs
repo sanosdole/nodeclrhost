@@ -3,9 +3,9 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security;
 
-namespace NodeHostEnvironment.NativeApi
+namespace NodeHostEnvironment.NativeHost
 {
-    public static class DynamicLibraryLoader
+    internal static class DynamicLibraryLoader
     {
         public static T LoadApi<T>(string libraryName)
         {

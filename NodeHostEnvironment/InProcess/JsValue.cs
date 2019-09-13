@@ -1,12 +1,10 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.InProcess
 {
     using System.Runtime.InteropServices;
-    using System.Security;
-    using System.Text;
     using System;
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct JsValue
+    internal struct JsValue
     {
         public JsType Type;
         public IntPtr Value;
@@ -17,7 +15,7 @@ namespace NodeHostEnvironment
             Value = IntPtr.Zero
         };
 
-        public bool TryGetObject(INativeHost host, out object result)
+        public bool TryGetObject(IHostInProcess host, out object result)
         {
             var releaseHandle = true;
             try
@@ -28,7 +26,7 @@ namespace NodeHostEnvironment
                         result = null;
                         return true;
                     case JsType.Object:
-                    case JsType.Function:                        
+                    case JsType.Function:
                         releaseHandle = false;
                         result = new JsDynamicObject(this, host);
                         return true;
@@ -37,7 +35,7 @@ namespace NodeHostEnvironment
                         return true;
                     case JsType.Number:
                         // TODO: This will break on 32 bit systems!
-                        result = BitConverter.Int64BitsToDouble((long)Value);
+                        result = BitConverter.Int64BitsToDouble((long) Value);
                         return true;
                     case JsType.Boolean:
                         result = Value != IntPtr.Zero;
@@ -45,7 +43,6 @@ namespace NodeHostEnvironment
                     case JsType.Error:
                         throw new InvalidOperationException(host.StringFromNativeUtf8(Value));
 
-                    
                     case JsType.Undefined:
                     default:
                         result = null;
@@ -61,7 +58,7 @@ namespace NodeHostEnvironment
 
         }
 
-        public void ThrowError(INativeHost host)
+        public void ThrowError(IHostInProcess host)
         {
             if (Type != JsType.Error)
                 return;

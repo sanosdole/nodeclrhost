@@ -1,6 +1,6 @@
-namespace NodeHostEnvironment
+namespace NodeHostEnvironment.InProcess
 {
-    public enum DotNetType
+    internal enum DotNetType
     {
         Undefined,
         Null,

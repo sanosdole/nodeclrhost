@@ -1,9 +1,15 @@
 namespace NodeHostEnvironment
 {
-    using System;
     using System.Threading.Tasks;
+    using System;
     using BridgeApi;
-    
+    using NodeHostEnvironment.InProcess;
+    using NodeHostEnvironment.NativeHost;
+
+    /// <summary>
+    /// Proxy for <see cref="IBridgeToNode"/> implementations.
+    /// Only native in-process hosts using <see cref="InProcess"/> are supported a.t.m.
+    /// </summary>
     public sealed class NodeHost : IBridgeToNode
     {
         private readonly IBridgeToNode _bridge;
@@ -13,37 +19,27 @@ namespace NodeHostEnvironment
             _bridge = bridge;
         }
 
+        /// <summary>
+        /// Creates a native in process host.
+        /// This will only work when it is called synchronously from the main entry point
+        /// invoked by the `coreclr-hosting` node module.
+        /// </summary>
+        /// <returns></returns>
         public static NodeHost InProcess()
         {
-            return new NodeHost(new InProcessNodeBridge(new InProcessNativeHost()));
+            return new NodeHost(new NodeBridge(new NativeNodeHost()));
         }
 
+        /// <inheritdoc/>
         public dynamic Global => _bridge.Global;
+
+        /// <inheritdoc/>
         public dynamic New() => _bridge.New();
 
-        public Task<T> Run<T>(Func<T> action)
-        {
-            return _bridge.Run(action);
-        }
+        /// <inheritdoc/>
+        public Task<T> Run<T>(Func<T> func) => _bridge.Run(func);
 
-        public async Task<T> Run<T>(Func<Task<T>> action)
-        {
-            return await Run(action);
-        }
-
-        public Task Run(Func<Task> action)
-        {
-            return Run<Task>(action).Unwrap();
-        }
-
-        public Task Run(Action action)
-        {
-            return Run(() => { action(); return (object)null; });
-        }
-
-        public void Dispose()
-        {
-            _bridge.Dispose();
-        }        
+        /// <inheritdoc/>
+        public void Dispose() => _bridge.Dispose();
     }
 }
