@@ -24,19 +24,21 @@ namespace NodeHostEnvironment.InProcess
                     ReleaseFunc = null
                 };
             if (obj is bool)
-                return FromBool((bool) obj);
+                return FromBool((bool)obj);
             if (obj is int)
-                return FromInt((int) obj);
+                return FromInt((int)obj);
             if (obj is Delegate)
-                return FromDelegate((Delegate) obj, host);
+                return FromDelegate((Delegate)obj, host);
             if (obj is JsValue)
-                return FromJsValue((JsValue) obj);
+                return FromJsValue((JsValue)obj);
             if (obj is JsDynamicObject)
-                return FromJsValue(((JsDynamicObject) obj).Handle);
+                return FromJsValue(((JsDynamicObject)obj).Handle);
             if (obj is string)
-                return FromString((string) obj);
+                return FromString((string)obj);
             if (obj is byte[])
-                return FromByteArray((byte[]) obj);
+                return FromByteArray((byte[])obj);
+            if (obj is Exception)
+                return FromException((Exception)obj);
 
             throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
         }
@@ -63,7 +65,6 @@ namespace NodeHostEnvironment.InProcess
                     mappedArgs[c] = parameter;
                 }
 
-                // TODO: Propagate exception as JS error
                 var resultObj = @delegate.DynamicInvoke(mappedArgs);
                 result = DotNetValue.FromObject(resultObj, host);
 
@@ -72,8 +73,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Function,
-                    Value = value,
-                    ReleaseFunc = releaseCallback
+                Value = value,
+                ReleaseFunc = releaseCallback
             };
         }
 
@@ -84,8 +85,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.JsHandle,
-                    Value = ptr,
-                    ReleaseFunc = ReleaseHGlobal
+                Value = ptr,
+                ReleaseFunc = ReleaseHGlobal
             };
         }
 
@@ -94,8 +95,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.String,
-                    Value = NativeUtf8FromString(value),
-                    ReleaseFunc = ReleaseHGlobal
+                Value = NativeUtf8FromString(value),
+                ReleaseFunc = ReleaseHGlobal
             };
         }
 
@@ -104,8 +105,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Boolean,
-                    Value = value ? new IntPtr(1) : IntPtr.Zero,
-                    ReleaseFunc = null
+                Value = value ? new IntPtr(1) : IntPtr.Zero,
+                ReleaseFunc = null
             };
         }
 
@@ -114,8 +115,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Int32,
-                    Value = new IntPtr(value),
-                    ReleaseFunc = null
+                Value = new IntPtr(value),
+                ReleaseFunc = null
             };
         }
 
@@ -124,8 +125,18 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.ByteArray,
-                    Value = ArrayPointer(value),
-                    ReleaseFunc = ReleaseArrayPointer
+                Value = ArrayPointer(value),
+                ReleaseFunc = ReleaseArrayPointer
+            };
+        }
+
+        public static DotNetValue FromException(Exception value)
+        {
+            return new DotNetValue
+            {
+                Type = DotNetType.Exception,
+                Value = NativeUtf8FromString($"{value.GetType().Name}: {value.Message}\n{value.StackTrace}"),
+                ReleaseFunc = ReleaseHGlobal
             };
         }
 
