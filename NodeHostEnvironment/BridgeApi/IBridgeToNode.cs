@@ -36,12 +36,12 @@ namespace NodeHostEnvironment.BridgeApi
     /// </summary>
     public static class BridgeToNodeExtensions
     {
-        public static Task<T> Run<T>(this IBridgeToNode thiz, Func<Task<T>> asyncFunc)
+        public static Task<T> RunAsync<T>(this IBridgeToNode thiz, Func<Task<T>> asyncFunc)
         {
             return thiz.Run(asyncFunc).Unwrap();
         }
 
-        public static Task Run(this IBridgeToNode thiz, Func<Task> asyncAction)
+        public static Task RunAsync(this IBridgeToNode thiz, Func<Task> asyncAction)
         {
             return thiz.Run(asyncAction).Unwrap();
         }

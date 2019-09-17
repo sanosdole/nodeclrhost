@@ -235,10 +235,10 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         ThreadInstance _(this);
         auto argc = info.Length();
         std::vector<JsHandle> arguments;
-        for (auto c = 0; c < argc; c++) {
+        for (size_t c = 0; c < argc; c++) {
           arguments.push_back(JsHandle::FromValue(info[c]));
         }
-
+        
         DotNetHandle resultIntern;
         (*function_value)(argc, arguments.data(), resultIntern);
 

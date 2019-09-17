@@ -1,8 +1,5 @@
-﻿using System;
-
-namespace LocalService
+﻿namespace LocalService
 {
-    using System.Threading.Tasks;
     using System;
     using NodeHostEnvironment;
 

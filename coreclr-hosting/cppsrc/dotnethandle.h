@@ -16,7 +16,8 @@ typedef enum {
   String,    // Do we need encodings or do we assume UTF8?
   JsHandle,  // A handle that was received from node
   Function,
-  ByteArray
+  ByteArray,
+  Exception
 } Enum;
 }
 
@@ -75,6 +76,12 @@ extern "C" struct DotNetHandle {
             copy.release_func_ = release_func;
             copy.Release();
           });
+    }
+
+    if (type_ == DotNetType::Exception) {
+      //printf("Throwing: %s\n", string_value_);
+      Napi::Error::New(env, string_value_).ThrowAsJavaScriptException();
+      return Napi::Value();
     }
 
     // TODO: Support other types
