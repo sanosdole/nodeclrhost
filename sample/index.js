@@ -30,12 +30,17 @@ global.testCallback = function(arg1, arg2, arg3) {
 global.callLater = function(cb) {
   setTimeout(function() {
     console.log("Calling later");
-    cb();
+    try {
+      cb();
+    } catch (e) {
+      console.log(e);
+    }
+    
   }, 1000)
 }
 // console.log(testAddon.hello());
 console.log(__dirname + '/SampleApp/bin/published');
-var runResult = coreclrHosting.runCoreApp(__dirname + '/SampleApp/bin/published', 'SampleApp.dll'/*,
+var runResult = coreclrHosting.runCoreApp(__dirname + '/bin/published', 'SampleApp.dll'/*,
 function (error, result) {
     
     console.log('AsyncResult=' + result);

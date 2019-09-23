@@ -52,6 +52,28 @@
                 "programOutput": true,
                 "exceptions": true
             }
+        },
+        {
+            "name": ".NET Core Framework Attach",
+            "type": "coreclr",
+            "request": "attach",
+            "processId": "${command:pickProcess}",
+            "justMyCode": false,
+    "symbolOptions": {
+        "searchMicrosoftSymbolServer": true
+    },
+    "suppressJITOptimizations": true,
+    "env": {
+        "COMPlus_ZapDisable": "1"
+    },
+            "requireExactSource": false,
+            "logging": {
+                "engineLogging": true,
+                "moduleLoad": true,
+                "browserStdOut": true,
+                "programOutput": true,
+                "exceptions": true
+            }
         }
     ]
 }

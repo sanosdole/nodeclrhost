@@ -1,0 +1,46 @@
+@inject IUriHelper UriHelper
+
+<!-- <p>Hallo Blazor</p>
+<CascadingAuthenticationState> -->
+    <Router AppAssembly="typeof(Startup).Assembly">
+        <NotFoundContent>
+            <p>Sorry, there's nothing at @LocationPath (diff from @_baseUri &amp; @_locationAbsolute)</p>
+        </NotFoundContent>
+    </Router>
+    <!--
+</CascadingAuthenticationState>
+-->
+
+
+@code {
+    static readonly char[] _queryOrHashStartChar = new[] { '?', '#' };
+    string LocationPath = null;
+    string _baseUri;
+    string _locationAbsolute;
+
+    protected override void OnInitialized()
+    {
+        UriHelper.OnLocationChanged += OnLocationChanged;
+        _baseUri = UriHelper.GetBaseUri();
+        _locationAbsolute = UriHelper.GetAbsoluteUri();
+        LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);
+    }
+
+    private string StringUntilAny(string str, char[] chars)
+    {
+        var firstIndex = str.IndexOfAny(chars);
+        return firstIndex < 0
+            ? str
+            : str.Substring(0, firstIndex);
+    }
+
+    private void OnLocationChanged(object sender, LocationChangedEventArgs args)
+    {
+        _baseUri = UriHelper.GetBaseUri();
+        _locationAbsolute = UriHelper.GetAbsoluteUri();
+        LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);        
+        StateHasChanged();
+    }
+}
