@@ -63,9 +63,9 @@
         "searchMicrosoftSymbolServer": true
     },
     "suppressJITOptimizations": true,
-    /*"env": {
+    "env": {
         "COMPlus_ZapDisable": "1"
-    },*/
+    },
             "requireExactSource": false,
             "logging": {
                 "engineLogging": true,
