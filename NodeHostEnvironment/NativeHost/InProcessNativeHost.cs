@@ -7,6 +7,7 @@ namespace NodeHostEnvironment.NativeHost
     using System.Threading.Tasks;
     using System;
     using NodeHostEnvironment.InProcess;
+    using System.Reflection;
 
     internal sealed class NativeNodeHost : IHostInProcess
     {
@@ -82,12 +83,15 @@ namespace NodeHostEnvironment.NativeHost
                 try
                 {
                     using(_parent._scheduler.SetNodeContext())
-                    Wrapped(argc, argv ?? new JsValue[0], out result);
+                        Wrapped(argc, argv ?? new JsValue[0], out result);
                 }
-                catch (System.Exception e)
+                catch (TargetInvocationException tie)
                 {
-                    Console.WriteLine("Exception while invoking callback: {0}", e);
-                    throw; // TODO: put into result
+                    result = DotNetValue.FromException(tie.InnerException);
+                }
+                catch (Exception e)
+                {
+                    result = DotNetValue.FromException(e);
                 }
 
             }

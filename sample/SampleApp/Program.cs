@@ -3,7 +3,8 @@
     using System.Threading.Tasks;
     using System;
     using NodeHostEnvironment;
-    
+    using NodeHostEnvironment.BridgeApi;
+
     class Program
     {
         static int Main(string[] args)
@@ -11,25 +12,26 @@
             var host = NodeHost.InProcess();
             var console = host.Global.console;
             console.log("Starting timeout"); // TODO: Release of string crashes
-            // TODO: Invocation of delegates crashes
-            host.Global.setTimeout(new Action(() => 
+            
+            // TODO DM 17.09.2019: This crashes as the host has been disposed!
+            /*host.Global.setTimeout(new Action(() =>
                                     {
                                         console.log("Timeout from node");
                                         //host.Dispose();
                                     }),
-                                   1500);
-            RunAsyncApp(host); 
+                                   1500);*/
+            RunAsyncApp(host);
             //host.Dispose();
             return 5;
         }
 
-        private static async void RunAsyncApp(NodeHost host)
+        private static async void RunAsyncApp(IBridgeToNode host)
         {
             try
             {
                 host.Global.console.log($"Hello world from pid:{host.Global.process.pid}!");
 
-                await host.Run(async() =>
+                await host.RunAsync(async () =>
                 {
                     var global = host.Global;
                     var console = global.console;
@@ -60,10 +62,15 @@
                     global.testCallback(new Func<string, string, string>(MarshalledDelegate), "3", dynInstance);
                     //global.gc();
 
-                    global.testCallback(new Func<string, string, string>((a,b) => { console.log("asdas"); return null;}), "3", dynInstance);
+                    global.testCallback(new Func<string, string, string>((a, b) => { console.log("asdas"); return null; }), "3", dynInstance);
 
                     var tcs = new TaskCompletionSource<object>();
-                    global.callLater(new Action(() => { console.log("We have been called later"); tcs.SetResult(null); }));
+                    global.callLater(new Action(() =>
+                    {
+                        console.log("We have been called later");
+                        tcs.SetResult(null);
+                        throw new InvalidOperationException("Test exception");
+                    }));
 
                     Console.WriteLine($"Int from JS {(int)global.testAddon.a}");
                     await tcs.Task;
@@ -76,6 +83,7 @@
             }
             finally
             {
+                host.Global.console.log($"ByeBye world from pid:{host.Global.process.pid}!");
                 // This will lead to node closing and future callbacks being rejected
                 host.Dispose();
             }
