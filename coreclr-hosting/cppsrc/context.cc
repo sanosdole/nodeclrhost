@@ -60,9 +60,13 @@ void Context::UvAsyncCallback() {
     }
   }
 
-  if (release_called_) {
-    uv_close(reinterpret_cast<uv_handle_t*>(&async_handle_),
-             &asyncReleaseCallback);
+  // Check if we should close
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (release_called_) {
+      uv_close(reinterpret_cast<uv_handle_t*>(&async_handle_),
+               &asyncReleaseCallback);
+    }
   }
 }
 
@@ -164,7 +168,7 @@ JsHandle Context::GetMember(JsHandle owner_handle, const char* name) {
 JsHandle Context::SetMember(JsHandle owner_handle, const char* name,
                             DotNetHandle dotnet_handle) {
   if (!owner_handle.IsObject())
-    return JsHandle::Error("Only objects support GetMember");
+    return JsHandle::Error("Only objects support SetMember");
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
