@@ -28,9 +28,9 @@ namespace BlazorApp.Services
             var blazor = window.Blazor._internal;
 
             // TODO DM 26.08.2019: Use boolean once callbacks can convert Number to Boolean
-            blazor.uriHelper.listenForNavigationEvents(new Action<string, double>(NotifyLocationChangedFromJs));
-            var baseUri = (string)blazor.uriHelper.getBaseURI();
-            var uri = (string)blazor.uriHelper.getLocationHref();
+            blazor.navigationManager.listenForNavigationEvents(new Action<string, double>(NotifyLocationChangedFromJs));
+            var baseUri = (string)blazor.navigationManager.getBaseURI();
+            var uri = (string)blazor.navigationManager.getLocationHref();
             /*string uri = window.location.href;
             string baseUri = window.location.origin;*/
             NodeJSRuntime.Instance.Host.Global.console.info("Uri: " + uri);
