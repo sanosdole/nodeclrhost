@@ -42,9 +42,15 @@ async function boot(options?: any): Promise<void> {
 
 // DM 21.08.2019: Setting up the renderer
 window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddress: ArrayBuffer) => {
+  try {
+    
+  
   var typedArray = new Uint8Array(batchAddress);
   console.info("rendering batch of size " + typedArray.byteLength + " and first byte " + typedArray[0]);
   renderBatch(browserRendererId, new OutOfProcessRenderBatch(typedArray));
+} catch (error) {
+ console.error(error);   
+}
 }
 
 // DM 21.08.2019: Start the blazor app
