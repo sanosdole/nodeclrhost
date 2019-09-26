@@ -1,7 +1,7 @@
 ﻿@page "/"
 @page "/index.html"
 
-@inject IUriHelper UriHelper
+@inject NavigationManager UriHelper
 
 <h1>Hello, world!</h1>
 
@@ -19,11 +19,11 @@ You are at address: @LocationPath
 
     protected override void OnInitialized()
     {
-        UriHelper.OnLocationChanged += OnLocationChanged;
+        /*UriHelper.LocationChanged += OnLocationChanged;
         _baseUri = UriHelper.GetBaseUri();
         _locationAbsolute = UriHelper.GetAbsoluteUri();
         LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);*/
     }
 
     private string StringUntilAny(string str, char[] chars)
@@ -36,10 +36,10 @@ You are at address: @LocationPath
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {
-        _baseUri = UriHelper.GetBaseUri();
+        /*_baseUri = UriHelper.GetBaseUri();
         _locationAbsolute = UriHelper.GetAbsoluteUri();
         LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);        
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);        */
         StateHasChanged();
     }
 }

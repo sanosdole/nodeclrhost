@@ -1,4 +1,4 @@
-@inject IUriHelper UriHelper
+@inject NavigationManager UriHelper
 
 <!-- <p>Hallo Blazor</p>
 <CascadingAuthenticationState> -->
@@ -20,11 +20,11 @@
 
     protected override void OnInitialized()
     {
-        UriHelper.OnLocationChanged += OnLocationChanged;
+        /*UriHelper.OnLocationChanged += OnLocationChanged;
         _baseUri = UriHelper.GetBaseUri();
         _locationAbsolute = UriHelper.GetAbsoluteUri();
         LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);*/
     }
 
     private string StringUntilAny(string str, char[] chars)
@@ -37,10 +37,10 @@
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {
-        _baseUri = UriHelper.GetBaseUri();
+        /*_baseUri = UriHelper.GetBaseUri();
         _locationAbsolute = UriHelper.GetAbsoluteUri();
         LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);        
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);  */      
         StateHasChanged();
     }
 }

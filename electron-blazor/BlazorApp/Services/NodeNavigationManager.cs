@@ -3,12 +3,12 @@ using Microsoft.AspNetCore.Components;
 
 namespace BlazorApp.Services
 {
-    public sealed class NodeUriHelper : UriHelperBase
+    public sealed class NodeNavigationManager : NavigationManager
     {
         /// <summary>
         /// Gets the instance of <see cref="WebAssemblyUriHelper"/>.
         /// </summary>
-        public static readonly NodeUriHelper Instance = new NodeUriHelper();
+        public static readonly NodeNavigationManager Instance = new NodeNavigationManager();
 
         protected override void EnsureInitialized()
         {
@@ -26,11 +26,11 @@ namespace BlazorApp.Services
 
             var window = NodeJSRuntime.Instance.Host.Global.window;
             var blazor = window.Blazor._internal;
-            
+
             // TODO DM 26.08.2019: Use boolean once callbacks can convert Number to Boolean
-            blazor.uriHelper.listenForNavigationEvents(new Action<string,double>(NotifyLocationChanged));
+            blazor.uriHelper.listenForNavigationEvents(new Action<string, double>(NotifyLocationChangedFromJs));
             var baseUri = (string)blazor.uriHelper.getBaseURI();
-            var uri = (string)blazor.uriHelper.getLocationHref();            
+            var uri = (string)blazor.uriHelper.getLocationHref();
             /*string uri = window.location.href;
             string baseUri = window.location.origin;*/
             NodeJSRuntime.Instance.Host.Global.console.info("Uri: " + uri);
@@ -38,7 +38,7 @@ namespace BlazorApp.Services
 
 
 
-            InitializeState(uri, baseUri);
+            Initialize(uri, baseUri);
         }
 
         protected override void NavigateToCore(string uri, bool forceLoad)
@@ -59,48 +59,24 @@ namespace BlazorApp.Services
         /// For framework use only.
         /// </summary>
         //[JSInvokable(nameof(NotifyLocationChanged))]
-        private static void NotifyLocationChanged(string newAbsoluteUri, double isInterceptedLink)
+        private static void NotifyLocationChangedFromJs(string newAbsoluteUri, double isInterceptedLink)
         {
-            Instance.SetAbsoluteUri(newAbsoluteUri);
-            Instance.TriggerOnLocationChanged(isInterceptedLink > 0.0);
-
- // TODO DM 26.08.2019: Remove test code
-            var _baseUri = Instance.GetBaseUri();
-        var _locationAbsolute = Instance.GetAbsoluteUri();
-        var LocationPath = Instance.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, new[] { '?', '#' });     
-        NodeJSRuntime.Instance.Host.Global.window.console.info("New location: " + LocationPath);
-        NodeJSRuntime.Instance.Host.Global.console.info("New location glob: " + LocationPath);
+            Instance.SetLocation(newAbsoluteUri, isInterceptedLink > 0.0);
         }
 
-        private  static string StringUntilAny(string str, char[] chars)
-    {
-        var firstIndex = str.IndexOfAny(chars);
-        return firstIndex < 0
-            ? str
-            : str.Substring(0, firstIndex);
-    }
-
-        /// <summary>
-        /// Given the document's document.baseURI value, returns the URI
-        /// that can be prepended to relative URI paths to produce an absolute URI.
-        /// This is computed by removing anything after the final slash.
-        /// Internal for tests.
-        /// </summary>
-        /// <param name="absoluteBaseUri">The page's document.baseURI value.</param>
-        /// <returns>The URI prefix</returns>
-        internal static string ToBaseUri(string absoluteBaseUri)
+        public void SetLocation(string uri, bool isInterceptedLink)
         {
-            if (absoluteBaseUri != null)
-            {
-                var lastSlashIndex = absoluteBaseUri.LastIndexOf('/');
-                if (lastSlashIndex >= 0)
-                {
-                    return absoluteBaseUri.Substring(0, lastSlashIndex + 1);
-                }
-            }
-
-            return "/";
+            Uri = uri;
+            NotifyLocationChanged(isInterceptedLink);
         }
+        private static string StringUntilAny(string str, char[] chars)
+        {
+            var firstIndex = str.IndexOfAny(chars);
+            return firstIndex < 0
+                ? str
+                : str.Substring(0, firstIndex);
+        }
+
+
     }
 }

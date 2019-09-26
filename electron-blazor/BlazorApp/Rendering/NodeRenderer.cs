@@ -1,18 +1,11 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text.Encodings.Web;
-using System.Threading;
 using System.Threading.Tasks;
 using BlazorApp.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
-using Microsoft.AspNetCore.Components.Server.Circuits;
-using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.Extensions.Logging;
-using Microsoft.JSInterop;
 
 namespace BlazorApp.Rendering
 {
@@ -146,7 +139,7 @@ namespace BlazorApp.Rendering
         }
 
         /// <inheritdoc />
-        public override Task DispatchEventAsync(ulong eventHandlerId, EventFieldInfo eventFieldInfo, UIEventArgs eventArgs)
+        public override Task DispatchEventAsync(ulong eventHandlerId, EventFieldInfo eventFieldInfo, EventArgs eventArgs)
         {
             // Be sure we only run one event handler at once. Although they couldn't run
             // simultaneously anyway (there's only one thread), they could run nested on
@@ -211,10 +204,10 @@ namespace BlazorApp.Rendering
         {
             public readonly ulong EventHandlerId;
             public readonly EventFieldInfo EventFieldInfo;
-            public readonly UIEventArgs EventArgs;
+            public readonly EventArgs EventArgs;
             public readonly TaskCompletionSource<object> TaskCompletionSource;
 
-            public IncomingEventInfo(ulong eventHandlerId, EventFieldInfo eventFieldInfo, UIEventArgs eventArgs)
+            public IncomingEventInfo(ulong eventHandlerId, EventFieldInfo eventFieldInfo, EventArgs eventArgs)
             {
                 EventHandlerId = eventHandlerId;
                 EventFieldInfo = eventFieldInfo;

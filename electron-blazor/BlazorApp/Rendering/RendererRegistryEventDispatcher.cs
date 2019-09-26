@@ -3,7 +3,8 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using BlazorApp.Services;
 using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.RenderTree;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace BlazorApp.Rendering
 {
@@ -31,14 +32,14 @@ namespace BlazorApp.Rendering
                     FieldValue = eventDescriptor.eventFieldInfo.fieldValue
                 };
             }
-            DispatchEventOriginal(new BrowserEventDescriptor
-                {
-                    // TODO DM 26.08.2019: Replace those casts once we support proper number handling
-                    BrowserRendererId = (int) (double) eventDescriptor.browserRendererId,
-                        EventHandlerId = (ulong) (double) eventDescriptor.eventHandlerId,
-                        EventArgsType = eventDescriptor.eventArgsType,
-                        EventFieldInfo = fieldInfo
-                },
+            DispatchEventOriginal(new WebEventDescriptor
+            {
+                // TODO DM 26.08.2019: Replace those casts once we support proper number handling
+                BrowserRendererId = (int)(double)eventDescriptor.browserRendererId,
+                EventHandlerId = (ulong)(double)eventDescriptor.eventHandlerId,
+                EventArgsType = eventDescriptor.eventArgsType,
+                EventFieldInfo = fieldInfo
+            },
                 eventArgsJson);
         }
 
@@ -46,126 +47,151 @@ namespace BlazorApp.Rendering
         /// For framework use only.
         /// </summary>
         //[JSInvokable(nameof(DispatchEvent))]
-        public static Task DispatchEventOriginal(BrowserEventDescriptor eventDescriptor, string eventArgsJson)
+        public static Task DispatchEventOriginal(WebEventDescriptor eventDescriptor, string eventArgsJson)
         {
-            InterpretEventDescriptor(eventDescriptor);
-            var eventArgs = ParseEventArgsJson(eventDescriptor.EventArgsType, eventArgsJson);
+            var webEvent = WebEventData.Parse(eventDescriptor, eventArgsJson);
             var renderer = RendererRegistry.Find(eventDescriptor.BrowserRendererId);
-            return renderer.DispatchEventAsync(eventDescriptor.EventHandlerId, eventDescriptor.EventFieldInfo, eventArgs);
+            return renderer.DispatchEventAsync(
+                webEvent.EventHandlerId,
+                webEvent.EventFieldInfo,
+                webEvent.EventArgs);
         }
 
-        private static void InterpretEventDescriptor(BrowserEventDescriptor eventDescriptor)
+        // Copied from Microsoft
+        internal class WebEventData
         {
-            // The incoming field value can be either a bool or a string, but since the .NET property
-            // type is 'object', it will deserialize initially as a JsonElement
-            var fieldInfo = eventDescriptor.EventFieldInfo;
-            if (fieldInfo != null)
+            // This class represents the second half of parsing incoming event data,
+            // once the type of the eventArgs becomes known.
+            public static WebEventData Parse(string eventDescriptorJson, string eventArgsJson)
             {
-                if (fieldInfo.FieldValue is JsonElement attributeValueJsonElement)
+                WebEventDescriptor eventDescriptor;
+                try
+                {
+                    eventDescriptor = Deserialize<WebEventDescriptor>(eventDescriptorJson);
+                }
+                catch (Exception e)
+                {
+                    throw new InvalidOperationException("Error parsing the event descriptor", e);
+                }
+
+                return Parse(
+                    eventDescriptor,
+                    eventArgsJson);
+            }
+
+            public static WebEventData Parse(WebEventDescriptor eventDescriptor, string eventArgsJson)
+            {
+                return new WebEventData(
+                    eventDescriptor.BrowserRendererId,
+                    eventDescriptor.EventHandlerId,
+                    InterpretEventFieldInfo(eventDescriptor.EventFieldInfo),
+                    ParseEventArgsJson(eventDescriptor.EventHandlerId, eventDescriptor.EventArgsType, eventArgsJson));
+            }
+
+            private WebEventData(int browserRendererId, ulong eventHandlerId, EventFieldInfo eventFieldInfo, EventArgs eventArgs)
+            {
+                BrowserRendererId = browserRendererId;
+                EventHandlerId = eventHandlerId;
+                EventFieldInfo = eventFieldInfo;
+                EventArgs = eventArgs;
+            }
+
+            public int BrowserRendererId { get; }
+
+            public ulong EventHandlerId { get; }
+
+            public EventFieldInfo EventFieldInfo { get; }
+
+            public EventArgs EventArgs { get; }
+
+            private static EventArgs ParseEventArgsJson(ulong eventHandlerId, string eventArgsType, string eventArgsJson)
+            {
+                try
+                {
+                    switch (eventArgsType)
+                    {
+                        case "change":
+                            return DeserializeChangeEventArgs(eventArgsJson);
+                        case "clipboard": return Deserialize<ClipboardEventArgs>(eventArgsJson);
+                        case "drag": return Deserialize<DragEventArgs>(eventArgsJson);
+                        case "error": return Deserialize<ErrorEventArgs>(eventArgsJson);
+                        case "focus": return Deserialize<FocusEventArgs>(eventArgsJson);
+                        case "keyboard": return Deserialize<KeyboardEventArgs>(eventArgsJson);
+                        case "mouse": return Deserialize<MouseEventArgs>(eventArgsJson);
+                        case "pointer": return Deserialize<PointerEventArgs>(eventArgsJson);
+                        case "progress": return Deserialize<ProgressEventArgs>(eventArgsJson);
+                        case "touch": return Deserialize<TouchEventArgs>(eventArgsJson);
+                        case "unknown": return EventArgs.Empty;
+                        case "wheel": return Deserialize<WheelEventArgs>(eventArgsJson);
+                        default: throw new InvalidOperationException($"Unsupported event type '{eventArgsType}'. EventId: '{eventHandlerId}'.");
+                    }
+                }
+                catch (Exception e)
+                {
+                    throw new InvalidOperationException($"There was an error parsing the event arguments. EventId: '{eventHandlerId}'.", e);
+                }
+            }
+
+            private static T Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, JsonSerializerOptionsProvider.Options);
+
+            private static EventFieldInfo InterpretEventFieldInfo(EventFieldInfo fieldInfo)
+            {
+                // The incoming field value can be either a bool or a string, but since the .NET property
+                // type is 'object', it will deserialize initially as a JsonElement
+                if (fieldInfo?.FieldValue is JsonElement attributeValueJsonElement)
                 {
                     switch (attributeValueJsonElement.ValueKind)
                     {
                         case JsonValueKind.True:
                         case JsonValueKind.False:
-                            fieldInfo.FieldValue = attributeValueJsonElement.GetBoolean();
-                            break;
+                            return new EventFieldInfo
+                            {
+                                ComponentId = fieldInfo.ComponentId,
+                                FieldValue = attributeValueJsonElement.GetBoolean()
+                            };
                         default:
-                            fieldInfo.FieldValue = attributeValueJsonElement.GetString();
-                            break;
+                            return new EventFieldInfo
+                            {
+                                ComponentId = fieldInfo.ComponentId,
+                                FieldValue = attributeValueJsonElement.GetString()
+                            };
                     }
                 }
-                else
+
+                return null;
+            }
+
+            private static ChangeEventArgs DeserializeChangeEventArgs(string eventArgsJson)
+            {
+                var changeArgs = Deserialize<ChangeEventArgs>(eventArgsJson);
+                var jsonElement = (JsonElement)changeArgs.Value;
+                switch (jsonElement.ValueKind)
                 {
-                    // Unanticipated value type. Ensure we don't do anything with it.
-                    eventDescriptor.EventFieldInfo = null;
+                    case JsonValueKind.Null:
+                        changeArgs.Value = null;
+                        break;
+                    case JsonValueKind.String:
+                        changeArgs.Value = jsonElement.GetString();
+                        break;
+                    case JsonValueKind.True:
+                    case JsonValueKind.False:
+                        changeArgs.Value = jsonElement.GetBoolean();
+                        break;
+                    default:
+                        throw new ArgumentException($"Unsupported {nameof(ChangeEventArgs)} value {jsonElement}.");
                 }
+                return changeArgs;
             }
         }
 
-        private static UIEventArgs ParseEventArgsJson(string eventArgsType, string eventArgsJson)
+        internal static class JsonSerializerOptionsProvider
         {
-            switch (eventArgsType)
+            public static readonly JsonSerializerOptions Options = new JsonSerializerOptions
             {
-                case "change":
-                    return DeserializeUIEventChangeArgs(eventArgsJson);
-                case "clipboard":
-                    return Deserialize<UIClipboardEventArgs>(eventArgsJson);
-                case "drag":
-                    return Deserialize<UIDragEventArgs>(eventArgsJson);
-                case "error":
-                    return Deserialize<UIErrorEventArgs>(eventArgsJson);
-                case "focus":
-                    return Deserialize<UIFocusEventArgs>(eventArgsJson);
-                case "keyboard":
-                    return Deserialize<UIKeyboardEventArgs>(eventArgsJson);
-                case "mouse":
-                    return Deserialize<UIMouseEventArgs>(eventArgsJson);
-                case "pointer":
-                    return Deserialize<UIPointerEventArgs>(eventArgsJson);
-                case "progress":
-                    return Deserialize<UIProgressEventArgs>(eventArgsJson);
-                case "touch":
-                    return Deserialize<UITouchEventArgs>(eventArgsJson);
-                case "unknown":
-                    return Deserialize<UIEventArgs>(eventArgsJson);
-                case "wheel":
-                    return Deserialize<UIWheelEventArgs>(eventArgsJson);
-                default:
-                    throw new ArgumentException($"Unsupported value '{eventArgsType}'.", nameof(eventArgsType));
-            }
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNameCaseInsensitive = true,
+            };
         }
 
-        private static T Deserialize<T>(string eventArgsJson)
-        {
-            return JsonSerializer.Deserialize<T>(eventArgsJson /*, JsonSerializerOptionsProvider.Options*/ );
-        }
-
-        private static UIChangeEventArgs DeserializeUIEventChangeArgs(string eventArgsJson)
-        {
-            var changeArgs = Deserialize<UIChangeEventArgs>(eventArgsJson);
-            var jsonElement = (JsonElement) changeArgs.Value;
-            switch (jsonElement.ValueKind)
-            {
-                case JsonValueKind.Null:
-                    changeArgs.Value = null;
-                    break;
-                case JsonValueKind.String:
-                    changeArgs.Value = jsonElement.GetString();
-                    break;
-                case JsonValueKind.True:
-                case JsonValueKind.False:
-                    changeArgs.Value = jsonElement.GetBoolean();
-                    break;
-                default:
-                    throw new ArgumentException($"Unsupported {nameof(UIChangeEventArgs)} value {jsonElement}.");
-            }
-            return changeArgs;
-        }
-
-        /// <summary>
-        /// For framework use only.
-        /// </summary>
-        public class BrowserEventDescriptor
-        {
-            /// <summary>
-            /// For framework use only.
-            /// </summary>
-            public int BrowserRendererId { get; set; }
-
-            /// <summary>
-            /// For framework use only.
-            /// </summary>
-            public ulong EventHandlerId { get; set; }
-
-            /// <summary>
-            /// For framework use only.
-            /// </summary>
-            public string EventArgsType { get; set; }
-
-            /// <summary>
-            /// For framework use only.
-            /// </summary>
-            public EventFieldInfo EventFieldInfo { get; set; }
-        }
     }
 }
