@@ -1,5 +1,4 @@
-    
-import { navigateTo, internalFunctions as uriHelperInternalFunctions } from './Services/UriHelper';
+import { navigateTo, internalFunctions as navigationManagerInternalFunctions } from './Services/NavigationManager';
 import { internalFunctions as httpInternalFunctions } from './Services/Http';
 import { attachRootComponentToElement } from './Rendering/Renderer';
 
@@ -10,6 +9,6 @@ window['Blazor'] = {
   _internal: {
     attachRootComponentToElement,
     http: httpInternalFunctions,
-    uriHelper: uriHelperInternalFunctions,
+    navigationManager: navigationManagerInternalFunctions,
   },
 };

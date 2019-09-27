@@ -11,7 +11,7 @@ namespace BlazorApp.Services
 {
     internal sealed class NodeJSRuntime : IJSRuntime
     {
-        public NodeHost Host {get;}
+        public NodeHost Host { get; }
         public static readonly NodeJSRuntime Instance = new NodeJSRuntime();
 
         public NodeJSRuntime()
@@ -24,20 +24,20 @@ namespace BlazorApp.Services
             RendererRegistryEventDispatcher.Register(this);
         }
 
-        public Task<TValue> InvokeAsync<TValue>(string identifier, params object[] args)
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, params object[] args)
         {
             Host.Global.console.info($"Invoking {identifier}");
             if (!Host.Global.window.TryInvokeMember(identifier, args, out object result))
                 throw new InvalidOperationException($"Could not invoke {identifier} from global!");
-            return Task.FromResult((TValue)result);
+            return new ValueTask<TValue>((TValue)result);
         }
 
-        public Task<TValue> InvokeAsync<TValue>(string identifier, IEnumerable<object> args, CancellationToken cancellationToken = default)
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken = default, params object[] args)
         {
             Host.Global.console.info($"Invoking {identifier}");
             if (!Host.Global.window.TryInvokeMember(identifier, args.ToArray(), out object result))
                 throw new InvalidOperationException($"Could not invoke {identifier} from global!");
-            return Task.FromResult((TValue)result);
+            return new ValueTask<TValue>((TValue)result);
         }
     }
 }

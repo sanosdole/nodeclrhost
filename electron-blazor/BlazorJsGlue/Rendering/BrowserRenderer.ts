@@ -35,7 +35,6 @@ export class BrowserRenderer {
     if (!element) {
       throw new Error(`No element is currently associated with component ${componentId}`);
     }
-    //console.info("updating element " + element);
 
     // On the first render for each root component, clear any existing content (e.g., prerendered)
     const rootElementToClear = rootComponentsPendingFirstRender[componentId];
@@ -86,18 +85,14 @@ export class BrowserRenderer {
     const editsLength = arrayBuilderSegmentReader.count(edits);
     const maxEditIndexExcl = editsOffset + editsLength;
 
-    //console.info("offset " + editsOffset + " max " + maxEditIndexExcl);
     for (let editIndex = editsOffset; editIndex < maxEditIndexExcl; editIndex++) {
       const edit = batch.diffReader.editsEntry(editsValues, editIndex);
       const editType = editReader.editType(edit);
-      //console.info("edittype " + editType + " edit " + edit);
-
       switch (editType) {
         case EditType.prependFrame: {
           const frameIndex = editReader.newTreeIndex(edit);
           const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
           const siblingIndex = editReader.siblingIndex(edit);
-          //console.info("frameIndex " + frameIndex + " frame " + frame);
           this.insertFrame(batch, componentId, parent, childIndexAtCurrentDepth + siblingIndex, referenceFrames, frame, frameIndex);
           break;
         }
@@ -277,8 +272,6 @@ export class BrowserRenderer {
 
     const markupContent = batch.frameReader.markupContent(markupFrame);
     const parsedMarkup = parseMarkup(markupContent, isSvgElement(parent));
-    //console.info("inserting markup " + parsedMarkup);    
-    //console.info("ins mu");
     let logicalSiblingIndex = 0;
     while (parsedMarkup.firstChild) {
       insertLogicalChild(parsedMarkup.firstChild, markupContainer, logicalSiblingIndex++);

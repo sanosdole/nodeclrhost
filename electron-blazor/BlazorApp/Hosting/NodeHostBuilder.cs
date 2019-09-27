@@ -83,15 +83,9 @@ namespace BlazorApp.Hosting
             services.AddSingleton(_BrowserHostBuilderContext);
             services.AddSingleton<INodeHost, NodeHost>();
             services.AddSingleton<IJSRuntime>(NodeJSRuntime.Instance);
-            // TODO DM 19.08.2019: NavigationManager only exists on master not in the preview
-            //services.AddSingleton<NavigationManager>(NodeNavigationManager.Instance);
+            services.AddSingleton<NavigationManager>(NodeNavigationManager.Instance);
             services.AddSingleton<INavigationInterception>(NodeNavigationInterception.Instance);
             services.AddSingleton<ILoggerFactory, NodeLoggerFactory>();
-
-            services.AddSingleton<AuthenticationStateProvider, NodeAuthenticationStateProvider>();
-
-            services.AddSingleton<IUriHelper>(NodeUriHelper.Instance);
-            services.AddSingleton<IComponentContext, NodeComponentContext>();
 
             // DM 19.08.2019: We do not need an HttpClient like WebAssembly does
             /*services.AddSingleton<HttpClient>(s =>

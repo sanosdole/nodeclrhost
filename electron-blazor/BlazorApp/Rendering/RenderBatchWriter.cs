@@ -7,7 +7,6 @@ namespace BlazorApp.Rendering
     using System.IO;
     using System.Text;
     using System;
-    using Microsoft.AspNetCore.Components.Rendering;
     using Microsoft.AspNetCore.Components.RenderTree;
 
     // TODO: We should consider *not* having this type of infrastructure in the .Server
@@ -159,7 +158,6 @@ namespace BlazorApp.Rendering
                         var attributeValueString = frame.AttributeValue as string;
                         WriteString(attributeValueString, allowDeduplication: string.IsNullOrEmpty(attributeValueString));
                     }
-                    //_binaryWriter.Write(0); 
                     _binaryWriter.Write(frame.AttributeEventHandlerId); // 8 bytes
                     break;
                 case RenderTreeFrameType.Component:
@@ -295,7 +293,7 @@ namespace BlazorApp.Rendering
         }
 
         public void Dispose()
-        {            
+        {
             _strings.Dispose();
             _binaryWriter.Dispose();
         }
