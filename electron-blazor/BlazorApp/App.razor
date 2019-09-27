@@ -1,16 +1,10 @@
 @inject IUriHelper UriHelper
 
-<!-- <p>Hallo Blazor</p>
-<CascadingAuthenticationState> -->
-    <Router AppAssembly="typeof(Startup).Assembly">
-        <NotFoundContent>
-            <p>Sorry, there's nothing at @LocationPath (diff from @_baseUri &amp; @_locationAbsolute)</p>
-        </NotFoundContent>
-    </Router>
-    <!--
-</CascadingAuthenticationState>
--->
-
+<Router AppAssembly="typeof(Startup).Assembly">
+    <NotFoundContent>
+        <p>Sorry, there's nothing at @LocationPath (diff from @_baseUri &amp; @_locationAbsolute)</p>
+    </NotFoundContent>
+</Router>
 
 @code {
     static readonly char[] _queryOrHashStartChar = new[] { '?', '#' };
