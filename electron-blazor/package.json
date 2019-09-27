@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-ts": "tsc -p ./BlazorJsGlue",
+    "build-ts": "tsc -p ./BlazorApp/BlazorJsGlue",
     "build-service": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js LocalService/LocalService.csproj bin/published/LocalService",
     "build-blazorapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BlazorApp/BlazorApp.csproj bin/published/BlazorApp",
     "watch-ts": "npm run build-ts -- -w",
-    "start": "npm run build-service && npm run build-blazorapp && npm run build-ts && electron .",
+    "start": "npm run build-service && npm run build-ts && npm run build-blazorapp && electron .",
     "electron": "electron ."
   },
   "author": "Daniel Martin",

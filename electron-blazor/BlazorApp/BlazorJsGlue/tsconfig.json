@@ -1,8 +1,8 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-      "baseUrl": "./",
-      "outDir": "../bin/published/BlazorApp/wwwroot/",
+      /*"baseUrl": "./",
+      "outDir": "../wwwroot/",*/
       "sourceMap": true,
       "declaration": false,
       "module": "commonjs", /* es2015 */
@@ -10,7 +10,12 @@
       "emitDecoratorMetadata": true,
       "experimentalDecorators": true,
       "target": "es5",
-      "typeRoots": ["../node_modules/@types"],
-      "lib": ["es2018", "dom"]
+      "typeRoots": ["../../node_modules/@types"],
+      "lib": ["es2015", "dom"],
+      "noImplicitAny": false,
+      "noEmitOnError": true,
+      "removeComments": false,    
+      "downlevelIteration": true,
+      "strict": true
     }
   }
