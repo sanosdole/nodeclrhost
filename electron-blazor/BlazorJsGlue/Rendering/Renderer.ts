@@ -23,8 +23,6 @@ export function attachRootComponentToLogicalElement(browserRendererId: number, l
 export function attachRootComponentToElement(elementSelector: string, componentId: number, browserRendererId?: number): void {
   const element = document.querySelector(elementSelector);
   if (!element) {
-    console.info("Called attach but did not find element for " + elementSelector);
-    return;
     throw new Error(`Could not find any element matching selector '${elementSelector}'.`);
   }
 
@@ -47,21 +45,16 @@ export function renderBatch(browserRendererId: number, batch: RenderBatch): void
   const referenceFramesValues = arrayRangeReader.values(referenceFrames);
   const diffReader = batch.diffReader;
 
-  //console.info("batch has " + updatedComponentsLength + " updated components");
-
   for (let i = 0; i < updatedComponentsLength; i++) {
     const diff = batch.updatedComponentsEntry(updatedComponentsValues, i);
     const componentId = diffReader.componentId(diff);
     const edits = diffReader.edits(diff);
     browserRenderer.updateComponent(batch, componentId, edits, referenceFramesValues);
   }
-  
+
   const disposedComponentIdsRange = batch.disposedComponentIds();
   const disposedComponentIdsValues = arrayRangeReader.values(disposedComponentIdsRange);
   const disposedComponentIdsLength = arrayRangeReader.count(disposedComponentIdsRange);
-
-  //console.info("batch has " + disposedComponentIdsLength + " disposed components");
-
   for (let i = 0; i < disposedComponentIdsLength; i++) {
     const componentId = batch.disposedComponentIdsEntry(disposedComponentIdsValues, i);
     browserRenderer.disposeComponent(componentId);
@@ -75,7 +68,7 @@ export function renderBatch(browserRendererId: number, batch: RenderBatch): void
     browserRenderer.disposeEventHandler(eventHandlerId);
   }
 
-  //resetScrollIfNeeded();
+  resetScrollIfNeeded();
 }
 
 export function resetScrollAfterNextBatch() {

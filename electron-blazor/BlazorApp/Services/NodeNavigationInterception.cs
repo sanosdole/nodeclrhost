@@ -13,7 +13,7 @@ namespace BlazorApp.Services
             //NodeJSRuntime.Instance.Invoke<object>(Interop.EnableNavigationInterception);
             var window = NodeJSRuntime.Instance.Host.Global.window;
             var blazor = window.Blazor._internal;
-            blazor.uriHelper.enableNavigationInterception();
+            blazor.navigationManager.enableNavigationInterception();
             return Task.CompletedTask;
         }
     }
