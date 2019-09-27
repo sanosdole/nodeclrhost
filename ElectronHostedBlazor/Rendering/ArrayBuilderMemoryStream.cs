@@ -84,7 +84,7 @@ namespace BlazorApp.Rendering
         }
 
         /// <inheritdoc />
-        public override ValueTask DisposeAsync() => default;
+        //public override ValueTask DisposeAsync() => default;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ValidateArguments(byte[] buffer, int offset, int count)
