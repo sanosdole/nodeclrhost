@@ -17,4 +17,11 @@
     
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="./wwwroot/*" >
+      <Pack>true</Pack>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+    
+  </ItemGroup>
 </Project>

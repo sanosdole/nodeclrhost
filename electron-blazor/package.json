@@ -4,11 +4,10 @@
   "description": "Test for hosting blazor",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build-ts": "cd ./BlazorApp/BlazorJsGlue && node ../../node_modules/webpack-cli/bin/cli.js --mode development --config ./webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",    
     "build-service": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js LocalService/LocalService.csproj bin/published/LocalService",
     "build-blazorapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BlazorApp/BlazorApp.csproj bin/published/BlazorApp",    
-    "start": "npm run build-service && npm run build-ts && npm run build-blazorapp && electron .",
+    "start": "npm run build-service && npm run build-blazorapp && electron .",
     "electron": "electron ."
   },
   "author": "Daniel Martin",
@@ -20,10 +19,6 @@
   },
   "devDependencies": {
     "@types/node": "^12.7.8",
-    "electron": "^6.0.10",
-    "node-loader": "^0.6.0",
-    "ts-loader": "^6.2.0",
-    "webpack": "^4.41.0",
-    "webpack-cli": "^3.3.9"
+    "electron": "^6.0.10"    
   }
 }
