@@ -1,8 +1,6 @@
 {
     "compileOnSave": true,
     "compilerOptions": {
-      /*"baseUrl": "./",
-      "outDir": "../wwwroot/",*/
       "sourceMap": true,
       "declaration": false,
       "module": "commonjs", /* es2015 */

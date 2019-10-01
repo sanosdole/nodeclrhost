@@ -67,3 +67,5 @@ typings/
 coreclr-hosting/build
 obj/
 bin/
+electron-blazor/BlazorApp/wwwroot/blazor.electron.js
+electron-blazor/BlazorApp/wwwroot/blazor.electron.js.map

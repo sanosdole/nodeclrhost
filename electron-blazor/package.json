@@ -5,24 +5,25 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-ts": "tsc -p ./BlazorApp/BlazorJsGlue",
+    "build-ts": "cd ./BlazorApp/BlazorJsGlue && node ../../node_modules/webpack-cli/bin/cli.js --mode development --config ./webpack.config.js",
     "build-service": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js LocalService/LocalService.csproj bin/published/LocalService",
-    "build-blazorapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BlazorApp/BlazorApp.csproj bin/published/BlazorApp",
-    "watch-ts": "npm run build-ts -- -w",
+    "build-blazorapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BlazorApp/BlazorApp.csproj bin/published/BlazorApp",    
     "start": "npm run build-service && npm run build-ts && npm run build-blazorapp && electron .",
     "electron": "electron ."
   },
   "author": "Daniel Martin",
   "license": "MIT",
   "dependencies": {
-    "@dotnet/jsinterop": "^3.0.0-preview8.19405.4",
+    "@dotnet/jsinterop": "^3.0.0",
     "coreclr-hosting": "file:../coreclr-hosting",
-    "typescript": "^3.5.3"
+    "typescript": "^3.6.3"
   },
   "devDependencies": {
-    "@types/node": "^12.7.2",
-    "electron": "^6.0.3",
-    "webpack": "^4.39.2",
-    "webpack-cli": "^3.3.7"
+    "@types/node": "^12.7.8",
+    "electron": "^6.0.10",
+    "node-loader": "^0.6.0",
+    "ts-loader": "^6.2.0",
+    "webpack": "^4.41.0",
+    "webpack-cli": "^3.3.9"
   }
 }
