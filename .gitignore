@@ -67,3 +67,4 @@ typings/
 coreclr-hosting/build
 obj/
 bin/
+clr-api-generator/dist
