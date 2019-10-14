@@ -15,7 +15,7 @@
   "dependencies": {
     "@dotnet/jsinterop": "^3.0.0",
     "coreclr-hosting": "file:../coreclr-hosting",
-    "electron-blazor-glue": "file:../ElectronHostedBlazor",
+    "electron-blazor-glue": "file:../electron-blazor-glue",
     "typescript": "^3.6.3"
   },
   "devDependencies": {

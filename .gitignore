@@ -65,7 +65,6 @@ typings/
 
 # build artififacts
 coreclr-hosting/build
+electron-blazor-glue/dist
 obj/
 bin/
-electron-blazor/BlazorApp/wwwroot/blazor.electron.js
-electron-blazor/BlazorApp/wwwroot/blazor.electron.js.map

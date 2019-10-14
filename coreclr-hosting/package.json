@@ -10,7 +10,8 @@
     "build:release": "node-gyp build",
     "clean": "node-gyp clean", 
     "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj bin/published",
-    "test": "mocha"
+    "test": "mocha",
+    "prepublish": "npm run build"
   },
   "author": "Daniel Martin",
   "license": "ISC",
