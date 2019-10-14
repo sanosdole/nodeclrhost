@@ -21,10 +21,8 @@
     Loading coreclr and blazor app...
     </app>
     <script>
-      var exports = {"__esModule": true};
-      global.window = window;
-    </script>
-    <script src="Boot.Electron.js">
+      const glue = require('electron-blazor-glue');
+      window.runBlazorApp(__dirname + "/..", "BlazorApp.dll");
     </script>
     
   </body>

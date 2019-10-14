@@ -65,6 +65,7 @@ typings/
 
 # build artififacts
 coreclr-hosting/build
+electron-blazor-glue/dist
 obj/
 bin/
 clr-api-generator/dist

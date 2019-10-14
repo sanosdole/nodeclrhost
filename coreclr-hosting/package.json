@@ -5,10 +5,13 @@
   "main": "bindings.js",
   "gypfile": true,
   "scripts": {
-    "build": "node-gyp rebuild",
+    "build": "npm run build:debug && npm run build:release",
+    "build:debug": "node-gyp build --debug",
+    "build:release": "node-gyp build",
     "clean": "node-gyp clean", 
     "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj bin/published",
-    "test": "mocha"
+    "test": "mocha",
+    "prepublish": "npm run build"
   },
   "author": "Daniel Martin",
   "license": "ISC",
