@@ -5,12 +5,12 @@
     <LangVersion>7.3</LangVersion>
     <RazorLangVersion>3.0</RazorLangVersion>
     <!-- <PublishTrimmed>true</PublishTrimmed> -->
-    <RestoreSources>$(RestoreSources);../../NodeHostEnvironment/bin/Debug;../../ElectronHostedBlazor/bin/Debug;https://api.nuget.org/v3/index.json</RestoreSources>
+    <!-- <RestoreSources>$(RestoreSources);../../NodeHostEnvironment/bin/Debug;../../ElectronHostedBlazor/bin/Debug;https://api.nuget.org/v3/index.json</RestoreSources> -->
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NodeHostEnvironment" Version="1.0.0"/>
-    <PackageReference Include="ElectronHostedBlazor" Version="1.0.0"/>
+    <ProjectReference Include="..\..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
+    <ProjectReference Include="..\..\ElectronHostedBlazor\ElectronHostedBlazor.csproj" />
   </ItemGroup>
 
 </Project>

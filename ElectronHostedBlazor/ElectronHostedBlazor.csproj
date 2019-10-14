@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RestoreSources>$(RestoreSources);../NodeHostEnvironment/bin/Debug;https://api.nuget.org/v3/index.json</RestoreSources>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- <RestoreSources>$(RestoreSources);../NodeHostEnvironment/bin/Debug;https://api.nuget.org/v3/index.json</RestoreSources> -->
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,8 @@
     <PackageReference Include="Microsoft.JSInterop" Version="3.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.6.0" />
 
-    <PackageReference Include="NodeHostEnvironment" Version="1.0.0"/>
+<ProjectReference Include="..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
+    <!-- <PackageReference Include="NodeHostEnvironment" Version="1.0.0"/> -->
     
   </ItemGroup>
 

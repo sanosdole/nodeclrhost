@@ -87,13 +87,13 @@
 /******/ ({
 
 /***/ "../../coreclr-hosting/bindings.js":
-/*!**********************************************************************!*\
-  !*** C:/Private/nodeclrhost/nodeclrhost/coreclr-hosting/bindings.js ***!
-  \**********************************************************************/
+/*!********************************************************************************!*\
+  !*** /Users/danielmartin/nodeclrhost2/nodeclrhost/coreclr-hosting/bindings.js ***!
+  \********************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var coreclrHosting;
+/* WEBPACK VAR INJECTION */(function(process) {var coreclrHosting;
 
 if (process.env.DEBUG) {
     coreclrHosting = __webpack_require__(/*! ./build/Debug/coreclr-hosting.node */ "../../coreclr-hosting/build/Debug/coreclr-hosting.node");
@@ -103,30 +103,31 @@ if (process.env.DEBUG) {
 
 module.exports = coreclrHosting;
 
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../ElectronHostedBlazor/node_modules/process/browser.js */ "../node_modules/process/browser.js")))
 
 /***/ }),
 
 /***/ "../../coreclr-hosting/build/Debug/coreclr-hosting.node":
-/*!*******************************************************************************************!*\
-  !*** C:/Private/nodeclrhost/nodeclrhost/coreclr-hosting/build/Debug/coreclr-hosting.node ***!
-  \*******************************************************************************************/
+/*!*****************************************************************************************************!*\
+  !*** /Users/danielmartin/nodeclrhost2/nodeclrhost/coreclr-hosting/build/Debug/coreclr-hosting.node ***!
+  \*****************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(module) {try {global.process.dlopen(module, "C:\\Private\\nodeclrhost\\nodeclrhost\\coreclr-hosting\\build\\Debug\\coreclr-hosting.node"); } catch(e) {throw new Error('Cannot open ' + "C:\\Private\\nodeclrhost\\nodeclrhost\\coreclr-hosting\\build\\Debug\\coreclr-hosting.node" + ': ' + e);}
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../ElectronHostedBlazor/node_modules/webpack/buildin/module.js */ "../node_modules/webpack/buildin/module.js")(module)))
+/* WEBPACK VAR INJECTION */(function(global, module) {try {global.process.dlopen(module, "/Users/danielmartin/nodeclrhost2/nodeclrhost/coreclr-hosting/build/Debug/coreclr-hosting.node"); } catch(e) {throw new Error('Cannot open ' + "/Users/danielmartin/nodeclrhost2/nodeclrhost/coreclr-hosting/build/Debug/coreclr-hosting.node" + ': ' + e);}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../ElectronHostedBlazor/node_modules/webpack/buildin/global.js */ "../node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../../../ElectronHostedBlazor/node_modules/webpack/buildin/module.js */ "../node_modules/webpack/buildin/module.js")(module)))
 
 /***/ }),
 
 /***/ "../../coreclr-hosting/build/Release/coreclr-hosting.node":
-/*!*********************************************************************************************!*\
-  !*** C:/Private/nodeclrhost/nodeclrhost/coreclr-hosting/build/Release/coreclr-hosting.node ***!
-  \*********************************************************************************************/
+/*!*******************************************************************************************************!*\
+  !*** /Users/danielmartin/nodeclrhost2/nodeclrhost/coreclr-hosting/build/Release/coreclr-hosting.node ***!
+  \*******************************************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(module) {try {global.process.dlopen(module, "C:\\Private\\nodeclrhost\\nodeclrhost\\coreclr-hosting\\build\\Release\\coreclr-hosting.node"); } catch(e) {throw new Error('Cannot open ' + "C:\\Private\\nodeclrhost\\nodeclrhost\\coreclr-hosting\\build\\Release\\coreclr-hosting.node" + ': ' + e);}
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../ElectronHostedBlazor/node_modules/webpack/buildin/module.js */ "../node_modules/webpack/buildin/module.js")(module)))
+/* WEBPACK VAR INJECTION */(function(global, module) {try {global.process.dlopen(module, "/Users/danielmartin/nodeclrhost2/nodeclrhost/coreclr-hosting/build/Release/coreclr-hosting.node"); } catch(e) {throw new Error('Cannot open ' + "/Users/danielmartin/nodeclrhost2/nodeclrhost/coreclr-hosting/build/Release/coreclr-hosting.node" + ': ' + e);}
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../ElectronHostedBlazor/node_modules/webpack/buildin/global.js */ "../node_modules/webpack/buildin/global.js"), __webpack_require__(/*! ./../../../ElectronHostedBlazor/node_modules/webpack/buildin/module.js */ "../node_modules/webpack/buildin/module.js")(module)))
 
 /***/ }),
 
@@ -387,6 +388,232 @@ var DotNet;
 
 /***/ }),
 
+/***/ "../node_modules/process/browser.js":
+/*!******************************************!*\
+  !*** ../node_modules/process/browser.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+// shim for using process in browser
+var process = module.exports = {};
+
+// cached from whatever global is present so that test runners that stub it
+// don't break things.  But we need to wrap it in a try catch in case it is
+// wrapped in strict mode code which doesn't define any globals.  It's inside a
+// function because try/catches deoptimize in certain engines.
+
+var cachedSetTimeout;
+var cachedClearTimeout;
+
+function defaultSetTimout() {
+    throw new Error('setTimeout has not been defined');
+}
+function defaultClearTimeout () {
+    throw new Error('clearTimeout has not been defined');
+}
+(function () {
+    try {
+        if (typeof setTimeout === 'function') {
+            cachedSetTimeout = setTimeout;
+        } else {
+            cachedSetTimeout = defaultSetTimout;
+        }
+    } catch (e) {
+        cachedSetTimeout = defaultSetTimout;
+    }
+    try {
+        if (typeof clearTimeout === 'function') {
+            cachedClearTimeout = clearTimeout;
+        } else {
+            cachedClearTimeout = defaultClearTimeout;
+        }
+    } catch (e) {
+        cachedClearTimeout = defaultClearTimeout;
+    }
+} ())
+function runTimeout(fun) {
+    if (cachedSetTimeout === setTimeout) {
+        //normal enviroments in sane situations
+        return setTimeout(fun, 0);
+    }
+    // if setTimeout wasn't available but was latter defined
+    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+        cachedSetTimeout = setTimeout;
+        return setTimeout(fun, 0);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedSetTimeout(fun, 0);
+    } catch(e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't trust the global object when called normally
+            return cachedSetTimeout.call(null, fun, 0);
+        } catch(e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error
+            return cachedSetTimeout.call(this, fun, 0);
+        }
+    }
+
+
+}
+function runClearTimeout(marker) {
+    if (cachedClearTimeout === clearTimeout) {
+        //normal enviroments in sane situations
+        return clearTimeout(marker);
+    }
+    // if clearTimeout wasn't available but was latter defined
+    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+        cachedClearTimeout = clearTimeout;
+        return clearTimeout(marker);
+    }
+    try {
+        // when when somebody has screwed with setTimeout but no I.E. maddness
+        return cachedClearTimeout(marker);
+    } catch (e){
+        try {
+            // When we are in I.E. but the script has been evaled so I.E. doesn't  trust the global object when called normally
+            return cachedClearTimeout.call(null, marker);
+        } catch (e){
+            // same as above but when it's a version of I.E. that must have the global object for 'this', hopfully our context correct otherwise it will throw a global error.
+            // Some versions of I.E. have different rules for clearTimeout vs setTimeout
+            return cachedClearTimeout.call(this, marker);
+        }
+    }
+
+
+
+}
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    if (!draining || !currentQueue) {
+        return;
+    }
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = runTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    runClearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        runTimeout(drainQueue);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+process.prependListener = noop;
+process.prependOnceListener = noop;
+
+process.listeners = function (name) { return [] }
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+
+/***/ }),
+
+/***/ "../node_modules/webpack/buildin/global.js":
+/*!*************************************************!*\
+  !*** ../node_modules/webpack/buildin/global.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || new Function("return this")();
+} catch (e) {
+	// This works if the window reference is available
+	if (typeof window === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+
 /***/ "../node_modules/webpack/buildin/module.js":
 /*!*************************************************!*\
   !*** ../node_modules/webpack/buildin/module.js ***!
@@ -428,7 +655,7 @@ module.exports = function(module) {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function(process) {
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -438,51 +665,23 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 __webpack_require__(/*! @dotnet/jsinterop */ "../node_modules/@dotnet/jsinterop/dist/Microsoft.JSInterop.js");
 __webpack_require__(/*! ./GlobalExports */ "./GlobalExports.ts");
-var Renderer_1 = __webpack_require__(/*! ./Rendering/Renderer */ "./Rendering/Renderer.ts");
-var OutOfProcessRenderBatch_1 = __webpack_require__(/*! ./Rendering/RenderBatch/OutOfProcessRenderBatch */ "./Rendering/RenderBatch/OutOfProcessRenderBatch.ts");
-var BootCommon_1 = __webpack_require__(/*! ./BootCommon */ "./BootCommon.ts");
-var RendererEventDispatcher_1 = __webpack_require__(/*! ./Rendering/RendererEventDispatcher */ "./Rendering/RendererEventDispatcher.ts");
-var coreclrhosting = __webpack_require__(/*! coreclr-hosting */ "../../coreclr-hosting/bindings.js");
-var started = false;
-function boot(options) {
-    return __awaiter(this, void 0, void 0, function () {
-        var result;
-        return __generator(this, function (_a) {
+const Renderer_1 = __webpack_require__(/*! ./Rendering/Renderer */ "./Rendering/Renderer.ts");
+const OutOfProcessRenderBatch_1 = __webpack_require__(/*! ./Rendering/RenderBatch/OutOfProcessRenderBatch */ "./Rendering/RenderBatch/OutOfProcessRenderBatch.ts");
+const BootCommon_1 = __webpack_require__(/*! ./BootCommon */ "./BootCommon.ts");
+const RendererEventDispatcher_1 = __webpack_require__(/*! ./Rendering/RendererEventDispatcher */ "./Rendering/RendererEventDispatcher.ts");
+const coreclrhosting = __webpack_require__(/*! coreclr-hosting */ "../../coreclr-hosting/bindings.js");
+let started = false;
+function runApp(basePath, appFile) {
+    function boot(options) {
+        return __awaiter(this, void 0, void 0, function* () {
             if (started) {
                 throw new Error('Blazor has already started.');
             }
             started = true;
-            RendererEventDispatcher_1.setEventDispatcher(function (eventDescriptor, eventArgs) { return window['Blazor']._internal.HandleRendererEvent(eventDescriptor, JSON.stringify(eventArgs)); });
+            RendererEventDispatcher_1.setEventDispatcher((eventDescriptor, eventArgs) => window['Blazor']._internal.HandleRendererEvent(eventDescriptor, JSON.stringify(eventArgs)));
             //DotNet.invokeMethodAsync('Microsoft.AspNetCore.Blazor', 'DispatchEvent', eventDescriptor, JSON.stringify(eventArgs)));
             // Configure environment for execution under Mono WebAssembly with shared-memory rendering
             /*const platform = Environment.setPlatform(monoPlatform);
@@ -501,7 +700,7 @@ function boot(options) {
               );
             });*/
             // DM 21.08.2019: Setting up the renderer
-            window['Blazor']._internal.renderBatch = function (browserRendererId, batchAddress) {
+            window['Blazor']._internal.renderBatch = (browserRendererId, batchAddress) => {
                 try {
                     var typedArray = new Uint8Array(batchAddress);
                     console.info("rendering batch of size " + typedArray.byteLength + " and first byte " + typedArray[0]);
@@ -511,20 +710,52 @@ function boot(options) {
                     console.error(error);
                 }
             };
+            // TODO: module.exports | do not use __dirname | use function arguments!
             // DM 21.08.2019: Start the blazor app
             console.info("Running in process " + process.pid);
-            console.info("Starting from " + __dirname + '/..');
-            result = coreclrhosting.runCoreApp(__dirname + '/..', window['StartupApp']);
+            console.info("Starting from " + basePath);
+            var result = coreclrhosting.runCoreApp(basePath, appFile);
             console.info("Main returned: " + result);
-            return [2 /*return*/];
+            //console.info(window["Blazor"]._internal);
+            /*
+              // Fetch the boot JSON file
+              const bootConfig = await fetchBootConfigAsync();
+              const embeddedResourcesPromise = loadEmbeddedResourcesAsync(bootConfig);
+            
+              if (!bootConfig.linkerEnabled) {
+                console.info('Blazor is running in dev mode without IL stripping. To make the bundle size significantly smaller, publish the application or see https://go.microsoft.com/fwlink/?linkid=870414');
+              }
+            
+              // Determine the URLs of the assemblies we want to load, then begin fetching them all
+              const loadAssemblyUrls = [bootConfig.main]
+                .concat(bootConfig.assemblyReferences)
+                .map(filename => `_framework/_bin/${filename}`);
+            
+              try {
+                await platform.start(loadAssemblyUrls);
+              } catch (ex) {
+                throw new Error(`Failed to start platform. Reason: ${ex}`);
+              }
+            
+              // Before we start running .NET code, be sure embedded content resources are all loaded
+              await embeddedResourcesPromise;
+            
+              // Start up the application
+              const mainAssemblyName = getAssemblyNameFromUrl(bootConfig.main);
+              platform.callEntryPoint(mainAssemblyName, bootConfig.entryPoint, []);
+              */
         });
-    });
+    }
+    window['Blazor'].start = boot;
+    if (BootCommon_1.shouldAutoStart()) {
+        boot();
+    }
 }
-window['Blazor'].start = boot;
-if (BootCommon_1.shouldAutoStart()) {
-    boot();
-}
+exports.runApp = runApp;
+exports.runBlazorApp = runApp;
+window['runBlazorApp'] = runApp;
 
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node_modules/process/browser.js */ "../node_modules/process/browser.js")))
 
 /***/ }),
 
@@ -546,57 +777,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 function fetchBootConfigAsync() {
-    return __awaiter(this, void 0, void 0, function () {
-        var bootConfigResponse;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0: return [4 /*yield*/, fetch('_framework/blazor.boot.json', { method: 'Get', credentials: 'include' })];
-                case 1:
-                    bootConfigResponse = _a.sent();
-                    return [2 /*return*/, bootConfigResponse.json()];
-            }
-        });
+    return __awaiter(this, void 0, void 0, function* () {
+        // Later we might make the location of this configurable (e.g., as an attribute on the <script>
+        // element that's importing this file), but currently there isn't a use case for that.
+        const bootConfigResponse = yield fetch('_framework/blazor.boot.json', { method: 'Get', credentials: 'include' });
+        return bootConfigResponse.json();
     });
 }
 exports.fetchBootConfigAsync = fetchBootConfigAsync;
 function loadEmbeddedResourcesAsync(bootConfig) {
-    var cssLoadingPromises = bootConfig.cssReferences.map(function (cssReference) {
-        var linkElement = document.createElement('link');
+    const cssLoadingPromises = bootConfig.cssReferences.map(cssReference => {
+        const linkElement = document.createElement('link');
         linkElement.rel = 'stylesheet';
         linkElement.href = cssReference;
         return loadResourceFromElement(linkElement);
     });
-    var jsLoadingPromises = bootConfig.jsReferences.map(function (jsReference) {
-        var scriptElement = document.createElement('script');
+    const jsLoadingPromises = bootConfig.jsReferences.map(jsReference => {
+        const scriptElement = document.createElement('script');
         scriptElement.src = jsReference;
         return loadResourceFromElement(scriptElement);
     });
@@ -604,7 +803,7 @@ function loadEmbeddedResourcesAsync(bootConfig) {
 }
 exports.loadEmbeddedResourcesAsync = loadEmbeddedResourcesAsync;
 function loadResourceFromElement(element) {
-    return new Promise(function (resolve, reject) {
+    return new Promise((resolve, reject) => {
         element.onload = resolve;
         element.onerror = reject;
         document.head.appendChild(element);
@@ -650,9 +849,9 @@ exports.setPlatform = setPlatform;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var NavigationManager_1 = __webpack_require__(/*! ./Services/NavigationManager */ "./Services/NavigationManager.ts");
-var Http_1 = __webpack_require__(/*! ./Services/Http */ "./Services/Http.ts");
-var Renderer_1 = __webpack_require__(/*! ./Rendering/Renderer */ "./Rendering/Renderer.ts");
+const NavigationManager_1 = __webpack_require__(/*! ./Services/NavigationManager */ "./Services/NavigationManager.ts");
+const Http_1 = __webpack_require__(/*! ./Services/Http */ "./Services/Http.ts");
+const Renderer_1 = __webpack_require__(/*! ./Rendering/Renderer */ "./Rendering/Renderer.ts");
 // Make the following APIs available in global scope for invocation from JS
 window['Blazor'] = {
     navigateTo: NavigationManager_1.navigateTo,
@@ -690,38 +889,37 @@ Object.defineProperty(exports, "__esModule", { value: true });
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var RenderBatch_1 = __webpack_require__(/*! ./RenderBatch/RenderBatch */ "./Rendering/RenderBatch/RenderBatch.ts");
-var EventDelegator_1 = __webpack_require__(/*! ./EventDelegator */ "./Rendering/EventDelegator.ts");
-var LogicalElements_1 = __webpack_require__(/*! ./LogicalElements */ "./Rendering/LogicalElements.ts");
-var ElementReferenceCapture_1 = __webpack_require__(/*! ./ElementReferenceCapture */ "./Rendering/ElementReferenceCapture.ts");
-var RendererEventDispatcher_1 = __webpack_require__(/*! ./RendererEventDispatcher */ "./Rendering/RendererEventDispatcher.ts");
-var selectValuePropname = '_blazorSelectValue';
-var sharedTemplateElemForParsing = document.createElement('template');
-var sharedSvgElemForParsing = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-var preventDefaultEvents = { submit: true };
-var rootComponentsPendingFirstRender = {};
-var BrowserRenderer = /** @class */ (function () {
-    function BrowserRenderer(browserRendererId) {
-        var _this = this;
+const RenderBatch_1 = __webpack_require__(/*! ./RenderBatch/RenderBatch */ "./Rendering/RenderBatch/RenderBatch.ts");
+const EventDelegator_1 = __webpack_require__(/*! ./EventDelegator */ "./Rendering/EventDelegator.ts");
+const LogicalElements_1 = __webpack_require__(/*! ./LogicalElements */ "./Rendering/LogicalElements.ts");
+const ElementReferenceCapture_1 = __webpack_require__(/*! ./ElementReferenceCapture */ "./Rendering/ElementReferenceCapture.ts");
+const RendererEventDispatcher_1 = __webpack_require__(/*! ./RendererEventDispatcher */ "./Rendering/RendererEventDispatcher.ts");
+const selectValuePropname = '_blazorSelectValue';
+const sharedTemplateElemForParsing = document.createElement('template');
+const sharedSvgElemForParsing = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+const preventDefaultEvents = { submit: true };
+const rootComponentsPendingFirstRender = {};
+class BrowserRenderer {
+    constructor(browserRendererId) {
         this.childComponentLocations = {};
         this.browserRendererId = browserRendererId;
-        this.eventDelegator = new EventDelegator_1.EventDelegator(function (event, eventHandlerId, eventArgs, eventFieldInfo) {
-            raiseEvent(event, _this.browserRendererId, eventHandlerId, eventArgs, eventFieldInfo);
+        this.eventDelegator = new EventDelegator_1.EventDelegator((event, eventHandlerId, eventArgs, eventFieldInfo) => {
+            raiseEvent(event, this.browserRendererId, eventHandlerId, eventArgs, eventFieldInfo);
         });
     }
-    BrowserRenderer.prototype.attachRootComponentToLogicalElement = function (componentId, element) {
+    attachRootComponentToLogicalElement(componentId, element) {
         this.attachComponentToElement(componentId, element);
         rootComponentsPendingFirstRender[componentId] = element;
-    };
-    BrowserRenderer.prototype.updateComponent = function (batch, componentId, edits, referenceFrames) {
-        var element = this.childComponentLocations[componentId];
+    }
+    updateComponent(batch, componentId, edits, referenceFrames) {
+        const element = this.childComponentLocations[componentId];
         if (!element) {
-            throw new Error("No element is currently associated with component " + componentId);
+            throw new Error(`No element is currently associated with component ${componentId}`);
         }
         // On the first render for each root component, clear any existing content (e.g., prerendered)
-        var rootElementToClear = rootComponentsPendingFirstRender[componentId];
+        const rootElementToClear = rootComponentsPendingFirstRender[componentId];
         if (rootElementToClear) {
-            var rootElementToClearEnd = LogicalElements_1.getLogicalSiblingEnd(rootElementToClear);
+            const rootElementToClearEnd = LogicalElements_1.getLogicalSiblingEnd(rootElementToClear);
             delete rootComponentsPendingFirstRender[componentId];
             if (!rootElementToClearEnd) {
                 clearElement(rootElementToClear);
@@ -730,55 +928,55 @@ var BrowserRenderer = /** @class */ (function () {
                 clearBetween(rootElementToClear, rootElementToClearEnd);
             }
         }
-        var ownerDocument = LogicalElements_1.getClosestDomElement(element).ownerDocument;
-        var activeElementBefore = ownerDocument && ownerDocument.activeElement;
+        const ownerDocument = LogicalElements_1.getClosestDomElement(element).ownerDocument;
+        const activeElementBefore = ownerDocument && ownerDocument.activeElement;
         this.applyEdits(batch, componentId, element, 0, edits, referenceFrames);
         // Try to restore focus in case it was lost due to an element move
         if ((activeElementBefore instanceof HTMLElement) && ownerDocument && ownerDocument.activeElement !== activeElementBefore) {
             activeElementBefore.focus();
         }
-    };
-    BrowserRenderer.prototype.disposeComponent = function (componentId) {
+    }
+    disposeComponent(componentId) {
         delete this.childComponentLocations[componentId];
-    };
-    BrowserRenderer.prototype.disposeEventHandler = function (eventHandlerId) {
+    }
+    disposeEventHandler(eventHandlerId) {
         this.eventDelegator.removeListener(eventHandlerId);
-    };
-    BrowserRenderer.prototype.attachComponentToElement = function (componentId, element) {
+    }
+    attachComponentToElement(componentId, element) {
         this.childComponentLocations[componentId] = element;
-    };
-    BrowserRenderer.prototype.applyEdits = function (batch, componentId, parent, childIndex, edits, referenceFrames) {
-        var currentDepth = 0;
-        var childIndexAtCurrentDepth = childIndex;
-        var permutationList;
-        var arrayBuilderSegmentReader = batch.arrayBuilderSegmentReader;
-        var editReader = batch.editReader;
-        var frameReader = batch.frameReader;
-        var editsValues = arrayBuilderSegmentReader.values(edits);
-        var editsOffset = arrayBuilderSegmentReader.offset(edits);
-        var editsLength = arrayBuilderSegmentReader.count(edits);
-        var maxEditIndexExcl = editsOffset + editsLength;
-        for (var editIndex = editsOffset; editIndex < maxEditIndexExcl; editIndex++) {
-            var edit = batch.diffReader.editsEntry(editsValues, editIndex);
-            var editType = editReader.editType(edit);
+    }
+    applyEdits(batch, componentId, parent, childIndex, edits, referenceFrames) {
+        let currentDepth = 0;
+        let childIndexAtCurrentDepth = childIndex;
+        let permutationList;
+        const arrayBuilderSegmentReader = batch.arrayBuilderSegmentReader;
+        const editReader = batch.editReader;
+        const frameReader = batch.frameReader;
+        const editsValues = arrayBuilderSegmentReader.values(edits);
+        const editsOffset = arrayBuilderSegmentReader.offset(edits);
+        const editsLength = arrayBuilderSegmentReader.count(edits);
+        const maxEditIndexExcl = editsOffset + editsLength;
+        for (let editIndex = editsOffset; editIndex < maxEditIndexExcl; editIndex++) {
+            const edit = batch.diffReader.editsEntry(editsValues, editIndex);
+            const editType = editReader.editType(edit);
             switch (editType) {
                 case RenderBatch_1.EditType.prependFrame: {
-                    var frameIndex = editReader.newTreeIndex(edit);
-                    var frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
-                    var siblingIndex = editReader.siblingIndex(edit);
+                    const frameIndex = editReader.newTreeIndex(edit);
+                    const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
+                    const siblingIndex = editReader.siblingIndex(edit);
                     this.insertFrame(batch, componentId, parent, childIndexAtCurrentDepth + siblingIndex, referenceFrames, frame, frameIndex);
                     break;
                 }
                 case RenderBatch_1.EditType.removeFrame: {
-                    var siblingIndex = editReader.siblingIndex(edit);
+                    const siblingIndex = editReader.siblingIndex(edit);
                     LogicalElements_1.removeLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
                     break;
                 }
                 case RenderBatch_1.EditType.setAttribute: {
-                    var frameIndex = editReader.newTreeIndex(edit);
-                    var frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
-                    var siblingIndex = editReader.siblingIndex(edit);
-                    var element = LogicalElements_1.getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+                    const frameIndex = editReader.newTreeIndex(edit);
+                    const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
+                    const siblingIndex = editReader.siblingIndex(edit);
+                    const element = LogicalElements_1.getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
                     if (element instanceof Element) {
                         this.applyAttribute(batch, componentId, element, frame);
                     }
@@ -790,10 +988,10 @@ var BrowserRenderer = /** @class */ (function () {
                 case RenderBatch_1.EditType.removeAttribute: {
                     // Note that we don't have to dispose the info we track about event handlers here, because the
                     // disposed event handler IDs are delivered separately (in the 'disposedEventHandlerIds' array)
-                    var siblingIndex = editReader.siblingIndex(edit);
-                    var element = LogicalElements_1.getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+                    const siblingIndex = editReader.siblingIndex(edit);
+                    const element = LogicalElements_1.getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
                     if (element instanceof HTMLElement) {
-                        var attributeName = editReader.removedAttributeName(edit);
+                        const attributeName = editReader.removedAttributeName(edit);
                         // First try to remove any special property we use for this attribute
                         if (!this.tryApplySpecialProperty(batch, element, attributeName, null)) {
                             // If that's not applicable, it's a regular DOM attribute so remove that
@@ -806,10 +1004,10 @@ var BrowserRenderer = /** @class */ (function () {
                     break;
                 }
                 case RenderBatch_1.EditType.updateText: {
-                    var frameIndex = editReader.newTreeIndex(edit);
-                    var frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
-                    var siblingIndex = editReader.siblingIndex(edit);
-                    var textNode = LogicalElements_1.getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
+                    const frameIndex = editReader.newTreeIndex(edit);
+                    const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
+                    const siblingIndex = editReader.siblingIndex(edit);
+                    const textNode = LogicalElements_1.getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
                     if (textNode instanceof Text) {
                         textNode.textContent = frameReader.textContent(frame);
                     }
@@ -819,15 +1017,15 @@ var BrowserRenderer = /** @class */ (function () {
                     break;
                 }
                 case RenderBatch_1.EditType.updateMarkup: {
-                    var frameIndex = editReader.newTreeIndex(edit);
-                    var frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
-                    var siblingIndex = editReader.siblingIndex(edit);
+                    const frameIndex = editReader.newTreeIndex(edit);
+                    const frame = batch.referenceFramesEntry(referenceFrames, frameIndex);
+                    const siblingIndex = editReader.siblingIndex(edit);
                     LogicalElements_1.removeLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
                     this.insertMarkup(batch, parent, childIndexAtCurrentDepth + siblingIndex, frame);
                     break;
                 }
                 case RenderBatch_1.EditType.stepIn: {
-                    var siblingIndex = editReader.siblingIndex(edit);
+                    const siblingIndex = editReader.siblingIndex(edit);
                     parent = LogicalElements_1.getLogicalChild(parent, childIndexAtCurrentDepth + siblingIndex);
                     currentDepth++;
                     childIndexAtCurrentDepth = 0;
@@ -853,15 +1051,15 @@ var BrowserRenderer = /** @class */ (function () {
                     break;
                 }
                 default: {
-                    var unknownType = editType; // Compile-time verification that the switch was exhaustive
-                    throw new Error("Unknown edit type: " + unknownType);
+                    const unknownType = editType; // Compile-time verification that the switch was exhaustive
+                    throw new Error(`Unknown edit type: ${unknownType}`);
                 }
             }
         }
-    };
-    BrowserRenderer.prototype.insertFrame = function (batch, componentId, parent, childIndex, frames, frame, frameIndex) {
-        var frameReader = batch.frameReader;
-        var frameType = frameReader.frameType(frame);
+    }
+    insertFrame(batch, componentId, parent, childIndex, frames, frame, frameIndex) {
+        const frameReader = batch.frameReader;
+        const frameType = frameReader.frameType(frame);
         switch (frameType) {
             case RenderBatch_1.FrameType.element:
                 this.insertElement(batch, componentId, parent, childIndex, frames, frame, frameIndex);
@@ -888,22 +1086,22 @@ var BrowserRenderer = /** @class */ (function () {
                 this.insertMarkup(batch, parent, childIndex, frame);
                 return 1;
             default:
-                var unknownType = frameType; // Compile-time verification that the switch was exhaustive
-                throw new Error("Unknown frame type: " + unknownType);
+                const unknownType = frameType; // Compile-time verification that the switch was exhaustive
+                throw new Error(`Unknown frame type: ${unknownType}`);
         }
-    };
-    BrowserRenderer.prototype.insertElement = function (batch, componentId, parent, childIndex, frames, frame, frameIndex) {
-        var frameReader = batch.frameReader;
-        var tagName = frameReader.elementName(frame);
-        var newDomElementRaw = tagName === 'svg' || LogicalElements_1.isSvgElement(parent) ?
+    }
+    insertElement(batch, componentId, parent, childIndex, frames, frame, frameIndex) {
+        const frameReader = batch.frameReader;
+        const tagName = frameReader.elementName(frame);
+        const newDomElementRaw = tagName === 'svg' || LogicalElements_1.isSvgElement(parent) ?
             document.createElementNS('http://www.w3.org/2000/svg', tagName) :
             document.createElement(tagName);
-        var newElement = LogicalElements_1.toLogicalElement(newDomElementRaw);
+        const newElement = LogicalElements_1.toLogicalElement(newDomElementRaw);
         LogicalElements_1.insertLogicalChild(newDomElementRaw, parent, childIndex);
         // Apply attributes
-        var descendantsEndIndexExcl = frameIndex + frameReader.subtreeLength(frame);
-        for (var descendantIndex = frameIndex + 1; descendantIndex < descendantsEndIndexExcl; descendantIndex++) {
-            var descendantFrame = batch.referenceFramesEntry(frames, descendantIndex);
+        const descendantsEndIndexExcl = frameIndex + frameReader.subtreeLength(frame);
+        for (let descendantIndex = frameIndex + 1; descendantIndex < descendantsEndIndexExcl; descendantIndex++) {
+            const descendantFrame = batch.referenceFramesEntry(frames, descendantIndex);
             if (frameReader.frameType(descendantFrame) === RenderBatch_1.FrameType.attribute) {
                 this.applyAttribute(batch, componentId, newDomElementRaw, descendantFrame);
             }
@@ -920,42 +1118,42 @@ var BrowserRenderer = /** @class */ (function () {
         //     added as an opaque markup block rather than individually
         // Right here we implement [2]
         if (newDomElementRaw instanceof HTMLSelectElement && selectValuePropname in newDomElementRaw) {
-            var selectValue = newDomElementRaw[selectValuePropname];
+            const selectValue = newDomElementRaw[selectValuePropname];
             newDomElementRaw.value = selectValue;
             delete newDomElementRaw[selectValuePropname];
         }
-    };
-    BrowserRenderer.prototype.insertComponent = function (batch, parent, childIndex, frame) {
-        var containerElement = LogicalElements_1.createAndInsertLogicalContainer(parent, childIndex);
+    }
+    insertComponent(batch, parent, childIndex, frame) {
+        const containerElement = LogicalElements_1.createAndInsertLogicalContainer(parent, childIndex);
         // All we have to do is associate the child component ID with its location. We don't actually
         // do any rendering here, because the diff for the child will appear later in the render batch.
-        var childComponentId = batch.frameReader.componentId(frame);
+        const childComponentId = batch.frameReader.componentId(frame);
         this.attachComponentToElement(childComponentId, containerElement);
-    };
-    BrowserRenderer.prototype.insertText = function (batch, parent, childIndex, textFrame) {
-        var textContent = batch.frameReader.textContent(textFrame);
-        var newTextNode = document.createTextNode(textContent);
+    }
+    insertText(batch, parent, childIndex, textFrame) {
+        const textContent = batch.frameReader.textContent(textFrame);
+        const newTextNode = document.createTextNode(textContent);
         LogicalElements_1.insertLogicalChild(newTextNode, parent, childIndex);
-    };
-    BrowserRenderer.prototype.insertMarkup = function (batch, parent, childIndex, markupFrame) {
-        var markupContainer = LogicalElements_1.createAndInsertLogicalContainer(parent, childIndex);
-        var markupContent = batch.frameReader.markupContent(markupFrame);
-        var parsedMarkup = parseMarkup(markupContent, LogicalElements_1.isSvgElement(parent));
-        var logicalSiblingIndex = 0;
+    }
+    insertMarkup(batch, parent, childIndex, markupFrame) {
+        const markupContainer = LogicalElements_1.createAndInsertLogicalContainer(parent, childIndex);
+        const markupContent = batch.frameReader.markupContent(markupFrame);
+        const parsedMarkup = parseMarkup(markupContent, LogicalElements_1.isSvgElement(parent));
+        let logicalSiblingIndex = 0;
         while (parsedMarkup.firstChild) {
             LogicalElements_1.insertLogicalChild(parsedMarkup.firstChild, markupContainer, logicalSiblingIndex++);
         }
-    };
-    BrowserRenderer.prototype.applyAttribute = function (batch, componentId, toDomElement, attributeFrame) {
-        var frameReader = batch.frameReader;
-        var attributeName = frameReader.attributeName(attributeFrame);
-        var browserRendererId = this.browserRendererId;
-        var eventHandlerId = frameReader.attributeEventHandlerId(attributeFrame);
+    }
+    applyAttribute(batch, componentId, toDomElement, attributeFrame) {
+        const frameReader = batch.frameReader;
+        const attributeName = frameReader.attributeName(attributeFrame);
+        const browserRendererId = this.browserRendererId;
+        const eventHandlerId = frameReader.attributeEventHandlerId(attributeFrame);
         if (eventHandlerId) {
-            var firstTwoChars = attributeName.substring(0, 2);
-            var eventName = attributeName.substring(2);
+            const firstTwoChars = attributeName.substring(0, 2);
+            const eventName = attributeName.substring(2);
             if (firstTwoChars !== 'on' || !eventName) {
-                throw new Error("Attribute has nonzero event handler ID, but attribute name '" + attributeName + "' does not start with 'on'.");
+                throw new Error(`Attribute has nonzero event handler ID, but attribute name '${attributeName}' does not start with 'on'.`);
             }
             this.eventDelegator.setListener(toDomElement, eventName, eventHandlerId, componentId);
             return;
@@ -965,8 +1163,8 @@ var BrowserRenderer = /** @class */ (function () {
             // If not, treat it as a regular string-valued attribute
             toDomElement.setAttribute(attributeName, frameReader.attributeValue(attributeFrame));
         }
-    };
-    BrowserRenderer.prototype.tryApplySpecialProperty = function (batch, element, attributeName, attributeFrame) {
+    }
+    tryApplySpecialProperty(batch, element, attributeName, attributeFrame) {
         switch (attributeName) {
             case 'value':
                 return this.tryApplyValueProperty(batch, element, attributeFrame);
@@ -975,15 +1173,15 @@ var BrowserRenderer = /** @class */ (function () {
             default:
                 return false;
         }
-    };
-    BrowserRenderer.prototype.tryApplyValueProperty = function (batch, element, attributeFrame) {
+    }
+    tryApplyValueProperty(batch, element, attributeFrame) {
         // Certain elements have built-in behaviour for their 'value' property
-        var frameReader = batch.frameReader;
+        const frameReader = batch.frameReader;
         switch (element.tagName) {
             case 'INPUT':
             case 'SELECT':
             case 'TEXTAREA': {
-                var value = attributeFrame ? frameReader.attributeValue(attributeFrame) : null;
+                const value = attributeFrame ? frameReader.attributeValue(attributeFrame) : null;
                 element.value = value;
                 if (element.tagName === 'SELECT') {
                     // <select> is special, in that anything we write to .value will be lost if there
@@ -996,7 +1194,7 @@ var BrowserRenderer = /** @class */ (function () {
                 return true;
             }
             case 'OPTION': {
-                var value = attributeFrame ? frameReader.attributeValue(attributeFrame) : null;
+                const value = attributeFrame ? frameReader.attributeValue(attributeFrame) : null;
                 if (value) {
                     element.setAttribute('value', value);
                 }
@@ -1005,7 +1203,7 @@ var BrowserRenderer = /** @class */ (function () {
                 }
                 // See above for why we have this special handling for <select>/<option>
                 // Note that this is only one of the two cases where we set the value on a <select>
-                var selectElem = this.findClosestAncestorSelectElement(element);
+                const selectElem = this.findClosestAncestorSelectElement(element);
                 if (selectElem && (selectValuePropname in selectElem) && selectElem[selectValuePropname] === value) {
                     this.tryApplyValueProperty(batch, selectElem, attributeFrame);
                     delete selectElem[selectValuePropname];
@@ -1015,19 +1213,19 @@ var BrowserRenderer = /** @class */ (function () {
             default:
                 return false;
         }
-    };
-    BrowserRenderer.prototype.tryApplyCheckedProperty = function (batch, element, attributeFrame) {
+    }
+    tryApplyCheckedProperty(batch, element, attributeFrame) {
         // Certain elements have built-in behaviour for their 'checked' property
         if (element.tagName === 'INPUT') {
-            var value = attributeFrame ? batch.frameReader.attributeValue(attributeFrame) : null;
+            const value = attributeFrame ? batch.frameReader.attributeValue(attributeFrame) : null;
             element.checked = value !== null;
             return true;
         }
         else {
             return false;
         }
-    };
-    BrowserRenderer.prototype.findClosestAncestorSelectElement = function (element) {
+    }
+    findClosestAncestorSelectElement(element) {
         while (element) {
             if (element instanceof HTMLSelectElement) {
                 return element;
@@ -1037,20 +1235,19 @@ var BrowserRenderer = /** @class */ (function () {
             }
         }
         return null;
-    };
-    BrowserRenderer.prototype.insertFrameRange = function (batch, componentId, parent, childIndex, frames, startIndex, endIndexExcl) {
-        var origChildIndex = childIndex;
-        for (var index = startIndex; index < endIndexExcl; index++) {
-            var frame = batch.referenceFramesEntry(frames, index);
-            var numChildrenInserted = this.insertFrame(batch, componentId, parent, childIndex, frames, frame, index);
+    }
+    insertFrameRange(batch, componentId, parent, childIndex, frames, startIndex, endIndexExcl) {
+        const origChildIndex = childIndex;
+        for (let index = startIndex; index < endIndexExcl; index++) {
+            const frame = batch.referenceFramesEntry(frames, index);
+            const numChildrenInserted = this.insertFrame(batch, componentId, parent, childIndex, frames, frame, index);
             childIndex += numChildrenInserted;
             // Skip over any descendants, since they are already dealt with recursively
             index += countDescendantFrames(batch, frame);
         }
         return (childIndex - origChildIndex); // Total number of children inserted
-    };
-    return BrowserRenderer;
-}());
+    }
+}
 exports.BrowserRenderer = BrowserRenderer;
 function parseMarkup(markup, isSvg) {
     if (isSvg) {
@@ -1063,7 +1260,7 @@ function parseMarkup(markup, isSvg) {
     }
 }
 function countDescendantFrames(batch, frame) {
-    var frameReader = batch.frameReader;
+    const frameReader = batch.frameReader;
     switch (frameReader.frameType(frame)) {
         // The following frame types have a subtree length. Other frames may use that memory slot
         // to mean something else, so we must not read it. We should consider having nominal subtypes
@@ -1080,30 +1277,30 @@ function raiseEvent(event, browserRendererId, eventHandlerId, eventArgs, eventFi
     if (preventDefaultEvents[event.type]) {
         event.preventDefault();
     }
-    var eventDescriptor = {
-        browserRendererId: browserRendererId,
-        eventHandlerId: eventHandlerId,
+    const eventDescriptor = {
+        browserRendererId,
+        eventHandlerId,
         eventArgsType: eventArgs.type,
         eventFieldInfo: eventFieldInfo,
     };
     RendererEventDispatcher_1.dispatchEvent(eventDescriptor, eventArgs.data);
 }
 function clearElement(element) {
-    var childNode;
+    let childNode;
     while (childNode = element.firstChild) {
         element.removeChild(childNode);
     }
 }
 function clearBetween(start, end) {
-    var logicalParent = LogicalElements_1.getLogicalParent(start);
+    const logicalParent = LogicalElements_1.getLogicalParent(start);
     if (!logicalParent) {
         throw new Error("Can't clear between nodes. The start node does not have a logical parent.");
     }
-    var children = LogicalElements_1.getLogicalChildrenArray(logicalParent);
-    var removeStart = children.indexOf(start) + 1;
-    var endIndex = children.indexOf(end);
+    const children = LogicalElements_1.getLogicalChildrenArray(logicalParent);
+    const removeStart = children.indexOf(start) + 1;
+    const endIndex = children.indexOf(end);
     // We remove the end component comment from the DOM as we don't need it after this point.
-    for (var i = removeStart; i <= endIndex; i++) {
+    for (let i = removeStart; i <= endIndex; i++) {
         LogicalElements_1.removeLogicalChild(logicalParent, removeStart);
     }
     // We sanitize the start comment by removing all the information from it now that we don't need it anymore
@@ -1129,15 +1326,15 @@ function applyCaptureIdToElement(element, referenceCaptureId) {
 }
 exports.applyCaptureIdToElement = applyCaptureIdToElement;
 function getElementByCaptureId(referenceCaptureId) {
-    var selector = "[" + getCaptureIdAttributeName(referenceCaptureId) + "]";
+    const selector = `[${getCaptureIdAttributeName(referenceCaptureId)}]`;
     return document.querySelector(selector);
 }
 function getCaptureIdAttributeName(referenceCaptureId) {
-    return "_bl_" + referenceCaptureId;
+    return `_bl_${referenceCaptureId}`;
 }
 // Support receiving ElementRef instances as args in interop calls
-var elementRefKey = '__internalId'; // Keep in sync with ElementRef.cs
-DotNet.attachReviver(function (key, value) {
+const elementRefKey = '__internalId'; // Keep in sync with ElementRef.cs
+DotNet.attachReviver((key, value) => {
     if (value && typeof value === 'object' && value.hasOwnProperty(elementRefKey) && typeof value[elementRefKey] === 'string') {
         return getElementByCaptureId(value[elementRefKey]);
     }
@@ -1159,9 +1356,9 @@ DotNet.attachReviver(function (key, value) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var EventForDotNet_1 = __webpack_require__(/*! ./EventForDotNet */ "./Rendering/EventForDotNet.ts");
-var EventFieldInfo_1 = __webpack_require__(/*! ./EventFieldInfo */ "./Rendering/EventFieldInfo.ts");
-var nonBubblingEvents = toLookup([
+const EventForDotNet_1 = __webpack_require__(/*! ./EventForDotNet */ "./Rendering/EventForDotNet.ts");
+const EventFieldInfo_1 = __webpack_require__(/*! ./EventFieldInfo */ "./Rendering/EventFieldInfo.ts");
+const nonBubblingEvents = toLookup([
     'abort',
     'blur',
     'change',
@@ -1183,92 +1380,91 @@ var nonBubblingEvents = toLookup([
 // Responsible for adding/removing the eventInfo on an expando property on DOM elements, and
 // calling an EventInfoStore that deals with registering/unregistering the underlying delegated
 // event listeners as required (and also maps actual events back to the given callback).
-var EventDelegator = /** @class */ (function () {
-    function EventDelegator(onEvent) {
+class EventDelegator {
+    constructor(onEvent) {
         this.onEvent = onEvent;
-        var eventDelegatorId = ++EventDelegator.nextEventDelegatorId;
-        this.eventsCollectionKey = "_blazorEvents_" + eventDelegatorId;
+        const eventDelegatorId = ++EventDelegator.nextEventDelegatorId;
+        this.eventsCollectionKey = `_blazorEvents_${eventDelegatorId}`;
         this.eventInfoStore = new EventInfoStore(this.onGlobalEvent.bind(this));
     }
-    EventDelegator.prototype.setListener = function (element, eventName, eventHandlerId, renderingComponentId) {
+    setListener(element, eventName, eventHandlerId, renderingComponentId) {
         // Ensure we have a place to store event info for this element
-        var infoForElement = element[this.eventsCollectionKey];
+        let infoForElement = element[this.eventsCollectionKey];
         if (!infoForElement) {
             infoForElement = element[this.eventsCollectionKey] = {};
         }
         if (infoForElement.hasOwnProperty(eventName)) {
             // We can cheaply update the info on the existing object and don't need any other housekeeping
-            var oldInfo = infoForElement[eventName];
+            const oldInfo = infoForElement[eventName];
             this.eventInfoStore.update(oldInfo.eventHandlerId, eventHandlerId);
         }
         else {
             // Go through the whole flow which might involve registering a new global handler
-            var newInfo = { element: element, eventName: eventName, eventHandlerId: eventHandlerId, renderingComponentId: renderingComponentId };
+            const newInfo = { element, eventName, eventHandlerId, renderingComponentId };
             this.eventInfoStore.add(newInfo);
             infoForElement[eventName] = newInfo;
         }
-    };
-    EventDelegator.prototype.removeListener = function (eventHandlerId) {
+    }
+    removeListener(eventHandlerId) {
         // This method gets called whenever the .NET-side code reports that a certain event handler
         // has been disposed. However we will already have disposed the info about that handler if
         // the eventHandlerId for the (element,eventName) pair was replaced during diff application.
-        var info = this.eventInfoStore.remove(eventHandlerId);
+        const info = this.eventInfoStore.remove(eventHandlerId);
         if (info) {
             // Looks like this event handler wasn't already disposed
             // Remove the associated data from the DOM element
-            var element = info.element;
+            const element = info.element;
             if (element.hasOwnProperty(this.eventsCollectionKey)) {
-                var elementEventInfos = element[this.eventsCollectionKey];
+                const elementEventInfos = element[this.eventsCollectionKey];
                 delete elementEventInfos[info.eventName];
                 if (Object.getOwnPropertyNames(elementEventInfos).length === 0) {
                     delete element[this.eventsCollectionKey];
                 }
             }
         }
-    };
-    EventDelegator.prototype.onGlobalEvent = function (evt) {
+    }
+    onGlobalEvent(evt) {
         if (!(evt.target instanceof Element)) {
             return;
         }
         // Scan up the element hierarchy, looking for any matching registered event handlers
-        var candidateElement = evt.target;
-        var eventArgs = null; // Populate lazily
-        var eventIsNonBubbling = nonBubblingEvents.hasOwnProperty(evt.type);
+        let candidateElement = evt.target;
+        let eventArgs = null; // Populate lazily
+        const eventIsNonBubbling = nonBubblingEvents.hasOwnProperty(evt.type);
         while (candidateElement) {
             if (candidateElement.hasOwnProperty(this.eventsCollectionKey)) {
-                var handlerInfos = candidateElement[this.eventsCollectionKey];
+                const handlerInfos = candidateElement[this.eventsCollectionKey];
                 if (handlerInfos.hasOwnProperty(evt.type)) {
                     // We are going to raise an event for this element, so prepare info needed by the .NET code
                     if (!eventArgs) {
                         eventArgs = EventForDotNet_1.EventForDotNet.fromDOMEvent(evt);
                     }
-                    var handlerInfo = handlerInfos[evt.type];
-                    var eventFieldInfo = EventFieldInfo_1.EventFieldInfo.fromEvent(handlerInfo.renderingComponentId, evt);
+                    const handlerInfo = handlerInfos[evt.type];
+                    const eventFieldInfo = EventFieldInfo_1.EventFieldInfo.fromEvent(handlerInfo.renderingComponentId, evt);
                     this.onEvent(evt, handlerInfo.eventHandlerId, eventArgs, eventFieldInfo);
                 }
             }
             candidateElement = eventIsNonBubbling ? null : candidateElement.parentElement;
         }
-    };
-    EventDelegator.nextEventDelegatorId = 0;
-    return EventDelegator;
-}());
+    }
+}
 exports.EventDelegator = EventDelegator;
+EventDelegator.nextEventDelegatorId = 0;
 // Responsible for adding and removing the global listener when the number of listeners
 // for a given event name changes between zero and nonzero
-var EventInfoStore = /** @class */ (function () {
-    function EventInfoStore(globalListener) {
+class EventInfoStore {
+    constructor(globalListener) {
         this.globalListener = globalListener;
         this.infosByEventHandlerId = {};
         this.countByEventName = {};
     }
-    EventInfoStore.prototype.add = function (info) {
+    add(info) {
         if (this.infosByEventHandlerId[info.eventHandlerId]) {
             // Should never happen, but we want to know if it does
-            throw new Error("Event " + info.eventHandlerId + " is already tracked");
+            throw new Error(`Event ${info.eventHandlerId} is already tracked`);
         }
         this.infosByEventHandlerId[info.eventHandlerId] = info;
-        var eventName = info.eventName;
+        const eventName = info.eventName;
         if (this.countByEventName.hasOwnProperty(eventName)) {
             this.countByEventName[eventName]++;
         }
@@ -1276,38 +1472,37 @@ var EventInfoStore = /** @class */ (function () {
             this.countByEventName[eventName] = 1;
             // To make delegation work with non-bubbling events, register a 'capture' listener.
             // We preserve the non-bubbling behavior by only dispatching such events to the targeted element.
-            var useCapture = nonBubblingEvents.hasOwnProperty(eventName);
+            const useCapture = nonBubblingEvents.hasOwnProperty(eventName);
             document.addEventListener(eventName, this.globalListener, useCapture);
         }
-    };
-    EventInfoStore.prototype.update = function (oldEventHandlerId, newEventHandlerId) {
+    }
+    update(oldEventHandlerId, newEventHandlerId) {
         if (this.infosByEventHandlerId.hasOwnProperty(newEventHandlerId)) {
             // Should never happen, but we want to know if it does
-            throw new Error("Event " + newEventHandlerId + " is already tracked");
+            throw new Error(`Event ${newEventHandlerId} is already tracked`);
         }
         // Since we're just updating the event handler ID, there's no need to update the global counts
-        var info = this.infosByEventHandlerId[oldEventHandlerId];
+        const info = this.infosByEventHandlerId[oldEventHandlerId];
         delete this.infosByEventHandlerId[oldEventHandlerId];
         info.eventHandlerId = newEventHandlerId;
         this.infosByEventHandlerId[newEventHandlerId] = info;
-    };
-    EventInfoStore.prototype.remove = function (eventHandlerId) {
-        var info = this.infosByEventHandlerId[eventHandlerId];
+    }
+    remove(eventHandlerId) {
+        const info = this.infosByEventHandlerId[eventHandlerId];
         if (info) {
             delete this.infosByEventHandlerId[eventHandlerId];
-            var eventName = info.eventName;
+            const eventName = info.eventName;
             if (--this.countByEventName[eventName] === 0) {
                 delete this.countByEventName[eventName];
                 document.removeEventListener(eventName, this.globalListener);
             }
         }
         return info;
-    };
-    return EventInfoStore;
-}());
+    }
+}
 function toLookup(items) {
-    var result = {};
-    items.forEach(function (value) {
+    const result = {};
+    items.forEach(value => {
         result[value] = true;
     });
     return result;
@@ -1326,24 +1521,23 @@ function toLookup(items) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var EventFieldInfo = /** @class */ (function () {
-    function EventFieldInfo(componentId, fieldValue) {
+class EventFieldInfo {
+    constructor(componentId, fieldValue) {
         this.componentId = componentId;
         this.fieldValue = fieldValue;
     }
-    EventFieldInfo.fromEvent = function (componentId, event) {
-        var elem = event.target;
+    static fromEvent(componentId, event) {
+        const elem = event.target;
         if (elem instanceof Element) {
-            var fieldData = getFormFieldData(elem);
+            const fieldData = getFormFieldData(elem);
             if (fieldData) {
                 return new EventFieldInfo(componentId, fieldData.value);
             }
         }
         // This event isn't happening on a form field that we can reverse-map back to some incoming attribute
         return null;
-    };
-    return EventFieldInfo;
-}());
+    }
+}
 exports.EventFieldInfo = EventFieldInfo;
 function getFormFieldData(elem) {
     // The logic in here should be the inverse of the logic in BrowserRenderer's tryApplySpecialProperty.
@@ -1372,30 +1566,19 @@ function getFormFieldData(elem) {
 
 "use strict";
 
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var EventForDotNet = /** @class */ (function () {
-    function EventForDotNet(type, data) {
+class EventForDotNet {
+    constructor(type, data) {
         this.type = type;
         this.data = data;
     }
-    EventForDotNet.fromDOMEvent = function (event) {
-        var element = event.target;
+    static fromDOMEvent(event) {
+        const element = event.target;
         switch (event.type) {
             case 'input':
             case 'change': {
-                var targetIsCheckbox = isCheckbox(element);
-                var newValue = targetIsCheckbox ? !!element['checked'] : element['value'];
+                const targetIsCheckbox = isCheckbox(element);
+                const newValue = targetIsCheckbox ? !!element['checked'] : element['value'];
                 return new EventForDotNet('change', { type: event.type, value: newValue });
             }
             case 'copy':
@@ -1461,15 +1644,14 @@ var EventForDotNet = /** @class */ (function () {
             default:
                 return new EventForDotNet('unknown', { type: event.type });
         }
-    };
-    return EventForDotNet;
-}());
+    }
+}
 exports.EventForDotNet = EventForDotNet;
 function parseDragEvent(event) {
-    return __assign(__assign({}, parseMouseEvent(event)), { dataTransfer: event.dataTransfer });
+    return Object.assign(Object.assign({}, parseMouseEvent(event)), { dataTransfer: event.dataTransfer });
 }
 function parseWheelEvent(event) {
-    return __assign(__assign({}, parseMouseEvent(event)), { deltaX: event.deltaX, deltaY: event.deltaY, deltaZ: event.deltaZ, deltaMode: event.deltaMode });
+    return Object.assign(Object.assign({}, parseMouseEvent(event)), { deltaX: event.deltaX, deltaY: event.deltaY, deltaZ: event.deltaZ, deltaMode: event.deltaMode });
 }
 function parseErrorEvent(event) {
     return {
@@ -1490,9 +1672,9 @@ function parseProgressEvent(event) {
 }
 function parseTouchEvent(event) {
     function parseTouch(touchList) {
-        var touches = [];
-        for (var i = 0; i < touchList.length; i++) {
-            var touch = touchList[i];
+        const touches = [];
+        for (let i = 0; i < touchList.length; i++) {
+            const touch = touchList[i];
             touches.push({
                 identifier: touch.identifier,
                 clientX: touch.clientX,
@@ -1531,7 +1713,7 @@ function parseKeyboardEvent(event) {
     };
 }
 function parsePointerEvent(event) {
-    return __assign(__assign({}, parseMouseEvent(event)), { pointerId: event.pointerId, width: event.width, height: event.height, pressure: event.pressure, tiltX: event.tiltX, tiltY: event.tiltY, pointerType: event.pointerType, isPrimary: event.isPrimary });
+    return Object.assign(Object.assign({}, parseMouseEvent(event)), { pointerId: event.pointerId, width: event.width, height: event.height, pressure: event.pressure, tiltX: event.tiltX, tiltY: event.tiltY, pointerType: event.pointerType, isPrimary: event.isPrimary });
 }
 function parseMouseEvent(event) {
     return {
@@ -1592,9 +1774,9 @@ function isCheckbox(element) {
   - Whenever a logical child is added or removed, we update the parent's array of logical children
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-var logicalChildrenPropname = createSymbolOrFallback('_blazorLogicalChildren');
-var logicalParentPropname = createSymbolOrFallback('_blazorLogicalParent');
-var logicalEndSiblingPropname = createSymbolOrFallback('_blazorLogicalEnd');
+const logicalChildrenPropname = createSymbolOrFallback('_blazorLogicalChildren');
+const logicalParentPropname = createSymbolOrFallback('_blazorLogicalParent');
+const logicalEndSiblingPropname = createSymbolOrFallback('_blazorLogicalEnd');
 function toLogicalRootCommentElement(start, end) {
     // Now that we support start/end comments as component delimiters we are going to be setting up
     // adding the components rendered output as siblings of the start/end tags (between).
@@ -1613,12 +1795,12 @@ function toLogicalRootCommentElement(start, end) {
     // |- *component
     // |- *footer
     if (!start.parentNode) {
-        throw new Error("Comment not connected to the DOM " + start.textContent);
+        throw new Error(`Comment not connected to the DOM ${start.textContent}`);
     }
-    var parent = start.parentNode;
-    var parentLogicalElement = toLogicalElement(parent, /* allow existing contents */ true);
-    var children = getLogicalChildrenArray(parentLogicalElement);
-    Array.from(parent.childNodes).forEach(function (n) { return children.push(n); });
+    const parent = start.parentNode;
+    const parentLogicalElement = toLogicalElement(parent, /* allow existing contents */ true);
+    const children = getLogicalChildrenArray(parentLogicalElement);
+    Array.from(parent.childNodes).forEach(n => children.push(n));
     start[logicalParentPropname] = parentLogicalElement;
     // We might not have an end comment in the case of non-prerendered components.
     if (end) {
@@ -1640,15 +1822,15 @@ function toLogicalElement(element, allowExistingContents) {
 }
 exports.toLogicalElement = toLogicalElement;
 function createAndInsertLogicalContainer(parent, childIndex) {
-    var containerElement = document.createComment('!');
+    const containerElement = document.createComment('!');
     insertLogicalChild(containerElement, parent, childIndex);
     return containerElement;
 }
 exports.createAndInsertLogicalContainer = createAndInsertLogicalContainer;
 function insertLogicalChild(child, parent, childIndex) {
-    var childAsLogicalElement = child;
+    const childAsLogicalElement = child;
     if (child instanceof Comment) {
-        var existingGrandchildren = getLogicalChildrenArray(childAsLogicalElement);
+        const existingGrandchildren = getLogicalChildrenArray(childAsLogicalElement);
         if (existingGrandchildren && getLogicalChildrenArray(childAsLogicalElement).length > 0) {
             // There's nothing to stop us implementing support for this scenario, and it's not difficult
             // (after inserting 'child' itself, also iterate through its logical children and physically
@@ -1665,10 +1847,10 @@ function insertLogicalChild(child, parent, childIndex) {
         // have any test coverage for such an implementation.
         throw new Error('Not implemented: moving existing logical children');
     }
-    var newSiblings = getLogicalChildrenArray(parent);
+    const newSiblings = getLogicalChildrenArray(parent);
     if (childIndex < newSiblings.length) {
         // Insert
-        var nextSibling = newSiblings[childIndex];
+        const nextSibling = newSiblings[childIndex];
         nextSibling.parentNode.insertBefore(child, nextSibling);
         newSiblings.splice(childIndex, 0, childAsLogicalElement);
     }
@@ -1684,17 +1866,17 @@ function insertLogicalChild(child, parent, childIndex) {
 }
 exports.insertLogicalChild = insertLogicalChild;
 function removeLogicalChild(parent, childIndex) {
-    var childrenArray = getLogicalChildrenArray(parent);
-    var childToRemove = childrenArray.splice(childIndex, 1)[0];
+    const childrenArray = getLogicalChildrenArray(parent);
+    const childToRemove = childrenArray.splice(childIndex, 1)[0];
     // If it's a logical container, also remove its descendants
     if (childToRemove instanceof Comment) {
-        var grandchildrenArray = getLogicalChildrenArray(childToRemove);
+        const grandchildrenArray = getLogicalChildrenArray(childToRemove);
         while (grandchildrenArray.length > 0) {
             removeLogicalChild(childToRemove, 0);
         }
     }
     // Finally, remove the node itself
-    var domNodeToRemove = childToRemove;
+    const domNodeToRemove = childToRemove;
     domNodeToRemove.parentNode.removeChild(domNodeToRemove);
 }
 exports.removeLogicalChild = removeLogicalChild;
@@ -1725,15 +1907,15 @@ function permuteLogicalChildren(parent, permutationList) {
     // Each of the phases here has to happen separately, because each one is designed not to
     // interfere with the indices or DOM entries used by subsequent phases.
     // Phase 1: track which nodes we will move
-    var siblings = getLogicalChildrenArray(parent);
-    permutationList.forEach(function (listEntry) {
+    const siblings = getLogicalChildrenArray(parent);
+    permutationList.forEach((listEntry) => {
         listEntry.moveRangeStart = siblings[listEntry.fromSiblingIndex];
         listEntry.moveRangeEnd = findLastDomNodeInRange(listEntry.moveRangeStart);
     });
     // Phase 2: insert markers
-    permutationList.forEach(function (listEntry) {
-        var marker = listEntry.moveToBeforeMarker = document.createComment('marker');
-        var insertBeforeNode = siblings[listEntry.toSiblingIndex + 1];
+    permutationList.forEach((listEntry) => {
+        const marker = listEntry.moveToBeforeMarker = document.createComment('marker');
+        const insertBeforeNode = siblings[listEntry.toSiblingIndex + 1];
         if (insertBeforeNode) {
             insertBeforeNode.parentNode.insertBefore(marker, insertBeforeNode);
         }
@@ -1742,14 +1924,14 @@ function permuteLogicalChildren(parent, permutationList) {
         }
     });
     // Phase 3: move descendants & remove markers
-    permutationList.forEach(function (listEntry) {
-        var insertBefore = listEntry.moveToBeforeMarker;
-        var parentDomNode = insertBefore.parentNode;
-        var elementToMove = listEntry.moveRangeStart;
-        var moveEndNode = listEntry.moveRangeEnd;
-        var nextToMove = elementToMove;
+    permutationList.forEach((listEntry) => {
+        const insertBefore = listEntry.moveToBeforeMarker;
+        const parentDomNode = insertBefore.parentNode;
+        const elementToMove = listEntry.moveRangeStart;
+        const moveEndNode = listEntry.moveRangeEnd;
+        let nextToMove = elementToMove;
         while (nextToMove) {
-            var nextNext = nextToMove.nextSibling;
+            const nextNext = nextToMove.nextSibling;
             parentDomNode.insertBefore(nextToMove, insertBefore);
             if (nextToMove === moveEndNode) {
                 break;
@@ -1761,7 +1943,7 @@ function permuteLogicalChildren(parent, permutationList) {
         parentDomNode.removeChild(insertBefore);
     });
     // Phase 4: update siblings index
-    permutationList.forEach(function (listEntry) {
+    permutationList.forEach((listEntry) => {
         siblings[listEntry.toSiblingIndex] = listEntry.moveRangeStart;
     });
 }
@@ -1779,8 +1961,8 @@ function getClosestDomElement(logicalElement) {
 }
 exports.getClosestDomElement = getClosestDomElement;
 function getLogicalNextSibling(element) {
-    var siblings = getLogicalChildrenArray(getLogicalParent(element));
-    var siblingIndex = Array.prototype.indexOf.call(siblings, element);
+    const siblings = getLogicalChildrenArray(getLogicalParent(element));
+    const siblingIndex = Array.prototype.indexOf.call(siblings, element);
     return siblings[siblingIndex + 1] || null;
 }
 function appendDomNode(child, parent) {
@@ -1790,7 +1972,7 @@ function appendDomNode(child, parent) {
         parent.appendChild(child);
     }
     else if (parent instanceof Comment) {
-        var parentLogicalNextSibling = getLogicalNextSibling(parent);
+        const parentLogicalNextSibling = getLogicalNextSibling(parent);
         if (parentLogicalNextSibling) {
             // Since the parent has a logical next-sibling, its appended child goes right before that
             parentLogicalNextSibling.parentNode.insertBefore(child, parentLogicalNextSibling);
@@ -1803,7 +1985,7 @@ function appendDomNode(child, parent) {
     }
     else {
         // Should never happen
-        throw new Error("Cannot append node because the parent is not a valid logical element. Parent: " + parent);
+        throw new Error(`Cannot append node because the parent is not a valid logical element. Parent: ${parent}`);
     }
 }
 // Returns the final node (in depth-first evaluation order) that is a descendant of the logical element.
@@ -1812,7 +1994,7 @@ function findLastDomNodeInRange(element) {
     if (element instanceof Element) {
         return element;
     }
-    var nextSibling = getLogicalNextSibling(element);
+    const nextSibling = getLogicalNextSibling(element);
     if (nextSibling) {
         // Simple case: not the last logical sibling, so take the node before the next sibling
         return nextSibling.previousSibling;
@@ -1820,7 +2002,7 @@ function findLastDomNodeInRange(element) {
     else {
         // Harder case: there's no logical next-sibling, so recurse upwards until we find
         // a logical ancestor that does have one, or a physical element
-        var logicalParent = getLogicalParent(element);
+        const logicalParent = getLogicalParent(element);
         return logicalParent instanceof Element
             ? logicalParent.lastChild
             : findLastDomNodeInRange(logicalParent);
@@ -1843,195 +2025,188 @@ function createSymbolOrFallback(fallback) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var Utf8Decoder_1 = __webpack_require__(/*! ./Utf8Decoder */ "./Rendering/RenderBatch/Utf8Decoder.ts");
-var updatedComponentsEntryLength = 4; // Each is a single int32 giving the location of the data
-var referenceFramesEntryLength = 20; // 1 int for frame type, then 16 bytes for type-specific data
-var disposedComponentIdsEntryLength = 4; // Each is an int32 giving the ID
-var disposedEventHandlerIdsEntryLength = 8; // Each is an int64 giving the ID
-var editsEntryLength = 16; // 4 ints
-var stringTableEntryLength = 4; // Each is an int32 giving the string data location, or -1 for null
-var uint64HighPartShift = Math.pow(2, 32);
-var maxSafeNumberHighPart = Math.pow(2, 21) - 1; // The high-order int32 from Number.MAX_SAFE_INTEGER
-var OutOfProcessRenderBatch = /** @class */ (function () {
-    function OutOfProcessRenderBatch(batchData) {
+const Utf8Decoder_1 = __webpack_require__(/*! ./Utf8Decoder */ "./Rendering/RenderBatch/Utf8Decoder.ts");
+const updatedComponentsEntryLength = 4; // Each is a single int32 giving the location of the data
+const referenceFramesEntryLength = 20; // 1 int for frame type, then 16 bytes for type-specific data
+const disposedComponentIdsEntryLength = 4; // Each is an int32 giving the ID
+const disposedEventHandlerIdsEntryLength = 8; // Each is an int64 giving the ID
+const editsEntryLength = 16; // 4 ints
+const stringTableEntryLength = 4; // Each is an int32 giving the string data location, or -1 for null
+const uint64HighPartShift = Math.pow(2, 32);
+const maxSafeNumberHighPart = Math.pow(2, 21) - 1; // The high-order int32 from Number.MAX_SAFE_INTEGER
+class OutOfProcessRenderBatch {
+    constructor(batchData) {
         this.batchData = batchData;
-        var stringReader = new OutOfProcessStringReader(batchData);
+        const stringReader = new OutOfProcessStringReader(batchData);
         this.arrayRangeReader = new OutOfProcessArrayRangeReader(batchData);
         this.arrayBuilderSegmentReader = new OutOfProcessArrayBuilderSegmentReader(batchData);
         this.diffReader = new OutOfProcessRenderTreeDiffReader(batchData);
         this.editReader = new OutOfProcessRenderTreeEditReader(batchData, stringReader);
         this.frameReader = new OutOfProcessRenderTreeFrameReader(batchData, stringReader);
     }
-    OutOfProcessRenderBatch.prototype.updatedComponents = function () {
+    updatedComponents() {
         return readInt32LE(this.batchData, this.batchData.length - 20); // 5th-from-last int32
-    };
-    OutOfProcessRenderBatch.prototype.referenceFrames = function () {
+    }
+    referenceFrames() {
         return readInt32LE(this.batchData, this.batchData.length - 16); // 4th-from-last int32
-    };
-    OutOfProcessRenderBatch.prototype.disposedComponentIds = function () {
+    }
+    disposedComponentIds() {
         return readInt32LE(this.batchData, this.batchData.length - 12); // 3rd-from-last int32
-    };
-    OutOfProcessRenderBatch.prototype.disposedEventHandlerIds = function () {
+    }
+    disposedEventHandlerIds() {
         return readInt32LE(this.batchData, this.batchData.length - 8); // 2th-from-last int32
-    };
-    OutOfProcessRenderBatch.prototype.updatedComponentsEntry = function (values, index) {
-        var tableEntryPos = values + index * updatedComponentsEntryLength;
+    }
+    updatedComponentsEntry(values, index) {
+        const tableEntryPos = values + index * updatedComponentsEntryLength;
         return readInt32LE(this.batchData, tableEntryPos);
-    };
-    OutOfProcessRenderBatch.prototype.referenceFramesEntry = function (values, index) {
+    }
+    referenceFramesEntry(values, index) {
         return values + index * referenceFramesEntryLength;
-    };
-    OutOfProcessRenderBatch.prototype.disposedComponentIdsEntry = function (values, index) {
-        var entryPos = values + index * disposedComponentIdsEntryLength;
+    }
+    disposedComponentIdsEntry(values, index) {
+        const entryPos = values + index * disposedComponentIdsEntryLength;
         return readInt32LE(this.batchData, entryPos);
-    };
-    OutOfProcessRenderBatch.prototype.disposedEventHandlerIdsEntry = function (values, index) {
-        var entryPos = values + index * disposedEventHandlerIdsEntryLength;
+    }
+    disposedEventHandlerIdsEntry(values, index) {
+        const entryPos = values + index * disposedEventHandlerIdsEntryLength;
         return readUint64LE(this.batchData, entryPos);
-    };
-    return OutOfProcessRenderBatch;
-}());
+    }
+}
 exports.OutOfProcessRenderBatch = OutOfProcessRenderBatch;
-var OutOfProcessRenderTreeDiffReader = /** @class */ (function () {
-    function OutOfProcessRenderTreeDiffReader(batchDataUint8) {
+class OutOfProcessRenderTreeDiffReader {
+    constructor(batchDataUint8) {
         this.batchDataUint8 = batchDataUint8;
     }
-    OutOfProcessRenderTreeDiffReader.prototype.componentId = function (diff) {
+    componentId(diff) {
         // First int32 is componentId
         return readInt32LE(this.batchDataUint8, diff);
-    };
-    OutOfProcessRenderTreeDiffReader.prototype.edits = function (diff) {
+    }
+    edits(diff) {
         // Entries data starts after the componentId (which is a 4-byte int)
         return (diff + 4);
-    };
-    OutOfProcessRenderTreeDiffReader.prototype.editsEntry = function (values, index) {
+    }
+    editsEntry(values, index) {
         return values + index * editsEntryLength;
-    };
-    return OutOfProcessRenderTreeDiffReader;
-}());
-var OutOfProcessRenderTreeEditReader = /** @class */ (function () {
-    function OutOfProcessRenderTreeEditReader(batchDataUint8, stringReader) {
+    }
+}
+class OutOfProcessRenderTreeEditReader {
+    constructor(batchDataUint8, stringReader) {
         this.batchDataUint8 = batchDataUint8;
         this.stringReader = stringReader;
     }
-    OutOfProcessRenderTreeEditReader.prototype.editType = function (edit) {
+    editType(edit) {
         return readInt32LE(this.batchDataUint8, edit); // 1st int
-    };
-    OutOfProcessRenderTreeEditReader.prototype.siblingIndex = function (edit) {
+    }
+    siblingIndex(edit) {
         return readInt32LE(this.batchDataUint8, edit + 4); // 2nd int
-    };
-    OutOfProcessRenderTreeEditReader.prototype.newTreeIndex = function (edit) {
+    }
+    newTreeIndex(edit) {
         return readInt32LE(this.batchDataUint8, edit + 8); // 3rd int
-    };
-    OutOfProcessRenderTreeEditReader.prototype.moveToSiblingIndex = function (edit) {
+    }
+    moveToSiblingIndex(edit) {
         return readInt32LE(this.batchDataUint8, edit + 8); // 3rd int
-    };
-    OutOfProcessRenderTreeEditReader.prototype.removedAttributeName = function (edit) {
-        var stringIndex = readInt32LE(this.batchDataUint8, edit + 12); // 4th int
+    }
+    removedAttributeName(edit) {
+        const stringIndex = readInt32LE(this.batchDataUint8, edit + 12); // 4th int
         return this.stringReader.readString(stringIndex);
-    };
-    return OutOfProcessRenderTreeEditReader;
-}());
-var OutOfProcessRenderTreeFrameReader = /** @class */ (function () {
-    function OutOfProcessRenderTreeFrameReader(batchDataUint8, stringReader) {
+    }
+}
+class OutOfProcessRenderTreeFrameReader {
+    constructor(batchDataUint8, stringReader) {
         this.batchDataUint8 = batchDataUint8;
         this.stringReader = stringReader;
     }
     // For render frames, the 2nd-4th ints have different meanings depending on frameType.
     // It's the caller's responsibility not to evaluate properties that aren't applicable to the frameType.
-    OutOfProcessRenderTreeFrameReader.prototype.frameType = function (frame) {
+    frameType(frame) {
         return readInt32LE(this.batchDataUint8, frame); // 1st int
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.subtreeLength = function (frame) {
+    }
+    subtreeLength(frame) {
         return readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.elementReferenceCaptureId = function (frame) {
-        var stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
+    }
+    elementReferenceCaptureId(frame) {
+        const stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
         return this.stringReader.readString(stringIndex);
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.componentId = function (frame) {
+    }
+    componentId(frame) {
         return readInt32LE(this.batchDataUint8, frame + 8); // 3rd int
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.elementName = function (frame) {
-        var stringIndex = readInt32LE(this.batchDataUint8, frame + 8); // 3rd int
+    }
+    elementName(frame) {
+        const stringIndex = readInt32LE(this.batchDataUint8, frame + 8); // 3rd int
         return this.stringReader.readString(stringIndex);
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.textContent = function (frame) {
-        var stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
+    }
+    textContent(frame) {
+        const stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
         return this.stringReader.readString(stringIndex);
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.markupContent = function (frame) {
-        var stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
+    }
+    markupContent(frame) {
+        const stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
         return this.stringReader.readString(stringIndex);
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.attributeName = function (frame) {
-        var stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
+    }
+    attributeName(frame) {
+        const stringIndex = readInt32LE(this.batchDataUint8, frame + 4); // 2nd int
         return this.stringReader.readString(stringIndex);
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.attributeValue = function (frame) {
-        var stringIndex = readInt32LE(this.batchDataUint8, frame + 8); // 3rd int
+    }
+    attributeValue(frame) {
+        const stringIndex = readInt32LE(this.batchDataUint8, frame + 8); // 3rd int
         return this.stringReader.readString(stringIndex);
-    };
-    OutOfProcessRenderTreeFrameReader.prototype.attributeEventHandlerId = function (frame) {
+    }
+    attributeEventHandlerId(frame) {
         return readUint64LE(this.batchDataUint8, frame + 12); // Bytes 12-19
-    };
-    return OutOfProcessRenderTreeFrameReader;
-}());
-var OutOfProcessStringReader = /** @class */ (function () {
-    function OutOfProcessStringReader(batchDataUint8) {
+    }
+}
+class OutOfProcessStringReader {
+    constructor(batchDataUint8) {
         this.batchDataUint8 = batchDataUint8;
         // Final int gives start position of the string table
         this.stringTableStartIndex = readInt32LE(batchDataUint8, batchDataUint8.length - 4);
     }
-    OutOfProcessStringReader.prototype.readString = function (index) {
+    readString(index) {
         if (index === -1) { // Special value encodes 'null'
             return null;
         }
         else {
-            var stringTableEntryPos = readInt32LE(this.batchDataUint8, this.stringTableStartIndex + index * stringTableEntryLength);
+            const stringTableEntryPos = readInt32LE(this.batchDataUint8, this.stringTableStartIndex + index * stringTableEntryLength);
             // By default, .NET's BinaryWriter gives LEB128-length-prefixed UTF-8 data.
             // This is convenient enough to decode in JavaScript.
-            var numUtf8Bytes = readLEB128(this.batchDataUint8, stringTableEntryPos);
-            var charsStart = stringTableEntryPos + numLEB128Bytes(numUtf8Bytes);
-            var utf8Data = new Uint8Array(this.batchDataUint8.buffer, this.batchDataUint8.byteOffset + charsStart, numUtf8Bytes);
+            const numUtf8Bytes = readLEB128(this.batchDataUint8, stringTableEntryPos);
+            const charsStart = stringTableEntryPos + numLEB128Bytes(numUtf8Bytes);
+            const utf8Data = new Uint8Array(this.batchDataUint8.buffer, this.batchDataUint8.byteOffset + charsStart, numUtf8Bytes);
             return Utf8Decoder_1.decodeUtf8(utf8Data);
         }
-    };
-    return OutOfProcessStringReader;
-}());
-var OutOfProcessArrayRangeReader = /** @class */ (function () {
-    function OutOfProcessArrayRangeReader(batchDataUint8) {
+    }
+}
+class OutOfProcessArrayRangeReader {
+    constructor(batchDataUint8) {
         this.batchDataUint8 = batchDataUint8;
     }
-    OutOfProcessArrayRangeReader.prototype.count = function (arrayRange) {
+    count(arrayRange) {
         // First int is count
         return readInt32LE(this.batchDataUint8, arrayRange);
-    };
-    OutOfProcessArrayRangeReader.prototype.values = function (arrayRange) {
+    }
+    values(arrayRange) {
         // Entries data starts after the 'count' int (i.e., after 4 bytes)
         return arrayRange + 4;
-    };
-    return OutOfProcessArrayRangeReader;
-}());
-var OutOfProcessArrayBuilderSegmentReader = /** @class */ (function () {
-    function OutOfProcessArrayBuilderSegmentReader(batchDataUint8) {
+    }
+}
+class OutOfProcessArrayBuilderSegmentReader {
+    constructor(batchDataUint8) {
         this.batchDataUint8 = batchDataUint8;
     }
-    OutOfProcessArrayBuilderSegmentReader.prototype.offset = function (arrayBuilderSegment) {
+    offset(arrayBuilderSegment) {
         // Not used by the out-of-process representation of RenderBatch data.
         // This only exists on the ArrayBuilderSegmentReader for the shared-memory representation.
         return 0;
-    };
-    OutOfProcessArrayBuilderSegmentReader.prototype.count = function (arrayBuilderSegment) {
+    }
+    count(arrayBuilderSegment) {
         // First int is count
         return readInt32LE(this.batchDataUint8, arrayBuilderSegment);
-    };
-    OutOfProcessArrayBuilderSegmentReader.prototype.values = function (arrayBuilderSegment) {
+    }
+    values(arrayBuilderSegment) {
         // Entries data starts after the 'count' int (i.e., after 4 bytes)
         return arrayBuilderSegment + 4;
-    };
-    return OutOfProcessArrayBuilderSegmentReader;
-}());
+    }
+}
 function readInt32LE(buffer, position) {
     return (buffer[position])
         | (buffer[position + 1] << 8)
@@ -2047,17 +2222,17 @@ function readUint32LE(buffer, position) {
 function readUint64LE(buffer, position) {
     // This cannot be done using bit-shift operators in JavaScript, because
     // those all implicitly convert to int32
-    var highPart = readUint32LE(buffer, position + 4);
+    const highPart = readUint32LE(buffer, position + 4);
     if (highPart > maxSafeNumberHighPart) {
-        throw new Error("Cannot read uint64 with high order part " + highPart + ", because the result would exceed Number.MAX_SAFE_INTEGER.");
+        throw new Error(`Cannot read uint64 with high order part ${highPart}, because the result would exceed Number.MAX_SAFE_INTEGER.`);
     }
     return (highPart * uint64HighPartShift) + readUint32LE(buffer, position);
 }
 function readLEB128(buffer, position) {
-    var result = 0;
-    var shift = 0;
-    for (var index = 0; index < 4; index++) {
-        var byte = buffer[position + index];
+    let result = 0;
+    let shift = 0;
+    for (let index = 0; index < 4; index++) {
+        const byte = buffer[position + index];
         result |= (byte & 127) << shift;
         if (byte < 128) {
             break;
@@ -2124,7 +2299,7 @@ var FrameType;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var nativeDecoder = typeof TextDecoder === 'function'
+const nativeDecoder = typeof TextDecoder === 'function'
     ? new TextDecoder('utf-8')
     : null;
 /*export const decodeUtf8: (bytes: Uint8Array) => string
@@ -2138,12 +2313,12 @@ License for fast-text-encoding: Apache 2.0
 https://github.com/samthor/fast-text-encoding/blob/master/LICENSE
 */
 function decodeImpl(bytes) {
-    var pos = 0;
-    var len = bytes.length;
-    var out = [];
-    var substrings = [];
+    let pos = 0;
+    const len = bytes.length;
+    const out = [];
+    const substrings = [];
     while (pos < len) {
-        var byte1 = bytes[pos++];
+        const byte1 = bytes[pos++];
         if (byte1 === 0) {
             break; // NULL
         }
@@ -2151,20 +2326,20 @@ function decodeImpl(bytes) {
             out.push(byte1);
         }
         else if ((byte1 & 0xe0) === 0xc0) { // 2-byte
-            var byte2 = bytes[pos++] & 0x3f;
+            const byte2 = bytes[pos++] & 0x3f;
             out.push(((byte1 & 0x1f) << 6) | byte2);
         }
         else if ((byte1 & 0xf0) === 0xe0) {
-            var byte2 = bytes[pos++] & 0x3f;
-            var byte3 = bytes[pos++] & 0x3f;
+            const byte2 = bytes[pos++] & 0x3f;
+            const byte3 = bytes[pos++] & 0x3f;
             out.push(((byte1 & 0x1f) << 12) | (byte2 << 6) | byte3);
         }
         else if ((byte1 & 0xf8) === 0xf0) {
-            var byte2 = bytes[pos++] & 0x3f;
-            var byte3 = bytes[pos++] & 0x3f;
-            var byte4 = bytes[pos++] & 0x3f;
+            const byte2 = bytes[pos++] & 0x3f;
+            const byte3 = bytes[pos++] & 0x3f;
+            const byte4 = bytes[pos++] & 0x3f;
             // this can be > 0xffff, so possibly generate surrogates
-            var codepoint = ((byte1 & 0x07) << 0x12) | (byte2 << 0x0c) | (byte3 << 0x06) | byte4;
+            let codepoint = ((byte1 & 0x07) << 0x12) | (byte2 << 0x0c) | (byte3 << 0x06) | byte4;
             if (codepoint > 0xffff) {
                 // codepoint &= ~0x10000;
                 codepoint -= 0x10000;
@@ -2204,12 +2379,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 /* eslint-disable @typescript-eslint/camelcase */
 __webpack_require__(/*! ../Platform/Platform */ "./Platform/Platform.ts");
 __webpack_require__(/*! ../Environment */ "./Environment.ts");
-var BrowserRenderer_1 = __webpack_require__(/*! ./BrowserRenderer */ "./Rendering/BrowserRenderer.ts");
-var LogicalElements_1 = __webpack_require__(/*! ./LogicalElements */ "./Rendering/LogicalElements.ts");
-var browserRenderers = {};
-var shouldResetScrollAfterNextBatch = false;
+const BrowserRenderer_1 = __webpack_require__(/*! ./BrowserRenderer */ "./Rendering/BrowserRenderer.ts");
+const LogicalElements_1 = __webpack_require__(/*! ./LogicalElements */ "./Rendering/LogicalElements.ts");
+const browserRenderers = {};
+let shouldResetScrollAfterNextBatch = false;
 function attachRootComponentToLogicalElement(browserRendererId, logicalElement, componentId) {
-    var browserRenderer = browserRenderers[browserRendererId];
+    let browserRenderer = browserRenderers[browserRendererId];
     if (!browserRenderer) {
         browserRenderer = browserRenderers[browserRendererId] = new BrowserRenderer_1.BrowserRenderer(browserRendererId);
     }
@@ -2217,9 +2392,9 @@ function attachRootComponentToLogicalElement(browserRendererId, logicalElement, 
 }
 exports.attachRootComponentToLogicalElement = attachRootComponentToLogicalElement;
 function attachRootComponentToElement(elementSelector, componentId, browserRendererId) {
-    var element = document.querySelector(elementSelector);
+    const element = document.querySelector(elementSelector);
     if (!element) {
-        throw new Error("Could not find any element matching selector '" + elementSelector + "'.");
+        throw new Error(`Could not find any element matching selector '${elementSelector}'.`);
     }
     // 'allowExistingContents' to keep any prerendered content until we do the first client-side render
     // Only client-side Blazor supplies a browser renderer ID
@@ -2227,35 +2402,35 @@ function attachRootComponentToElement(elementSelector, componentId, browserRende
 }
 exports.attachRootComponentToElement = attachRootComponentToElement;
 function renderBatch(browserRendererId, batch) {
-    var browserRenderer = browserRenderers[browserRendererId];
+    const browserRenderer = browserRenderers[browserRendererId];
     if (!browserRenderer) {
-        throw new Error("There is no browser renderer with ID " + browserRendererId + ".");
+        throw new Error(`There is no browser renderer with ID ${browserRendererId}.`);
     }
-    var arrayRangeReader = batch.arrayRangeReader;
-    var updatedComponentsRange = batch.updatedComponents();
-    var updatedComponentsValues = arrayRangeReader.values(updatedComponentsRange);
-    var updatedComponentsLength = arrayRangeReader.count(updatedComponentsRange);
-    var referenceFrames = batch.referenceFrames();
-    var referenceFramesValues = arrayRangeReader.values(referenceFrames);
-    var diffReader = batch.diffReader;
-    for (var i = 0; i < updatedComponentsLength; i++) {
-        var diff = batch.updatedComponentsEntry(updatedComponentsValues, i);
-        var componentId = diffReader.componentId(diff);
-        var edits = diffReader.edits(diff);
+    const arrayRangeReader = batch.arrayRangeReader;
+    const updatedComponentsRange = batch.updatedComponents();
+    const updatedComponentsValues = arrayRangeReader.values(updatedComponentsRange);
+    const updatedComponentsLength = arrayRangeReader.count(updatedComponentsRange);
+    const referenceFrames = batch.referenceFrames();
+    const referenceFramesValues = arrayRangeReader.values(referenceFrames);
+    const diffReader = batch.diffReader;
+    for (let i = 0; i < updatedComponentsLength; i++) {
+        const diff = batch.updatedComponentsEntry(updatedComponentsValues, i);
+        const componentId = diffReader.componentId(diff);
+        const edits = diffReader.edits(diff);
         browserRenderer.updateComponent(batch, componentId, edits, referenceFramesValues);
     }
-    var disposedComponentIdsRange = batch.disposedComponentIds();
-    var disposedComponentIdsValues = arrayRangeReader.values(disposedComponentIdsRange);
-    var disposedComponentIdsLength = arrayRangeReader.count(disposedComponentIdsRange);
-    for (var i = 0; i < disposedComponentIdsLength; i++) {
-        var componentId = batch.disposedComponentIdsEntry(disposedComponentIdsValues, i);
+    const disposedComponentIdsRange = batch.disposedComponentIds();
+    const disposedComponentIdsValues = arrayRangeReader.values(disposedComponentIdsRange);
+    const disposedComponentIdsLength = arrayRangeReader.count(disposedComponentIdsRange);
+    for (let i = 0; i < disposedComponentIdsLength; i++) {
+        const componentId = batch.disposedComponentIdsEntry(disposedComponentIdsValues, i);
         browserRenderer.disposeComponent(componentId);
     }
-    var disposedEventHandlerIdsRange = batch.disposedEventHandlerIds();
-    var disposedEventHandlerIdsValues = arrayRangeReader.values(disposedEventHandlerIdsRange);
-    var disposedEventHandlerIdsLength = arrayRangeReader.count(disposedEventHandlerIdsRange);
-    for (var i = 0; i < disposedEventHandlerIdsLength; i++) {
-        var eventHandlerId = batch.disposedEventHandlerIdsEntry(disposedEventHandlerIdsValues, i);
+    const disposedEventHandlerIdsRange = batch.disposedEventHandlerIds();
+    const disposedEventHandlerIdsValues = arrayRangeReader.values(disposedEventHandlerIdsRange);
+    const disposedEventHandlerIdsLength = arrayRangeReader.count(disposedEventHandlerIdsRange);
+    for (let i = 0; i < disposedEventHandlerIdsLength; i++) {
+        const eventHandlerId = batch.disposedEventHandlerIdsEntry(disposedEventHandlerIdsValues, i);
         browserRenderer.disposeEventHandler(eventHandlerId);
     }
     resetScrollIfNeeded();
@@ -2287,7 +2462,7 @@ function resetScrollIfNeeded() {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var eventDispatcherInstance;
+let eventDispatcherInstance;
 function dispatchEvent(eventDescriptor, eventArgs) {
     if (!eventDispatcherInstance) {
         throw new Error('eventDispatcher not initialized. Call \'setEventDispatcher\' to configure it.');
@@ -2321,99 +2496,60 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-var Environment_1 = __webpack_require__(/*! ../Environment */ "./Environment.ts");
-var httpClientAssembly = 'Microsoft.AspNetCore.Blazor';
-var httpClientNamespace = httpClientAssembly + ".Http";
-var httpClientTypeName = 'WebAssemblyHttpMessageHandler';
-var receiveResponseMethod;
-var allocateArrayMethod;
+const Environment_1 = __webpack_require__(/*! ../Environment */ "./Environment.ts");
+const httpClientAssembly = 'Microsoft.AspNetCore.Blazor';
+const httpClientNamespace = `${httpClientAssembly}.Http`;
+const httpClientTypeName = 'WebAssemblyHttpMessageHandler';
+let receiveResponseMethod;
+let allocateArrayMethod;
 // These are the functions we're making available for invocation from .NET
 exports.internalFunctions = {
-    sendAsync: sendAsync,
+    sendAsync,
 };
 function sendAsync(id, body, jsonFetchArgs) {
-    return __awaiter(this, void 0, void 0, function () {
-        var response, responseData, fetchOptions, requestInit, ex_1;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    fetchOptions = JSON.parse(Environment_1.platform.toJavaScriptString(jsonFetchArgs));
-                    requestInit = Object.assign(convertToRequestInit(fetchOptions.requestInit), fetchOptions.requestInitOverrides);
-                    if (body) {
-                        requestInit.body = Environment_1.platform.toUint8Array(body);
-                    }
-                    _a.label = 1;
-                case 1:
-                    _a.trys.push([1, 4, , 5]);
-                    return [4 /*yield*/, fetch(fetchOptions.requestUri, requestInit)];
-                case 2:
-                    response = _a.sent();
-                    return [4 /*yield*/, response.arrayBuffer()];
-                case 3:
-                    responseData = _a.sent();
-                    return [3 /*break*/, 5];
-                case 4:
-                    ex_1 = _a.sent();
-                    dispatchErrorResponse(id, ex_1.toString());
-                    return [2 /*return*/];
-                case 5:
-                    dispatchSuccessResponse(id, response, responseData);
-                    return [2 /*return*/];
-            }
-        });
+    return __awaiter(this, void 0, void 0, function* () {
+        let response;
+        let responseData;
+        const fetchOptions = JSON.parse(Environment_1.platform.toJavaScriptString(jsonFetchArgs));
+        const requestInit = Object.assign(convertToRequestInit(fetchOptions.requestInit), fetchOptions.requestInitOverrides);
+        if (body) {
+            requestInit.body = Environment_1.platform.toUint8Array(body);
+        }
+        try {
+            response = yield fetch(fetchOptions.requestUri, requestInit);
+            responseData = yield response.arrayBuffer();
+        }
+        catch (ex) {
+            dispatchErrorResponse(id, ex.toString());
+            return;
+        }
+        dispatchSuccessResponse(id, response, responseData);
     });
 }
 function convertToRequestInit(blazorRequestInit) {
     return {
         credentials: blazorRequestInit.credentials,
         method: blazorRequestInit.method,
-        headers: blazorRequestInit.headers.map(function (item) { return [item.name, item.value]; })
+        headers: blazorRequestInit.headers.map(item => [item.name, item.value])
     };
 }
 function dispatchSuccessResponse(id, response, responseData) {
-    var responseDescriptor = {
+    const responseDescriptor = {
         statusCode: response.status,
         statusText: response.statusText,
         headers: [],
     };
-    response.headers.forEach(function (value, name) {
+    response.headers.forEach((value, name) => {
         responseDescriptor.headers.push({ name: name, value: value });
     });
     if (!allocateArrayMethod) {
         allocateArrayMethod = Environment_1.platform.findMethod(httpClientAssembly, httpClientNamespace, httpClientTypeName, 'AllocateArray');
     }
     // allocate a managed byte[] of the right size
-    var dotNetArray = Environment_1.platform.callMethod(allocateArrayMethod, null, [Environment_1.platform.toDotNetString(responseData.byteLength.toString())]);
+    const dotNetArray = Environment_1.platform.callMethod(allocateArrayMethod, null, [Environment_1.platform.toDotNetString(responseData.byteLength.toString())]);
     // get an Uint8Array view of it
-    var array = Environment_1.platform.toUint8Array(dotNetArray);
+    const array = Environment_1.platform.toUint8Array(dotNetArray);
     // copy the responseData to our managed byte[]
     array.set(new Uint8Array(responseData));
     dispatchResponse(id, Environment_1.platform.toDotNetString(JSON.stringify(responseDescriptor)), dotNetArray, 
@@ -2457,47 +2593,20 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __generator = (this && this.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (_) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 __webpack_require__(/*! @dotnet/jsinterop */ "../node_modules/@dotnet/jsinterop/dist/Microsoft.JSInterop.js");
-var Renderer_1 = __webpack_require__(/*! ../Rendering/Renderer */ "./Rendering/Renderer.ts");
-var hasRegisteredNavigationInterception = false;
-var hasRegisteredNavigationEventListeners = false;
+const Renderer_1 = __webpack_require__(/*! ../Rendering/Renderer */ "./Rendering/Renderer.ts");
+let hasRegisteredNavigationInterception = false;
+let hasRegisteredNavigationEventListeners = false;
 // Will be initialized once someone registers
-var notifyLocationChangedCallback = null;
+let notifyLocationChangedCallback = null;
 // These are the functions we're making available for invocation from .NET
 exports.internalFunctions = {
-    listenForNavigationEvents: listenForNavigationEvents,
-    enableNavigationInterception: enableNavigationInterception,
-    navigateTo: navigateTo,
-    getBaseURI: function () { return document.baseURI; },
-    getLocationHref: function () { return location.href; },
+    listenForNavigationEvents,
+    enableNavigationInterception,
+    navigateTo,
+    getBaseURI: () => document.baseURI,
+    getLocationHref: () => location.href,
 };
 function listenForNavigationEvents(callback) {
     notifyLocationChangedCallback = callback;
@@ -2505,30 +2614,30 @@ function listenForNavigationEvents(callback) {
         return;
     }
     hasRegisteredNavigationEventListeners = true;
-    window.addEventListener('popstate', function () { return notifyLocationChanged(false); });
+    window.addEventListener('popstate', () => notifyLocationChanged(false));
 }
 function enableNavigationInterception() {
     if (hasRegisteredNavigationInterception) {
         return;
     }
     hasRegisteredNavigationInterception = true;
-    document.addEventListener('click', function (event) {
+    document.addEventListener('click', event => {
         if (event.button !== 0 || eventHasSpecialKey(event)) {
             // Don't stop ctrl/meta-click (etc) from opening links in new tabs/windows
             return;
         }
         // Intercept clicks on all <a> elements where the href is within the <base href> URI space
         // We must explicitly check if it has an 'href' attribute, because if it doesn't, the result might be null or an empty string depending on the browser
-        var anchorTarget = findClosestAncestor(event.target, 'A');
-        var hrefAttributeName = 'href';
+        const anchorTarget = findClosestAncestor(event.target, 'A');
+        const hrefAttributeName = 'href';
         if (anchorTarget && anchorTarget.hasAttribute(hrefAttributeName)) {
-            var targetAttributeValue = anchorTarget.getAttribute('target');
-            var opensInSameFrame = !targetAttributeValue || targetAttributeValue === '_self';
+            const targetAttributeValue = anchorTarget.getAttribute('target');
+            const opensInSameFrame = !targetAttributeValue || targetAttributeValue === '_self';
             if (!opensInSameFrame) {
                 return;
             }
-            var href = anchorTarget.getAttribute(hrefAttributeName);
-            var absoluteHref = toAbsoluteUri(href);
+            const href = anchorTarget.getAttribute(hrefAttributeName);
+            const absoluteHref = toAbsoluteUri(href);
             if (isWithinBaseUriSpace(absoluteHref)) {
                 event.preventDefault();
                 performInternalNavigation(absoluteHref, true);
@@ -2537,7 +2646,7 @@ function enableNavigationInterception() {
     });
 }
 function navigateTo(uri, forceLoad) {
-    var absoluteUri = toAbsoluteUri(uri);
+    const absoluteUri = toAbsoluteUri(uri);
     if (!forceLoad && isWithinBaseUriSpace(absoluteUri)) {
         // It's an internal URL, so do client-side navigation
         performInternalNavigation(absoluteUri, false);
@@ -2546,7 +2655,7 @@ function navigateTo(uri, forceLoad) {
         // Force-loading the same URL you're already on requires special handling to avoid
         // triggering browser-specific behavior issues.
         // For details about what this fixes and why, see https://github.com/aspnet/AspNetCore/pull/10839
-        var temporaryUri = uri + '?';
+        const temporaryUri = uri + '?';
         history.replaceState(null, '', temporaryUri);
         location.replace(uri);
     }
@@ -2567,21 +2676,13 @@ function performInternalNavigation(absoluteInternalHref, interceptedLink) {
     notifyLocationChanged(interceptedLink);
 }
 function notifyLocationChanged(interceptedLink) {
-    return __awaiter(this, void 0, void 0, function () {
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    if (!notifyLocationChangedCallback) return [3 /*break*/, 2];
-                    return [4 /*yield*/, notifyLocationChangedCallback(location.href, interceptedLink)];
-                case 1:
-                    _a.sent();
-                    _a.label = 2;
-                case 2: return [2 /*return*/];
-            }
-        });
+    return __awaiter(this, void 0, void 0, function* () {
+        if (notifyLocationChangedCallback) {
+            yield notifyLocationChangedCallback(location.href, interceptedLink);
+        }
     });
 }
-var testAnchor;
+let testAnchor;
 function toAbsoluteUri(relativeUri) {
     testAnchor = testAnchor || document.createElement('a');
     testAnchor.href = relativeUri;
@@ -2595,7 +2696,7 @@ function findClosestAncestor(element, tagName) {
             : findClosestAncestor(element.parentElement, tagName);
 }
 function isWithinBaseUriSpace(href) {
-    var baseUriWithTrailingSlash = toBaseUriWithTrailingSlash(document.baseURI); // TODO: Might baseURI really be null?
+    const baseUriWithTrailingSlash = toBaseUriWithTrailingSlash(document.baseURI); // TODO: Might baseURI really be null?
     return href.startsWith(baseUriWithTrailingSlash);
 }
 function toBaseUriWithTrailingSlash(baseUri) {

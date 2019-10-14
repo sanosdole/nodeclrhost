@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = (env, args) => ({
-    target: 'electron-renderer',
+    //target: 'electron-renderer',
     node: {
         __dirname: false, // For whatever reason this fixes it. See: https://github.com/webpack/webpack/issues/1599
         __filename: false

@@ -11,6 +11,7 @@ import { setEventDispatcher } from './Rendering/RendererEventDispatcher';
 import coreclrhosting = require('coreclr-hosting');
 
 let started = false;
+export function runApp(basePath, appFile) {
 
 async function boot(options?: any): Promise<void> {
 
@@ -53,10 +54,12 @@ window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddres
 }
 }
 
+// TODO: module.exports | do not use __dirname | use function arguments!
+
 // DM 21.08.2019: Start the blazor app
 console.info("Running in process " + process.pid);
-console.info("Starting from " + __dirname + '/..');
-var result = coreclrhosting.runCoreApp(__dirname + '/..', window['StartupApp']);
+console.info("Starting from " + basePath);
+var result = coreclrhosting.runCoreApp(basePath, appFile);
 console.info("Main returned: " + result);
 //console.info(window["Blazor"]._internal);
 
@@ -93,4 +96,6 @@ window['Blazor'].start = boot;
 if (shouldAutoStart()) {
   boot();
 }
-
+}
+exports.runBlazorApp = runApp;
+window['runBlazorApp'] = runApp;

@@ -1,8 +1,8 @@
 {
-  "name": "electron-blazor",
+  "name": "electron-blazor-glue",
   "version": "1.0.0",
   "description": "Test for hosting blazor",
-  "main": "index.js",
+  "main": "wwwroot/blazor.electron.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-js-glue": "cd ./BlazorJsGlue && node ../node_modules/webpack-cli/bin/cli.js --mode development --config ./webpack.config.js"
