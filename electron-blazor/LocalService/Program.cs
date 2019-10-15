@@ -35,7 +35,7 @@
                     
                     browserWindow = electron.BrowserWindow.CreateNewInstance(options);
                                         
-                    browserWindow.loadFile("bin/published/BlazorApp/wwwroot/index.html");
+                    browserWindow.loadFile("bin/wwwroot/index.html");
 
                 }));
 
