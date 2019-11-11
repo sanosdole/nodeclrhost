@@ -1,3 +1,7 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Modified by Daniel Martin for nodeclrhost
+
 export async function fetchBootConfigAsync() {
   // Later we might make the location of this configurable (e.g., as an attribute on the <script>
   // element that's importing this file), but currently there isn't a use case for that.

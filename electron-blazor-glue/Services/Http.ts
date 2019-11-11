@@ -1,3 +1,7 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Modified by Daniel Martin for nodeclrhost
+
 import { platform } from '../Environment';
 import { MethodHandle, System_String, System_Array } from '../Platform/Platform';
 const httpClientAssembly = 'Microsoft.AspNetCore.Blazor';

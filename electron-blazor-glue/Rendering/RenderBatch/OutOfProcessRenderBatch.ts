@@ -1,3 +1,7 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Modified by Daniel Martin for nodeclrhost
+
 import { RenderBatch, ArrayRange, RenderTreeDiff, ArrayValues, RenderTreeEdit, EditType, FrameType, RenderTreeFrame, RenderTreeDiffReader, RenderTreeFrameReader, RenderTreeEditReader, ArrayRangeReader, ArrayBuilderSegmentReader, ArrayBuilderSegment } from './RenderBatch';
 import { decodeUtf8 } from './Utf8Decoder';
 

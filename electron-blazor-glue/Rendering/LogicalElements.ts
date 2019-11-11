@@ -1,3 +1,7 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Modified by Daniel Martin for nodeclrhost
+
 /*
   A LogicalElement plays the same role as an Element instance from the point of view of the
   API consumer. Inserting and removing logical elements updates the browser DOM just the same.
