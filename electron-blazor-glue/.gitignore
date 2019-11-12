@@ -64,6 +64,4 @@ typings/
 .vscode/ipch
 
 # build artififacts
-obj/
-bin/
-clr-api-generator/dist
+dist
