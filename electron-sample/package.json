@@ -10,7 +10,7 @@
     "start": "electron ."
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "coreclr-hosting": "file:../coreclr-hosting",
     "electron": "^6.0.2"

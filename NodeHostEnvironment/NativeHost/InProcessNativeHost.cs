@@ -14,10 +14,11 @@ namespace NodeHostEnvironment.NativeHost
         private readonly IntPtr _context;
         private readonly NodeTaskScheduler _scheduler;
 
-        private DelegateBasedNativeApi NativeMethods { get; } = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>("./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node");
+        private DelegateBasedNativeApi NativeMethods { get; }
 
-        public NativeNodeHost()
+        public NativeNodeHost(DelegateBasedNativeApi nativeMethods)
         {
+            NativeMethods = nativeMethods;            
             _context = NativeMethods.GetContext();
             if (_context == IntPtr.Zero)
                 throw new InvalidOperationException("Host can only be created on the node main thread");

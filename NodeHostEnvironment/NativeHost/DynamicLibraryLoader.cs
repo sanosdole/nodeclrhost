@@ -1,10 +1,10 @@
-using System;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security;
-
 namespace NodeHostEnvironment.NativeHost
 {
+    using System.Linq;
+    using System.Runtime.InteropServices;
+    using System.Security;
+    using System;
+
     internal static class DynamicLibraryLoader
     {
         public static T LoadApi<T>(string libraryName)
@@ -17,7 +17,7 @@ namespace NodeHostEnvironment.NativeHost
             // DM 11.09.2019: We do not unload the library, as it is loaded already and we only live as long as it is loaded...
             var libraryHandle = loader.LoadLibrary(libraryName);
             if (libraryHandle == IntPtr.Zero)
-                throw new InvalidOperationException($"Could not load library '{libraryName}");
+                throw new InvalidOperationException($"Could not load library '{libraryName} with base path '{System.IO.Path.GetFullPath(".")}'");
 
             var ctor = typeof(T).GetConstructors().Single();
             var parameters = ctor.GetParameters();
