@@ -1,6 +1,6 @@
 {
-  "name": "coreclr-hosting",
-  "version": "1.0.0",
+  "name": "@nodeclrhost/coreclr-hosting",
+  "version": "0.1.0-alpha.1",
   "description": "Hosting coreclr in node",
   "main": "bindings.js",
   "gypfile": true,
@@ -12,14 +12,13 @@
     "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj test/bin/published",
     "test": "npm run build && npm run build-testapp && mocha",
     "test-only": "npm run build-testapp && mocha",
-    "prepublish": "npm run build"
+    "prepare": "npm run test"
   },
   "author": "Daniel Martin",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^6.2.0",
-    "node-gyp": "^5.0.3",
-    "npm": "^6.13.0"
+    "mocha": "^6.2.2",
+    "node-gyp": "^6.0.1"
   },
   "dependencies": {
     "node-addon-api": "1.7.1"
