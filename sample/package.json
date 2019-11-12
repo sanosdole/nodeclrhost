@@ -9,7 +9,7 @@
     "start": "node --expose-gc ./index.js"
   },
   "author": "Daniel Martin",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "coreclr-hosting": "file:../coreclr-hosting"
   }

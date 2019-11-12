@@ -225,6 +225,10 @@ JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc,
   }
 
   auto result = function.MakeCallback(receiver_handle.ToValue(env_), arguments);
+  if (env_.IsExceptionPending())
+  {
+    return JsHandle::Error(env_.GetAndClearPendingException().Message());
+  }
   return JsHandle::FromValue(result);
 }
 

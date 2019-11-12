@@ -8,16 +8,18 @@
     "build": "npm run build:debug && npm run build:release",
     "build:debug": "node-gyp build --debug",
     "build:release": "node-gyp build",
-    "clean": "node-gyp clean", 
-    "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj bin/published",
-    "test": "mocha",
+    "clean": "node-gyp clean",
+    "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj test/bin/published",
+    "test": "npm run build && npm run build-testapp && mocha",
+    "test-only": "npm run build-testapp && mocha",
     "prepublish": "npm run build"
   },
   "author": "Daniel Martin",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "mocha": "^6.2.0",
-    "node-gyp": "^5.0.3"
+    "node-gyp": "^5.0.3",
+    "npm": "^6.13.0"
   },
   "dependencies": {
     "node-addon-api": "1.7.1"

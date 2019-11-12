@@ -25,9 +25,10 @@ namespace NodeHostEnvironment
         /// invoked by the `coreclr-hosting` node module.
         /// </summary>
         /// <returns></returns>
-        public static NodeHost InProcess()
+        public static NodeHost InProcess(string pathToCoreClrHostingModule = null)
         {
-            return new NodeHost(new NodeBridge(new NativeNodeHost()));
+            var nativeMethods = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>(pathToCoreClrHostingModule ?? "./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node");
+            return new NodeHost(new NodeBridge(new NativeNodeHost(nativeMethods)));
         }
 
         /// <inheritdoc/>

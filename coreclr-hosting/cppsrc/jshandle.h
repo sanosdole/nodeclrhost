@@ -43,8 +43,8 @@ struct JsHandle {
 
   static JsHandle Error(std::string message) {
     JsHandle result = Undefined();
-    result.string_value_ = new char[message.size()];
-    memcpy(result.string_value_, message.c_str(), message.size());
+    result.string_value_ = new char[message.size() + 1];
+    memcpy(result.string_value_, message.c_str(), message.size() + 1);
     result.type_ = JsType::Error;
     return result;
   }
