@@ -6,6 +6,31 @@
     <!-- <RestoreSources>$(RestoreSources);../NodeHostEnvironment/bin/Debug;https://api.nuget.org/v3/index.json</RestoreSources> -->
   </PropertyGroup>
 
+<PropertyGroup>
+    <PackageId>ElectronHostedBlazor</PackageId>
+    <Version>0.1.0-alpha.1</Version>
+    <Authors>sanosdole2</Authors>
+    <Company>nodeclrhost</Company>
+
+    <Title>Hosting ASP blazor components in electron renderer</Title>
+    <Description>This library implements a electron renderer host for blazor components using the `NodeHostEnvironment`.</Description>
+    <Copyright>Daniel Martin 2019</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <MinClientVersion>4.3.0</MinClientVersion>
+    <!-- <PackageIconUrl></PackageIconUrl> -->
+    <!-- <PackageReleaseNotes></PackageReleaseNotes> -->
+    <PackageTags>node;javascript;interop;electron;components;blazor</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSource>false</IncludeSource>
+    <IsTool>false</IsTool>
+    <RepositoryUrl>https://github.com/sanosdole/nodeclrhost.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>master</RepositoryBranch>
+    <!-- <RepositoryCommit></RepositoryCommit> -->
+
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authorization" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components" Version="3.0.0" />
@@ -14,16 +39,9 @@
     <PackageReference Include="Microsoft.JSInterop" Version="3.0.0" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.6.0" />
 
-<ProjectReference Include="..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
+    <ProjectReference Include="..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
     <!-- <PackageReference Include="NodeHostEnvironment" Version="1.0.0"/> -->
     
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include="./wwwroot/*" >
-      <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
-    </Content>
-    
-  </ItemGroup>
 </Project>

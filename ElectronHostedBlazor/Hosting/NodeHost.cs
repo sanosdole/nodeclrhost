@@ -5,15 +5,13 @@
 namespace BlazorApp.Hosting
 {
     using System;
-    using System.Net.Http;
-    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
     using BlazorApp.Rendering;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.JSInterop;
 
-     internal class NodeHost : INodeHost
+    internal class NodeHost : INodeHost
     {
         private readonly IJSRuntime _runtime;
 

@@ -3,7 +3,32 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <!-- <PublishTrimmed>true</PublishTrimmed> -->    
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- <GenerateAssemblyInfo>false</GenerateAssemblyInfo> -->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageId>NodeHostEnvironment</PackageId>
+    <Version>0.1.0-alpha.1</Version>
+    <Authors>sanosdole2</Authors>
+    <Company>nodeclrhost</Company>
+
+    <Title>Library for accessing the node host environment</Title>
+    <Description>This library provides the necessary API to communicate with the node host environment when running in a CLR hosted by the `coreclr-hosting` node module.</Description>
+    <Copyright>Daniel Martin 2019</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <MinClientVersion>4.3.0</MinClientVersion>
+    <!-- <PackageIconUrl></PackageIconUrl> -->
+    <!-- <PackageReleaseNotes></PackageReleaseNotes> -->
+    <PackageTags>node;javascript;interop</PackageTags>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <IncludeSource>false</IncludeSource>
+    <IsTool>false</IsTool>
+    <RepositoryUrl>https://github.com/sanosdole/nodeclrhost.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryBranch>master</RepositoryBranch>
+    <!-- <RepositoryCommit></RepositoryCommit> -->
+
   </PropertyGroup>
 
   <ItemGroup>
