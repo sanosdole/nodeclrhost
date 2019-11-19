@@ -3,11 +3,6 @@ console.log('Start');
 
 const coreclrHosting = require('coreclr-hosting');
 
-//console.log(module);
-//console.log('addon',testAddon);
-//console.log('gc',global.gc);
-//console.log('this', this);
-
 global.TestClass = function(name) {
     this.name = name;
 

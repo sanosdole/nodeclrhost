@@ -13,7 +13,6 @@ namespace BlazorApp.Services
 
         public Task EnableNavigationInterceptionAsync()
         {
-            // TODO DM 19.08.2019: Implement
             //NodeJSRuntime.Instance.Invoke<object>(Interop.EnableNavigationInterception);
             var window = NodeJSRuntime.Instance.Host.Global.window;
             var blazor = window.Blazor._internal;
