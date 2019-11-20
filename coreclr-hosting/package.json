@@ -5,7 +5,8 @@
   "main": "bindings.js",
   "gypfile": true,
   "scripts": {
-    "build": "npm run build:debug && npm run build:release",
+    "configure": "node-gyp configure",
+    "build": "npm run configure && npm run build:debug && npm run build:release",
     "build:debug": "node-gyp build --debug",
     "build:release": "node-gyp build",
     "clean": "node-gyp clean",
