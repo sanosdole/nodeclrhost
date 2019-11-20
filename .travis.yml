@@ -6,8 +6,11 @@ jobs:
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
        - npm i
-      node_js: 10.15.3      
-      language: node_js
+      node_js: 10.15.3
+      language: csharp
+      mono: none
+      dotnet: 3.0.100
+      script: npm test
     - 
       before_script:
         - "cd NodeHostEnvironment"
