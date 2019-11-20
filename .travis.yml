@@ -1,0 +1,28 @@
+dist: trusty
+
+matrix:
+  include:
+    - 
+      before_script:
+        - "cd coreclr-hosting"
+      language: node_js
+    - 
+      before_script:
+        - "cd NodeHostEnvironment"
+      language: csharp
+      mono: none
+      dotnet: 3.0.100
+      script:
+       - dotnet restore
+    - 
+      before_script:
+        - "cd electron-blazor-glue"
+      language: node_js
+    - 
+      before_script:
+        - "cd ElectronHostedBlazor"
+      language: csharp
+      mono: none
+      dotnet: 3.0.100
+      script:
+       - dotnet restore
