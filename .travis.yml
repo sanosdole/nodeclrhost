@@ -26,8 +26,7 @@ jobs:
        - npm run mocha
     - 
       name: coreclr-hosting osx
-      os: osx
-      stage: hosting core      
+      os: osx   
       addons:
         homebrew:
           casks:
@@ -35,8 +34,12 @@ jobs:
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
+       - dotnet --version
        - npm i
-      script: npm run test
+      script:
+       - npm run build-testapp
+       - ls test/bin/published
+       - npm run mocha
     - 
       before_script:
         - "cd NodeHostEnvironment"
