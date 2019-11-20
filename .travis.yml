@@ -22,7 +22,7 @@ jobs:
        - npm i
       script:
        - npm run build-testapp
-       - export LD_DEBUG=all
+       - export LD_DEBUG=libs
        - npm run test-only
     - 
       name: coreclr-hosting osx
