@@ -2,7 +2,7 @@ jobs:
   include:
     - 
       stage: hosting core
-      install: nvm install 6.9.0
+      before_install: npm install -g npm@'>=6.9.0'
       node_js: 10.15.3
       before_script:
         - "cd coreclr-hosting"
@@ -17,7 +17,7 @@ jobs:
        - dotnet restore
     - 
       stage: blazor hosting
-      install: nvm install 6.9.0
+      install: npm install -g npm@'>=6.9.0'
       node_js: 10.15.3
       before_script:
         - "cd electron-blazor-glue"
