@@ -15,7 +15,7 @@ jobs:
        - sudo apt-get update
        - sudo apt-get install apt-transport-https
        - sudo apt-get update
-       - sudo apt-get install dotnet-sdk-3.0   
+       - sudo apt-get install dotnet-sdk-3.0
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
@@ -59,9 +59,12 @@ jobs:
        - sudo apt-get update
        - sudo apt-get install apt-transport-https
        - sudo apt-get update
-       - sudo apt-get install dotnet-sdk-3.0   
+       - sudo apt-get install dotnet-sdk-3.0
       install: 
-       - "cd electron-blazor-glue"
+       - cd coreclr-hosting
+       - npm install -g npm@'>=6.9.0'
+       - npm i
+       - "cd ../electron-blazor-glue"
        - npm install -g npm@'>=6.9.0'
        - npm i
       script:
