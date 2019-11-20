@@ -39,7 +39,6 @@ jobs:
        - npm i
       script:
        - npm run build-testapp
-       - ls test/bin/published
        - npm run mocha
     - 
       before_script:
@@ -51,12 +50,24 @@ jobs:
        - dotnet build
     -       
       stage: blazor hosting
+      os: linux
+      before_install:
+       - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+       - export DOTNET_CLI_TELEMETRY_OPTOUT=1
+       - wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+       - sudo dpkg -i packages-microsoft-prod.deb
+       - sudo apt-get update
+       - sudo apt-get install apt-transport-https
+       - sudo apt-get update
+       - sudo apt-get install dotnet-sdk-3.0   
       install: 
        - "cd electron-blazor-glue"
        - npm install -g npm@'>=6.9.0'
-       - npm i      
-      before_script:
-        - "cd electron-blazor-glue"      
+       - npm i
+      script:
+       - npm run build-testapp
+       # - export LD_DEBUG=files
+       - npm run mocha
     - 
       before_script:
         - "cd ElectronHostedBlazor"
@@ -64,4 +75,4 @@ jobs:
       mono: none
       dotnet: 3.0.100
       script:
-       - dotnet restore
+       - dotnet build
