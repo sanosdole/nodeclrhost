@@ -24,6 +24,12 @@ LibraryHandle LoadLibrary(std::string path) {
   return LoadLibraryExA(path.c_str(), NULL, 0);
 }
 
+char* dlerror() {
+  static char procID[10];
+  sprintf(procID, "%d", GetLastError());
+  return procID;
+}
+
 template <typename TFuncPointer>
 TFuncPointer GetFunction(LibraryHandle library, const char* name) {
   return reinterpret_cast<TFuncPointer>(GetProcAddress(library, name));
@@ -173,7 +179,10 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
 
   auto coreclr = LoadLibrary(coreclr_path);
 
-  if (NULL == coreclr) return DotNetHostCreationResult::kCoreClrNotFound;
+  if (NULL == coreclr) {
+    fprintf(stderr, "%s\n", dlerror());
+    return DotNetHostCreationResult::kCoreClrNotFound;
+  }
 
   auto coreclr_initialize =
       GetFunction<coreclr_initialize_ptr>(coreclr, "coreclr_initialize");
