@@ -22,14 +22,16 @@
         'conditions': [
           ['OS=="linux"', {
             'defines': [
-              'LINUX',
+              'NON_WINDOWS_DEFINE', 
+              'LINUX'
             ],
           }],
           ['OS=="win"', {
             'defines': [
               'WINDOWS',
-            ],
-          }, { # OS != "win",
+            ]
+          }],
+          ['OS=="mac"', {
             'defines': [
               'NON_WINDOWS_DEFINE', 
               'OSX'             
