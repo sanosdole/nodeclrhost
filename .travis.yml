@@ -22,7 +22,8 @@ jobs:
        - sudo apt-get install dotnet-sdk-3.0   
       install: 
        - "cd coreclr-hosting"
-       - npm install -g npm@'>=6.9.0'            
+       - npm install -g npm@'>=6.9.0'
+       - npm i      
     - 
       before_script:
         - "cd NodeHostEnvironment"
