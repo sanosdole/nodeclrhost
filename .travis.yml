@@ -2,15 +2,21 @@ jobs:
   include:
     - 
       stage: hosting core
+      node_js: 10.15.3      
+      language: node_js
+      before_install:
+       - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+       - export DOTNET_CLI_TELEMETRY_OPTOUT=1
+       - wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+       - sudo dpkg -i packages-microsoft-prod.deb
+       - sudo apt-get update
+       - sudo apt-get install apt-transport-https
+       - sudo apt-get update
+       - sudo apt-get install dotnet-sdk-3.0   
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
-       - npm i
-      node_js: 10.15.3
-      language: csharp
-      mono: none
-      dotnet: 3.0.100
-      script: npm test
+       - npm i       
     - 
       before_script:
         - "cd NodeHostEnvironment"
@@ -20,13 +26,15 @@ jobs:
       script:
        - dotnet build
     - 
+      language: node_js
+      node_js: 10.15.3
       stage: blazor hosting
       install: 
        - "cd electron-blazor-glue"
        - npm install -g npm@'>=6.9.0'
-       - npm i
-      node_js: 10.15.3
-      language: node_js
+       - npm i      
+      before_script:
+        - "cd electron-blazor-glue"      
     - 
       before_script:
         - "cd ElectronHostedBlazor"
