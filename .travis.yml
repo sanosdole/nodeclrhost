@@ -19,7 +19,11 @@ jobs:
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
-       - npm i      
+       - npm i
+      script:
+       - npm run build-testapp
+       - ls test/bin/published
+       - npm run test-only
     - 
       name: coreclr-hosting osx
       os: osx
@@ -32,6 +36,7 @@ jobs:
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
        - npm i
+      script: npm run test
     - 
       before_script:
         - "cd NodeHostEnvironment"

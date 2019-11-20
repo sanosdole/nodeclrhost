@@ -13,7 +13,7 @@
     "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj test/bin/published",
     "test": "npm run build && npm run build-testapp && mocha",
     "test-only": "npm run build-testapp && mocha",
-    "prepare": "npm run test"
+    "prepare": "npm run build"
   },
   "author": "Daniel Martin",
   "license": "MIT",
