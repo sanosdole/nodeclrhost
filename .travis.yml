@@ -1,15 +1,11 @@
 language: node_js
 node_js: 10.15.3
 
-# os: osx
-# addons:
-#   homebrew:
-#     casks:
-#     - dotnet-sdk
-
 jobs:
   include:
     - 
+      name: coreclr-hosting linux
+      os: linux
       stage: hosting core      
       before_install:
        - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
@@ -24,6 +20,18 @@ jobs:
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
        - npm i      
+    - 
+      name: coreclr-hosting osx
+      os: osx
+      stage: hosting core      
+      addons:
+        homebrew:
+          casks:
+           - dotnet-sdk
+      install: 
+       - "cd coreclr-hosting"
+       - npm install -g npm@'>=6.9.0'
+       - npm i
     - 
       before_script:
         - "cd NodeHostEnvironment"
