@@ -29,6 +29,7 @@ jobs:
       os: osx   
       addons:
         homebrew:
+          update: true
           casks:
            - dotnet-sdk
       install: 
