@@ -3,11 +3,10 @@ jobs:
     - 
       stage: hosting core
       install: 
+       - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
        - npm i
-      node_js: 10.15.3
-      before_script:
-        - "cd coreclr-hosting"
+      node_js: 10.15.3      
       language: node_js
     - 
       before_script:
@@ -16,15 +15,14 @@ jobs:
       mono: none
       dotnet: 3.0.100
       script:
-       - dotnet restore
+       - dotnet build
     - 
       stage: blazor hosting
       install: 
+       - "cd electron-blazor-glue"
        - npm install -g npm@'>=6.9.0'
        - npm i
       node_js: 10.15.3
-      before_script:
-        - "cd electron-blazor-glue"
       language: node_js
     - 
       before_script:
