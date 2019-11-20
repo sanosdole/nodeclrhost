@@ -24,7 +24,7 @@ global.setupTestObject = function() {
   };
 };
 
-var result = coreclrhosting.runCoreApp(__dirname + '/bin/published/', 'TestApp.dll');
+var result = coreclrhosting.runCoreApp(__dirname + '/bin/published', 'TestApp.dll');
 
 describe('coreclrhosting', function () {
   it('should return 0', function () {    

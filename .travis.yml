@@ -1,24 +1,25 @@
-os: osx
 language: node_js
 node_js: 10.15.3
-addons:
-  homebrew:
-    casks:
-    - dotnet-sdk
+
+# os: osx
+# addons:
+#   homebrew:
+#     casks:
+#     - dotnet-sdk
 
 jobs:
   include:
     - 
       stage: hosting core      
-      # before_install:
-       # - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
-       # - export DOTNET_CLI_TELEMETRY_OPTOUT=1
-       # - wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-       # - sudo dpkg -i packages-microsoft-prod.deb
-       # - sudo apt-get update
-       # - sudo apt-get install apt-transport-https
-       # - sudo apt-get update
-       # - sudo apt-get install dotnet-sdk-3.0   
+      before_install:
+       - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+       - export DOTNET_CLI_TELEMETRY_OPTOUT=1
+       - wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+       - sudo dpkg -i packages-microsoft-prod.deb
+       - sudo apt-get update
+       - sudo apt-get install apt-transport-https
+       - sudo apt-get update
+       - sudo apt-get install dotnet-sdk-3.0   
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'            
