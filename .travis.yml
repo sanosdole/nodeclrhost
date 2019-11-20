@@ -2,10 +2,11 @@ jobs:
   include:
     - 
       stage: hosting core
-      before_install: npm install -g npm@'>=6.9.0'
+      install: npm install -g npm@'>=6.9.0'
       node_js: 10.15.3
       before_script:
         - "cd coreclr-hosting"
+        - node-gyp configure
       language: node_js
     - 
       before_script:
