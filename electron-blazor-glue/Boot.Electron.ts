@@ -12,7 +12,7 @@ import { OutOfProcessRenderBatch } from './Rendering/RenderBatch/OutOfProcessRen
 import { Pointer } from './Platform/Platform';
 import { fetchBootConfigAsync, loadEmbeddedResourcesAsync, shouldAutoStart } from './BootCommon';
 import { setEventDispatcher } from './Rendering/RendererEventDispatcher';
-import coreclrhosting = require('coreclr-hosting');
+const coreclrhosting = require('coreclr-hosting');
 
 let started = false;
 export function runApp(basePath, appFile) {
