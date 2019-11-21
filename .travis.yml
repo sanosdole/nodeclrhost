@@ -22,7 +22,6 @@ jobs:
        - npm i
       script:
        - npm run build-testapp
-       # - export LD_DEBUG=files
        - npm run mocha
     - 
       name: coreclr-hosting osx
@@ -64,7 +63,8 @@ jobs:
        - cd coreclr-hosting
        - npm install -g npm@'>=6.9.0'
        - npm i
-       - npm run prepare
+       - npm run configure
+       - npm run build:debug
        - "cd ../electron-blazor-glue"
        - npm install -g npm@'>=6.9.0'
        - npm i
