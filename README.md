@@ -1,5 +1,7 @@
 # nodeclrhost - Hosting .NET core in node and electron
 
+[![Build Status](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=master)](https://travis-ci.com/sanosdole/nodeclrhost)
+
 This is an experimental project that enables writing node/electron applications with .NET core.
 This is achieved by native node module (`coreclr-hosting`) that runs a .NET core application.
 The .NET application uses the `NodeHostEnvironment` library to interact with the node runtime.
