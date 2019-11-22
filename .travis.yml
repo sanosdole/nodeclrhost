@@ -65,6 +65,7 @@ jobs:
        - npm i
        - npm run configure
        - npm run build:debug
+       # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
        - npm install -g npm@'>=6.9.0'
        - npm i
