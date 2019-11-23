@@ -3,6 +3,7 @@ namespace NodeHostEnvironment.InProcess
     using System.Runtime.InteropServices;
     using System.Text;
     using System;
+    using System.Threading.Tasks;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void ReleaseDotNetValue(DotNetType type, IntPtr value);
@@ -39,6 +40,8 @@ namespace NodeHostEnvironment.InProcess
                 return FromByteArray((byte[])obj);
             if (obj is Exception)
                 return FromException((Exception)obj);
+            if (obj is Task)
+                return FromTask((Task)obj, host);
 
             throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
         }
@@ -139,6 +142,58 @@ namespace NodeHostEnvironment.InProcess
                 ReleaseFunc = ReleaseHGlobal
             };
         }
+
+        public static DotNetValue FromTask(Task value, IHostInProcess host)
+        {
+            // TODO DM 23.11.2019: Why does this work, but the native method does not?
+            /*var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
+            var promiseCtor = host.GetMember(JsValue.Global, "Promise");
+            var callback = DotNetValue.FromDelegate(new Action<dynamic, dynamic>(
+                (resolve, reject) => {
+                    if (value.IsCompleted)
+                    {
+                        if (value.Exception != null)
+                        {
+                            reject(value.Exception);
+                            return;
+                        }
+                        resolve(GetTaskResult(value));
+                        return;
+                    }
+                    value.ContinueWith(t => {
+                        if (t.Exception != null)
+                        {
+                            reject(t.Exception);
+                            return;
+                        }
+                        resolve(GetTaskResult(t));
+
+                    }, scheduler);
+                }
+            ), host);
+            var result = host.CreateObject(promiseCtor, new DotNetValue[] { callback });
+            return DotNetValue.FromJsValue(result);
+            */
+
+            ReleaseDotNetValue releaseDotNetCallback;
+            return new DotNetValue
+            {
+                Type = DotNetType.Task,
+                Value = host.MarshallTask(value, out releaseDotNetCallback),
+                ReleaseFunc = releaseDotNetCallback
+            };
+        }
+
+        private static object GetTaskResult(Task t)
+            {
+                var type = t.GetType();
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
+                {
+                    // DM 23.11.2019: This could be optimized if necessary
+                    return type.GetProperty(nameof(Task<object>.Result)).GetValue(t);
+                }
+                return null;
+            }
 
         private static readonly ReleaseDotNetValue ReleaseHGlobal = ReleaseHGlobalIntern;
         private static readonly ReleaseDotNetValue ReleaseArrayPointer = ReleaseArrayPointerIntern;

@@ -4,6 +4,9 @@ using NodeHostEnvironment.InProcess;
 
 namespace NodeHostEnvironment.NativeHost
 {
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void SetupDeferred(IntPtr deferred);
+
     internal sealed class DelegateBasedNativeApi
     {
         public DelegateBasedNativeApi(GetContext getContext,
@@ -13,6 +16,7 @@ namespace NodeHostEnvironment.NativeHost
             SetMember setMember,
             Invoke invoke,
             CreateObject createObject,
+            CompletePromise completePromise,
             Release release)
         {
             GetContext = getContext;
@@ -22,6 +26,7 @@ namespace NodeHostEnvironment.NativeHost
             SetMember = setMember;
             Invoke = invoke;
             CreateObject = createObject;
+            CompletePromise = completePromise;
             Release = release;
         }
 
@@ -32,6 +37,7 @@ namespace NodeHostEnvironment.NativeHost
         public SetMember SetMember { get; }
         public Invoke Invoke { get; }
         public CreateObject CreateObject { get; }
+        public CompletePromise CompletePromise { get; }
         public Release Release { get; }
 
     }
@@ -70,6 +76,9 @@ namespace NodeHostEnvironment.NativeHost
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate JsValue CreateObject(IntPtr context, JsValue constructor, int argc, DotNetValue[] argv); // We use SetMember to define members
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate void CompletePromise(IntPtr context, IntPtr deferred, DotNetValue result);
 
     // Release a handle
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]

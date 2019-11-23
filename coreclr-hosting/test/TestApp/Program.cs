@@ -1,6 +1,7 @@
 ﻿namespace TestApp
 {
     using System;
+    using System.Threading.Tasks;
     using FluentAssertions;
     using NodeHostEnvironment;
 
@@ -13,6 +14,14 @@
             {
                 var host = NodeHost.InProcess("./build/Release/coreclr-hosting.node");
                 var global = host.Global;
+
+                global.testPromise = global.Promise.CreateNewInstance(
+                    new Action<dynamic, dynamic>((resolve, reject) => 
+                    {
+                        resolve(5);
+                    }));
+
+                global.registerAsyncTest(new Func<Task>(() => Task.Delay(5)));
 
                 // Important: As mocha runs the tests asynchronously, we have to dispose after all tests have been run.
                 global.after(new Action(() => host.Dispose()));
@@ -79,6 +88,11 @@
                                 throw new InvalidOperationException("Test error message");
                             })));
                         shouldPassException.Should().Throw<InvalidOperationException>();
+                    }));
+
+                    global.it("should return Task as Promise", new Action(() =>
+                    {
+                        ((double) global.testObject.isPromise(Task.FromResult(5)) > 0.0).Should().Be(true);
                     }));
 
                 }));
