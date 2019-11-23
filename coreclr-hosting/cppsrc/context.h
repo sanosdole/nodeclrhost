@@ -66,13 +66,14 @@ class Context {
 
   // Get/SetMember , CreateObject, Invoke(Member) can only be called on node
   // thread
-  JsHandle GetMember(JsHandle owner_handle, const char* name);
-  JsHandle SetMember(JsHandle owner_handle, const char* name,
-                     DotNetHandle dotnet_handle);
-  JsHandle CreateObject(JsHandle prototype_function, int argc,
+  JsHandle GetMember(JsHandle& owner_handle, const char* name);
+  JsHandle SetMember(JsHandle& owner_handle, const char* name,
+                     DotNetHandle& dotnet_handle);
+  JsHandle CreateObject(JsHandle& prototype_function, int argc,
                         DotNetHandle* argv);
-  JsHandle Invoke(JsHandle handle, JsHandle receiver_handle, int argc,
+  JsHandle Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
                   DotNetHandle* argv);
+  void CompletePromise(napi_deferred deferred, DotNetHandle& handle);
 };
 
 }  // namespace coreclrhosting

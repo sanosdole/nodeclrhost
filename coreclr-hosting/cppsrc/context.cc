@@ -44,6 +44,11 @@ Context::~Context() {
 
 void Context::UvAsyncCallback() {
   ThreadInstance _(this);
+
+  /*Napi::HandleScope handleScope(env_);
+  Napi::AsyncContext async_context(env_, "dotnet_callback");
+  Napi::CallbackScope cb_scope(env_, async_context);*/
+
   while (true) {
     netCallbacks_t callbacks;
     {
@@ -56,6 +61,12 @@ void Context::UvAsyncCallback() {
 
     for (const auto& callback : callbacks) {
       // printf("Executing callback\n");
+      // TODO DM 23.11.2019: Decide whether we want this per callback or per
+      // batch or per UvAsyncCallback invocation
+      Napi::HandleScope handleScope(env_);
+      Napi::AsyncContext async_context(env_, "dotnet_callback");
+      Napi::CallbackScope cb_scope(env_, async_context);
+
       callback.first(callback.second);
     }
   }
@@ -150,7 +161,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   }
 }
 
-JsHandle Context::GetMember(JsHandle owner_handle, const char* name) {
+JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
   if (!owner_handle.IsObject())
     return JsHandle::Error("Only objects support GetMember");
   if (!IsActiveContext())
@@ -165,8 +176,8 @@ JsHandle Context::GetMember(JsHandle owner_handle, const char* name) {
 
   return JsHandle::FromValue(result);
 }
-JsHandle Context::SetMember(JsHandle owner_handle, const char* name,
-                            DotNetHandle dotnet_handle) {
+JsHandle Context::SetMember(JsHandle& owner_handle, const char* name,
+                            DotNetHandle& dotnet_handle) {
   if (!owner_handle.IsObject())
     return JsHandle::Error("Only objects support SetMember");
   if (!IsActiveContext())
@@ -181,7 +192,7 @@ JsHandle Context::SetMember(JsHandle owner_handle, const char* name,
   owner_object.Set(name, value);
   return JsHandle::FromValue(value);
 }
-JsHandle Context::CreateObject(JsHandle prototype_function, int argc,
+JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
                                DotNetHandle* argv) {
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
@@ -208,7 +219,7 @@ JsHandle Context::CreateObject(JsHandle prototype_function, int argc,
 
   return JsHandle(newObj);
 }
-JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc,
+JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
                          DotNetHandle* argv) {
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
@@ -225,11 +236,30 @@ JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc,
   }
 
   auto result = function.MakeCallback(receiver_handle.ToValue(env_), arguments);
-  if (env_.IsExceptionPending())
-  {
+  if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }
   return JsHandle::FromValue(result);
+}
+
+void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
+  Napi::HandleScope handleScope(env_);
+
+  // TODO DM 23.11.2019: We could push this function to the event loop 
+  //                     instead of requiring the managed code to use the scheduler.
+  //                     This would have the benefit of sparing: managed -> native -> managed -> native
+  //Napi::AsyncContext async_context(env_, "dotnet_callback");
+  //Napi::CallbackScope cb_scope(env_, async_context);
+
+  // TODO DM 23.11.2019: How to check thread? What to do if status returns failure? The managed code can not process errors here :(
+  if (handle.type_ == DotNetType::Exception) {
+    auto error = Napi::Error::New(env_, handle.string_value_);
+    napi_reject_deferred(env_, deferred, error.Value());
+  } else {
+    napi_resolve_deferred(env_, deferred,
+                          handle.ToValue(env_, function_factory_));
+  }
+  handle.Release();
 }
 
 Napi::Function Context::CreateFunction(DotNetHandle* handle) {
@@ -246,7 +276,7 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         for (size_t c = 0; c < argc; c++) {
           arguments.push_back(JsHandle::FromValue(info[c]));
         }
-        
+
         DotNetHandle resultIntern;
         (*function_value)(argc, arguments.data(), resultIntern);
 

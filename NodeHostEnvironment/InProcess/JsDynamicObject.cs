@@ -67,6 +67,14 @@ namespace NodeHostEnvironment.InProcess
             }
         }
 
+        public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
+        {
+            var resultHandle = _host.Invoke(Handle, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
+            //Console.WriteLine($"Invoking {binder.Name} [{binder.ReturnType.Name}] gave a {resultHandle.Type} with value {resultHandle.Value}");
+            resultHandle.TryGetObject(_host, out result);
+            return true;
+        }
+
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
             _host.SetMember(Handle, binder.Name, DotNetValue.FromObject(value, _host));

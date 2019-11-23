@@ -50,3 +50,8 @@ EXPORT_TO_DOTNET JsHandle Invoke(void* context_handle, JsHandle handle,
   auto context = reinterpret_cast<Context*>(context_handle);
   return context->Invoke(handle, receiver, argc, argv);
 }
+
+EXPORT_TO_DOTNET void CompletePromise(void* context_handle, void* deferred, DotNetHandle dotnet_handle) {
+  auto context = reinterpret_cast<Context*>(context_handle);
+  return context->CompletePromise(reinterpret_cast<napi_deferred>(deferred), dotnet_handle);
+}
