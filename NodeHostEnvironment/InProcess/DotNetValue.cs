@@ -3,6 +3,7 @@ namespace NodeHostEnvironment.InProcess
     using System.Runtime.InteropServices;
     using System.Text;
     using System;
+    using System.Dynamic;
     using System.Threading.Tasks;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -61,9 +62,16 @@ namespace NodeHostEnvironment.InProcess
                 var mappedArgs = new object[requiredParameters.Length];
                 for (int c = 0; c < requiredParameters.Length; c++)
                 {
-                    object parameter;
-                    if (!argv[c].TryGetObject(host, out parameter))
-                        throw new InvalidOperationException("Cannot convert JsHandle to target type");
+                    if (!argv[c].TryGetObject(host, out object parameter))
+                        throw new InvalidOperationException("Cannot get object from JsHandle");
+
+                    var asDynamic = parameter as JsDynamicObject;
+                    if (asDynamic != null)
+                    {
+                        var wasConverted = asDynamic.TryConvertIntern(requiredParameters[c].ParameterType, out object converted);
+                        if (wasConverted)
+                            parameter = converted;
+                    }
 
                     mappedArgs[c] = parameter;
                 }
@@ -145,36 +153,6 @@ namespace NodeHostEnvironment.InProcess
 
         public static DotNetValue FromTask(Task value, IHostInProcess host)
         {
-            // TODO DM 23.11.2019: Why does this work, but the native method does not?
-            /*var scheduler = TaskScheduler.FromCurrentSynchronizationContext();
-            var promiseCtor = host.GetMember(JsValue.Global, "Promise");
-            var callback = DotNetValue.FromDelegate(new Action<dynamic, dynamic>(
-                (resolve, reject) => {
-                    if (value.IsCompleted)
-                    {
-                        if (value.Exception != null)
-                        {
-                            reject(value.Exception);
-                            return;
-                        }
-                        resolve(GetTaskResult(value));
-                        return;
-                    }
-                    value.ContinueWith(t => {
-                        if (t.Exception != null)
-                        {
-                            reject(t.Exception);
-                            return;
-                        }
-                        resolve(GetTaskResult(t));
-
-                    }, scheduler);
-                }
-            ), host);
-            var result = host.CreateObject(promiseCtor, new DotNetValue[] { callback });
-            return DotNetValue.FromJsValue(result);
-            */
-
             ReleaseDotNetValue releaseDotNetCallback;
             return new DotNetValue
             {
@@ -183,17 +161,6 @@ namespace NodeHostEnvironment.InProcess
                 ReleaseFunc = releaseDotNetCallback
             };
         }
-
-        private static object GetTaskResult(Task t)
-            {
-                var type = t.GetType();
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
-                {
-                    // DM 23.11.2019: This could be optimized if necessary
-                    return type.GetProperty(nameof(Task<object>.Result)).GetValue(t);
-                }
-                return null;
-            }
 
         private static readonly ReleaseDotNetValue ReleaseHGlobal = ReleaseHGlobalIntern;
         private static readonly ReleaseDotNetValue ReleaseArrayPointer = ReleaseArrayPointerIntern;

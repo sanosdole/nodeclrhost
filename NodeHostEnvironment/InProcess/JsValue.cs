@@ -41,6 +41,7 @@ namespace NodeHostEnvironment.InProcess
                         result = Value != IntPtr.Zero;
                         return true;
                     case JsType.Error:
+                        // This is not for error objects. This is whenever js code threw an exception!
                         throw new InvalidOperationException(host.StringFromNativeUtf8(Value));
 
                     case JsType.Undefined:

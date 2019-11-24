@@ -61,11 +61,8 @@
 
                     global.it("should have boolean values", new Action(() =>
                     {
-                        // TODO DM 12.11.2019: Remove this workaround so the commented code will run!
-                        ((double) global.testObject.trueValue > 0.0).Should().Be(true);
-                        ((double) global.testObject.falseValue > 0.0).Should().Be(false);
-                        //((bool) global.testObject.trueValue).Should().Be(true);
-                        //((bool) global.testObject.falseValue).Should().Be(false);
+                        ((bool) global.testObject.trueValue).Should().Be(true);
+                        ((bool) global.testObject.falseValue).Should().Be(false);
                     }));
 
                     global.it("should throw on funcThatThrows", new Action(() =>
@@ -79,6 +76,12 @@
                         global.testObject.invokeCallback("Ping", new Action<string>(arg => arg.Should().Be("PingPong")));
                     }));
 
+                    global.it("should invoke passed callback when invoked as dynamic object", new Action(() =>
+                    {
+                        var invokeCallback = global.testObject.invokeCallback;
+                        invokeCallback("Ping", new Action<string>(arg => arg.Should().Be("PingPong")));
+                    }));
+
                     global.it("should pass exceptions from passed callback", new Action(() =>
                     {
                         var shouldPassException = new Action(() => 
@@ -90,9 +93,47 @@
                         shouldPassException.Should().Throw<InvalidOperationException>();
                     }));
 
-                    global.it("should return Task as Promise", new Action(() =>
+                    global.it("should get Task passed as Promise", new Action(() =>
                     {
-                        ((double) global.testObject.isPromise(Task.FromResult(5)) > 0.0).Should().Be(true);
+                        ((bool) global.testObject.isPromise(Task.FromResult(5))).Should().Be(true);
+                    }));
+
+                    global.it("should return Task from createPromise", new Func<Task>(async () => 
+                    {
+                        var result = await (Task<string>)global.testObject.createPromise(true);
+                        result.Should().Be("Resolved");
+                    }));
+
+                    // TODO DM 24.11.2019: This would require another bunch of reflection code to get working...
+                    /*global.it("should await result from createPromise", new Func<Task>(async () => 
+                    {
+                        string result = await global.testObject.createPromise(true);
+                        result.Should().Be("Resolved");
+                    }));*/
+
+                    global.it("should return failed Task from createPromise", new Func<Task>(async () => 
+                    {
+                        var didThrow = false;
+                        try
+                        {
+                            await (Task)global.testObject.createPromise(false);
+                        }
+                        catch(Exception e)
+                        {
+                            didThrow = true;
+                            e.Message.Should().Contain("Error: As requested");
+                        }
+                        didThrow.Should().Be(true);
+                        
+                    }));
+
+                    // TODO DM 23.11.2019: Create new suite for those two tests
+                    global.itCb("invoke done", new Action<dynamic>((done) => {
+                        done();
+                    }));
+
+                    global.it("async test", new Func<Task>(() => {
+                        return Task.Delay(10);
                     }));
 
                 }));

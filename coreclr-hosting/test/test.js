@@ -1,30 +1,14 @@
 
 var assert = require('assert');
 const coreclrhosting = require('.././');
-var pCache;
-//global.assert = assert;
+
 global.registerAsyncTest = function registerAsyncTest(testMethod) {
-  console.log("Register async func");
   describe("async test", function() {
     it("should return promise", function() {
-      /*return new Promise(function(resolve, reject) {
-        testMethod().then(v => resolve(), e => reject(e));
-      });*/
-
-      global.testPromise.then(function(v) {
-        console.log("Testpromise resolved " + v);
-
-      });
-
-      pCache = testMethod();
-      console.log("Callint async method pcache= ", pCache);
-      return pCache.then(function(v) {
-        //done();
-        console.log("Resolved");
-      }
-        );
-      //setTimeout(() => { console.log("TIME"); done();}, 20);
-
+      return testMethod();
+    });
+    it("should invoke done", function(done) {
+      testMethod().then(done);
     });
 
   });
@@ -49,7 +33,6 @@ global.setupTestObject = function() {
       cb(arg + 'Pong');
     },
     isPromise: function(promise) {
-      promise.then((v) => console.log("Fullfilled " + v), r => console.log("Rejected"));
       return promise && typeof promise.then === 'function';      
     },
     createPromise: function(shouldResolve) {
@@ -58,8 +41,8 @@ global.setupTestObject = function() {
           if (shouldResolve)
             resolve("Resolved");
           else
-            reject("As requested");
-        }, 100);
+            reject(new Error("As requested"));
+        }, 10);        
       });
     }
   };

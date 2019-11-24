@@ -134,7 +134,6 @@ namespace NodeHostEnvironment.NativeHost
 
             private void OnCalled(IntPtr deferred)
             {
-                Console.WriteLine($"Connecting deferred {deferred.ToInt64():X} to task");
                 if (_task.IsCompleted)
                 {
                     var exception = _task.Exception;
@@ -147,7 +146,6 @@ namespace NodeHostEnvironment.NativeHost
                 }
                 _task.ContinueWith(t =>
                     {
-                        Console.WriteLine("Task complete");
                         var exception = t.Exception;
                         // TODO DM 23.11.2019: Unwrap AggregateExceptions
                         var value = exception == null ?
