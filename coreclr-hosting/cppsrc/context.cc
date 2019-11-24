@@ -173,6 +173,9 @@ JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
   // std::assert(owner.IsObject());
   auto owner_object = owner.ToObject();
   auto result = owner_object.Get(name);
+  if (env_.IsExceptionPending()) {
+    return JsHandle::Error(env_.GetAndClearPendingException().Message());
+  }
 
   return JsHandle::FromValue(result);
 }

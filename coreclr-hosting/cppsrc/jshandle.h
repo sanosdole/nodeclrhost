@@ -64,6 +64,11 @@ struct JsHandle {
     memcpy(string_value_, utf8.c_str(), utf8.size() + 1);
     type_ = JsType::String;
   }
+  JsHandle(Napi::Boolean boolean_value) {
+    type_ = JsType::Boolean;
+    //* ( void * * ) &doubleValue
+    value_ = boolean_value.Value() ? (void*)1 : (void*)0;    
+  }
   JsHandle(double double_value) {
     type_ = JsType::Number;
     //* ( void * * ) &doubleValue
@@ -92,15 +97,15 @@ struct JsHandle {
     if (value.IsString()) {
       return JsHandle(value.ToString());
     }
+    if (value.IsBoolean()) {
+      return JsHandle(value.ToBoolean());
+    }
     if (value.IsNumber()) {
       auto number = value.ToNumber();
       // TODO: How to handle 32bit processes...
       auto doubleValue = number.DoubleValue();
       return JsHandle(doubleValue);
-    }
-    if (value.IsBoolean()) {
-      return JsHandle(value.ToBoolean());
-    }
+    }    
     if (value.IsFunction()) {
       return JsHandle(value.As<Napi::Function>());
     }

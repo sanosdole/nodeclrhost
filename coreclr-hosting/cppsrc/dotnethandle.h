@@ -87,7 +87,6 @@ extern "C" struct DotNetHandle {
         Napi::Error::New(env).ThrowAsJavaScriptException();
         return Napi::Value();
       }
-      printf("Created deferred %p\n", deferred);
       task_value_(deferred);
       return Napi::Promise(env, promise);
     }
