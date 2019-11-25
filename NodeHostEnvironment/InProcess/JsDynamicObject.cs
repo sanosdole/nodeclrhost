@@ -2,9 +2,9 @@ namespace NodeHostEnvironment.InProcess
 {
     using System.Dynamic;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using System;
-    using System.Runtime.CompilerServices;
 
     // Must be public for CreateNewInstance to work!
     public sealed class JsDynamicObject : DynamicObject, IDisposable
@@ -41,7 +41,6 @@ namespace NodeHostEnvironment.InProcess
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             var jsHandle = _host.GetMember(Handle, binder.Name);
-            //Console.WriteLine($"{binder.Name} [{binder.ReturnType.Name}] is a {jsHandle.Type} with value {jsHandle.Value}");
             return jsHandle.TryGetObject(_host, out result);
         }
 
@@ -59,7 +58,6 @@ namespace NodeHostEnvironment.InProcess
                 }
 
                 var resultHandle = _host.Invoke(member, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
-                //Console.WriteLine($"Invoking {binder.Name} [{binder.ReturnType.Name}] gave a {resultHandle.Type} with value {resultHandle.Value}");
                 resultHandle.TryGetObject(_host, out result);
                 ConvertDynamic(binder.ReturnType, ref result);
                 return true;
@@ -72,8 +70,10 @@ namespace NodeHostEnvironment.InProcess
 
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
-            var resultHandle = _host.Invoke(Handle, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
-            //Console.WriteLine($"Invoking {binder.Name} [{binder.ReturnType.Name}] gave a {resultHandle.Type} with value {resultHandle.Value}");
+            var resultHandle = _host.Invoke(Handle,
+                Handle,
+                args.Length,
+                args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
             resultHandle.TryGetObject(_host, out result);
             ConvertDynamic(binder.ReturnType, ref result);
             return true;
@@ -98,16 +98,16 @@ namespace NodeHostEnvironment.InProcess
             return base.TryConvert(binder, out result);
         }
 
-// TODO DM 24.11.2019: This would require another bunch of reflection code to get working...
-/*
-        public TaskAwaiter GetAwaiter()
-        {
-            if (TryConvertIntern(typeof(Task), out object task))
-            {
-                return ((Task)task).GetAwaiter();
-            }
-            throw new InvalidOperationException("JS object is not awaitable");
-        }*/
+        // TODO DM 24.11.2019: This would require another bunch of reflection code to get working...
+        /*
+                public TaskAwaiter GetAwaiter()
+                {
+                    if (TryConvertIntern(typeof(Task), out object task))
+                    {
+                        return ((Task)task).GetAwaiter();
+                    }
+                    throw new InvalidOperationException("JS object is not awaitable");
+                }*/
 
         internal bool TryConvertIntern(Type type, out object result)
         {
@@ -182,7 +182,7 @@ namespace NodeHostEnvironment.InProcess
                                         Exception toSet = null;
                                         if (error is JsDynamicObject dyna)
                                             if (dyna.TryConvertIntern(typeof(Exception), out object exception))
-                                                toSet = (Exception)exception;
+                                                toSet = (Exception) exception;
                                         if (error is string str)
                                             toSet = new InvalidOperationException(str);
                                         tcs.SetException(toSet ?? new InvalidOperationException("Unkonwn promise rejection value"));
