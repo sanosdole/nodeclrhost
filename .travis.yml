@@ -62,6 +62,30 @@ jobs:
         overwrite: true
         draft: true
     - 
+      name: coreclr-hosting windows
+      os: windows         
+      install: 
+       - choco install dotnetcore-sdk
+       - "cd coreclr-hosting"
+       - npm install -g npm@'>=6.9.0'
+       - dotnet --version
+       - npm i -g prebuild
+       - npm i --build-from-source
+       - prebuild -t 10.15.3
+       - prebuild -t 7.1.2 -r electron
+      script:
+       - npm run build-testapp
+       - npm run mocha
+      deploy:
+        provider: releases
+        api_key: $GITHUB_TOKEN
+        file_glob: true
+        file: coreclr-hosting/prebuilds/@nodeclrhost/*
+        skip_cleanup: true
+        overwrite: true
+        draft: true
+        
+    - 
       name: NodeHostEnvironment C#
       before_script:
         - "cd NodeHostEnvironment"
