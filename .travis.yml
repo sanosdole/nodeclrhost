@@ -28,7 +28,7 @@ jobs:
        - npm run mocha      
       deploy:
         provider: releases
-        api_key: $github-upload-token
+        api_key: $GITHUB_TOKEN
         file_glob: true
         file: coreclr-hosting/prebuilds/@nodeclrhost/*
         skip_cleanup: true
@@ -55,13 +55,14 @@ jobs:
        - npm run mocha
       deploy:
         provider: releases
-        api_key: $github-upload-token
+        api_key: $GITHUB_TOKEN
         file_glob: true
         file: coreclr-hosting/prebuilds/@nodeclrhost/*
         skip_cleanup: true
         overwrite: true
         draft: true
     - 
+      name: NodeHostEnvironment C#
       before_script:
         - "cd NodeHostEnvironment"
       language: csharp
@@ -69,7 +70,8 @@ jobs:
       dotnet: 3.0.100
       script:
        - dotnet build
-    -       
+    -
+      name: electron-blazor-glue       
       stage: blazor hosting
       os: linux
       before_install:
@@ -95,6 +97,7 @@ jobs:
       script:
        - npm run prepare
     - 
+      name: ElectronHostedBlazor C#
       before_script:
         - "cd ElectronHostedBlazor"
       language: csharp
