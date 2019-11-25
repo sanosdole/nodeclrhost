@@ -28,10 +28,8 @@ jobs:
        - npm run mocha      
       deploy:
         provider: releases
-        api_key: $GITHUB_TOKEN
         file_glob: true
-        file: coreclr-hosting/prebuilds/@nodeclrhost/*
-        skip_cleanup: true
+        file: prebuilds/@nodeclrhost/*
         overwrite: true
         draft: true
     - 
@@ -55,10 +53,8 @@ jobs:
        - npm run mocha
       deploy:
         provider: releases
-        api_key: $GITHUB_TOKEN
         file_glob: true
-        file: coreclr-hosting/prebuilds/@nodeclrhost/*
-        skip_cleanup: true
+        file: prebuilds/@nodeclrhost/*
         overwrite: true
         draft: true
     - 
@@ -78,10 +74,8 @@ jobs:
        - npm run mocha
       deploy:
         provider: releases
-        api_key: $GITHUB_TOKEN
         file_glob: true
-        file: coreclr-hosting/prebuilds/@nodeclrhost/*
-        skip_cleanup: true
+        file: prebuilds/@nodeclrhost/*
         overwrite: true
         draft: true
         
