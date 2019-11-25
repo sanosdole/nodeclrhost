@@ -1,6 +1,6 @@
 {
   "name": "@nodeclrhost/electron-blazor-glue",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Test for hosting blazor",
   "main": "dist/blazor.electron.js",
   "scripts": {
@@ -17,8 +17,8 @@
     "typescript": "^3.7.2"
   },
   "devDependencies": {
-    "@types/node": "^12.12.7",
-    "electron": "^7.1.1",
+    "@types/node": "^12.12.12",
+    "electron": "^7.1.2",
     "node-loader": "^0.6.0",
     "ts-loader": "^6.2.1",
     "webpack": "^4.41.2",

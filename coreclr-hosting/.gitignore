@@ -65,9 +65,7 @@ typings/
 
 # build artififacts
 build
-obj/
-bin/
 test/bin
 test/TestApp/bin
 test/TestApp/obj
-clr-api-generator/dist
+prebuilds

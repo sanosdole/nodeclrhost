@@ -16,10 +16,10 @@
     "@dotnet/jsinterop": "^3.0.0",
     "coreclr-hosting": "file:../coreclr-hosting",
     "electron-blazor-glue": "file:../electron-blazor-glue",
-    "typescript": "^3.6.3"
+    "typescript": "^3.7.2"
   },
   "devDependencies": {
-    "@types/node": "^12.7.8",
-    "electron": "^6.0.10"
+    "@types/node": "^12.12.12",
+    "electron": "^7.1.2"
   }
 }

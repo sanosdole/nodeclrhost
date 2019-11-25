@@ -1,9 +1,17 @@
 {
   "name": "@nodeclrhost/coreclr-hosting",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "description": "Hosting coreclr in node",
   "main": "bindings.js",
   "gypfile": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanosdole/nodeclrhost.git"
+  },
+  "homepage": "https://github.com/sanosdole/nodeclrhost",
+  "engines": {
+    "node": ">=10"
+  },
   "scripts": {
     "configure": "node-gyp configure",
     "build": "npm run configure && npm run build:debug && npm run build:release",
@@ -14,7 +22,8 @@
     "test": "npm run build && npm run build-testapp && mocha",
     "test-only": "npm run build-testapp && mocha",
     "mocha": "mocha",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "install": "prebuild-install || node-gyp rebuild"
   },
   "author": "Daniel Martin",
   "license": "MIT",
@@ -23,6 +32,7 @@
     "node-gyp": "^6.0.1"
   },
   "dependencies": {
-    "node-addon-api": "1.7.1"
+    "node-addon-api": "1.7.1",
+    "prebuild-install": "^5.3.3"
   }
 }

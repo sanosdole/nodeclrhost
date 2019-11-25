@@ -19,10 +19,21 @@ jobs:
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
-       - npm i
+       - npm i -g prebuild
+       - npm i --build-from-source
+       - prebuild -t 10.15.3
+       - prebuild -t 7.1.2 -r electron
       script:
        - npm run build-testapp
-       - npm run mocha
+       - npm run mocha      
+      deploy:
+        provider: releases
+        api_key: $github-upload-token
+        file_glob: true
+        file: coreclr-hosting/prebuilds/@nodeclrhost/*
+        skip_cleanup: true
+        overwrite: true
+        draft: true
     - 
       name: coreclr-hosting osx
       os: osx   
@@ -35,10 +46,21 @@ jobs:
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
        - dotnet --version
-       - npm i
+       - npm i -g prebuild
+       - npm i --build-from-source
+       - prebuild -t 10.15.3
+       - prebuild -t 7.1.2 -r electron
       script:
        - npm run build-testapp
        - npm run mocha
+      deploy:
+        provider: releases
+        api_key: $github-upload-token
+        file_glob: true
+        file: coreclr-hosting/prebuilds/@nodeclrhost/*
+        skip_cleanup: true
+        overwrite: true
+        draft: true
     - 
       before_script:
         - "cd NodeHostEnvironment"
@@ -62,7 +84,8 @@ jobs:
       install: 
        - cd coreclr-hosting
        - npm install -g npm@'>=6.9.0'
-       - npm i
+       - npm i -g prebuild
+       - npm i --build-from-source
        - npm run configure
        - npm run build:debug
        # TODO: Why is process.env.DEBUG set when building production?
