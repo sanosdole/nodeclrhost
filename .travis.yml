@@ -31,7 +31,9 @@ jobs:
        - cd ../electron-blazor-glue
        - npm run prepare
        - cd ..
-       - ls coreclr-hosting/prebuilds/@nodeclrhost             
+       - ls coreclr-hosting/prebuilds/@nodeclrhost
+       - echo "//registry.npmjs.org/:_authToken=\${NPM_AUTH_TOKEN}" > coreclr-hosting/.npmrc
+       - echo "//registry.npmjs.org/:_authToken=\${NPM_AUTH_TOKEN}" > electron-blazor-glue/.npmrc
       deploy:
        - provider: releases
          skip_cleanup: true
@@ -45,13 +47,13 @@ jobs:
          email: "$NPM_EMAIL"
          api_key: "$NPM_TOKEN"
          access: public
-         src: coreclr-hosting         
+         src: coreclr-hosting
          skip_cleanup: true
        - provider: npm
          email: "$NPM_EMAIL"
          api_key: "$NPM_TOKEN"
          access: public
-         src: electron-blazor-glue         
+         src: electron-blazor-glue
          skip_cleanup: true
 
     - name: prebuild coreclr-hosting osx
