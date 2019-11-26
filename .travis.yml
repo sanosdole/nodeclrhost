@@ -32,8 +32,9 @@ jobs:
        - npm run prepare
        - cd ..
        - ls coreclr-hosting/prebuilds/@nodeclrhost
-       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > coreclr-hosting/.npmrc
-       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > electron-blazor-glue/.npmrc
+       
+
+       
       deploy:
        - provider: releases
          skip_cleanup: true
@@ -43,18 +44,28 @@ jobs:
          overwrite: true
          on:
           tags: true
-       - provider: npm
-         email: "$NPM_EMAIL"
-         api_key: "$NPM_TOKEN"
-         access: public
-         src: coreclr-hosting
-         skip_cleanup: true
-       - provider: npm
-         email: "$NPM_EMAIL"
-         api_key: "$NPM_TOKEN"
-         access: public
-         src: electron-blazor-glue
-         skip_cleanup: true
+       - provider: script
+         script:
+          - cd coreclr-hosting
+          - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+          - npm publish --access public --dry-run
+       - provider: script
+         script:
+          - cd electron-blazor-glue
+          - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+          - npm publish --access public --dry-run
+       #- provider: npm
+       #  email: "$NPM_EMAIL"
+       #  api_key: "$NPM_TOKEN"
+       #  access: public
+       #  src: coreclr-hosting
+       #  skip_cleanup: true
+       #- provider: npm
+       #  email: "$NPM_EMAIL"
+       #  api_key: "$NPM_TOKEN"
+       #  access: public
+       #  src: electron-blazor-glue
+       #  skip_cleanup: true
 
     - name: prebuild coreclr-hosting osx
       os: osx   
