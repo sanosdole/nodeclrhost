@@ -8,7 +8,7 @@ module.exports = (env, args) => ({
         __filename: false
       },
     resolve: { extensions: ['.ts', '.js'] },
-    devtool: args.mode === 'development' ? 'source-map' : 'none',
+    devtool: args.mode === 'development' ? 'source-map' : 'none',    
     module: {
         rules: [
             { test: /\.ts?$/, loader: 'ts-loader' },

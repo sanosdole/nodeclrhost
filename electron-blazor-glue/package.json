@@ -3,6 +3,7 @@
   "version": "0.1.0-alpha.2",
   "description": "Test for hosting blazor",
   "main": "dist/blazor.electron.js",
+  "types": "dist/Boot.Electron.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/sanosdole/nodeclrhost.git"
