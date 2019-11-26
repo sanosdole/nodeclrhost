@@ -33,30 +33,17 @@ jobs:
       after_success:
        - echo $TRAVIS_TAG
        - cd ..
-       - ls coreclr-hosting/prebuilds/@nodeclrhost
+       - ls coreclr-hosting/prebuilds
        - ./ci_npm_publish.sh
-
       deploy:
        - provider: releases
          skip_cleanup: true
          token: $GITHUB_TOKEN
          file_glob: true
-         file: coreclr-hosting/prebuilds/@nodeclrhost/*
+         file: coreclr-hosting/prebuilds/*
          overwrite: true
          on:
-          tags: true       
-       #- provider: npm
-       #  email: "$NPM_EMAIL"
-       #  api_key: "$NPM_TOKEN"
-       #  access: public
-       #  src: coreclr-hosting
-       #  skip_cleanup: true
-       #- provider: npm
-       #  email: "$NPM_EMAIL"
-       #  api_key: "$NPM_TOKEN"
-       #  access: public
-       #  src: electron-blazor-glue
-       #  skip_cleanup: true
+          tags: true
 
     - name: prebuild coreclr-hosting osx
       os: osx   
@@ -77,13 +64,13 @@ jobs:
        - npm run build-testapp
        - npm run mocha
        - cd ..
-       - ls coreclr-hosting/prebuilds/@nodeclrhost
+       - ls coreclr-hosting/prebuilds
       deploy:
         skip_cleanup: true
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
-        file: coreclr-hosting/prebuilds/@nodeclrhost/*
+        file: coreclr-hosting/prebuilds/*
         overwrite: true
         on:
           tags: true
@@ -102,13 +89,14 @@ jobs:
       script:
        - npm run build-testapp
        - npm run mocha
-       - cd ..      
+       - cd ..
+       - ls coreclr-hosting/prebuilds
       deploy:
         skip_cleanup: true
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
-        file: coreclr-hosting/prebuilds/@nodeclrhost/*
+        file: coreclr-hosting/prebuilds/*
         overwrite: true
         on:
           tags: true
