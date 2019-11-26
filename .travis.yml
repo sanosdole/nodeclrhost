@@ -45,11 +45,13 @@ jobs:
          on:
           tags: true
        - provider: script
+         skip_cleanup: true
          script:
           - cd coreclr-hosting
           - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
           - npm publish --access public --dry-run
        - provider: script
+         skip_cleanup: true
          script:
           - cd ../electron-blazor-glue
           - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
