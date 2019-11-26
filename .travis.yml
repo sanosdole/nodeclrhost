@@ -30,6 +30,7 @@ jobs:
        - cd ..
        - ls coreclr-hosting/prebuilds
       deploy:
+        skip_cleanup: true
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
@@ -59,6 +60,7 @@ jobs:
        - cd ..
        - ls coreclr-hosting/prebuilds
       deploy:
+        skip_cleanup: true
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
@@ -84,6 +86,7 @@ jobs:
        - cd ..
        - ls coreclr-hosting/prebuilds
       deploy:
+        skip_cleanup: true
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
