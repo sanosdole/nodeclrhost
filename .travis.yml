@@ -51,7 +51,7 @@ jobs:
           - npm publish --access public --dry-run
        - provider: script
          script:
-          - cd electron-blazor-glue
+          - cd ../electron-blazor-glue
           - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
           - npm publish --access public --dry-run
        #- provider: npm
