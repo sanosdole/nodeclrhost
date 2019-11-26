@@ -32,8 +32,15 @@ jobs:
        - npm run prepare
        - cd ..
        - ls coreclr-hosting/prebuilds/@nodeclrhost
-       
 
+       - cd coreclr-hosting
+       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+       - npm whoami
+       - npm publish --access public --dry-run
+       
+       - cd ../electron-blazor-glue
+       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
+       - npm publish --access public --dry-run
        
       deploy:
        - provider: releases
@@ -43,19 +50,7 @@ jobs:
          file: coreclr-hosting/prebuilds/@nodeclrhost/*
          overwrite: true
          on:
-          tags: true
-       - provider: script
-         skip_cleanup: true
-         script:
-          - cd coreclr-hosting
-          - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-          - npm publish --access public --dry-run
-       - provider: script
-         skip_cleanup: true
-         script:
-          - cd ../electron-blazor-glue
-          - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-          - npm publish --access public --dry-run
+          tags: true       
        #- provider: npm
        #  email: "$NPM_EMAIL"
        #  api_key: "$NPM_TOKEN"
