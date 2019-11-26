@@ -32,8 +32,8 @@ jobs:
        - npm run prepare
        - cd ..
        - ls coreclr-hosting/prebuilds/@nodeclrhost
-       - echo "//registry.npmjs.org/:_authToken=\${NPM_AUTH_TOKEN}" > coreclr-hosting/.npmrc
-       - echo "//registry.npmjs.org/:_authToken=\${NPM_AUTH_TOKEN}" > electron-blazor-glue/.npmrc
+       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > coreclr-hosting/.npmrc
+       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > electron-blazor-glue/.npmrc
       deploy:
        - provider: releases
          skip_cleanup: true
