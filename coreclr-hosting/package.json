@@ -12,6 +12,12 @@
   "engines": {
     "node": ">=10"
   },
+  "keywords": [
+    "dotnet"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "configure": "node-gyp configure",
     "build": "npm run configure && npm run build:debug && npm run build:release",

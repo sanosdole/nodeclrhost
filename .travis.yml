@@ -3,10 +3,8 @@ node_js: 10.15.3
 
 jobs:
   include:
-    - 
-      name: coreclr-hosting linux
-      os: linux
-      stage: hosting core      
+    - name: node packages linux
+      os: linux      
       before_install:
        - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
        - export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -17,28 +15,48 @@ jobs:
        - sudo apt-get update
        - sudo apt-get install dotnet-sdk-3.0
       install: 
-       - "cd coreclr-hosting"
        - npm install -g npm@'>=6.9.0'
+       - "cd coreclr-hosting"       
        - npm i -g prebuild
        - npm i --build-from-source
        - prebuild -t 10.15.3
        - prebuild -t 7.1.2 -r electron
+       # TODO: Why is process.env.DEBUG set when building production?
+       - "cd ../electron-blazor-glue"
+       - npm i
       script:
+       - cd ../coreclr-hosting             
        - npm run build-testapp
-       - npm run mocha      
+       - npm run mocha
+       - cd ../electron-blazor-glue
+       - npm run prepare
       before_deploy:
        - cd ..
        - ls coreclr-hosting/prebuilds/@nodeclrhost
       deploy:
-        skip_cleanup: true
-        provider: releases
-        token: $GITHUB_TOKEN
-        file_glob: true
-        file: coreclr-hosting/prebuilds/@nodeclrhost/*
-        overwrite: true
-        draft: true
-    - 
-      name: coreclr-hosting osx
+       - provider: releases
+         skip_cleanup: true
+         token: $GITHUB_TOKEN
+         file_glob: true
+         file: coreclr-hosting/prebuilds/@nodeclrhost/*
+         overwrite: true
+         draft: true
+       - provider: npm
+         email: $NPM_EMAIL
+         api_token: $NPM_TOKEN
+         access: public
+         src: coreclr-hosting
+         dry_run: true
+         skip_cleanup: true
+       - provider: npm
+         email: $NPM_EMAIL
+         api_token: $NPM_TOKEN
+         access: public
+         src: electron-blazor-glue
+         dry_run: true
+         skip_cleanup: true
+
+    - name: prebuild coreclr-hosting osx
       os: osx   
       addons:
         homebrew:
@@ -66,9 +84,10 @@ jobs:
         file_glob: true
         file: coreclr-hosting/prebuilds/@nodeclrhost/*
         overwrite: true
-        draft: true
-    - 
-      name: coreclr-hosting windows
+        on:
+          tags: true
+
+    - name: prebuild coreclr-hosting windows
       os: windows         
       install: 
        - choco install dotnetcore-sdk
@@ -92,48 +111,33 @@ jobs:
         file_glob: true
         file: coreclr-hosting/prebuilds/@nodeclrhost/*
         overwrite: true
+        on:
+          tags: true
+    - 
+      name: C# nuget packages      
+      language: csharp
+      mono: none
+      dotnet: 3.0.100
+      script:
+       - cd NodeHostEnvironment
+       - dotnet pack
+       - dotnet pack -c Release
+       - cd ../ElectronHostedBlazor
+       - dotnet pack
+       - dotnet pack -c Release
+      before_deploy:
+       - cd ..
+      deploy:
+        skip_cleanup: true
+        provider: releases
+        token: $GITHUB_TOKEN
+        file_glob: true
+        file: 
+         - NodeHostEnvironment/bin/Debug/*.nupkg
+         - NodeHostEnvironment/bin/Debug/*.snupkg
+         - NodeHostEnvironment/bin/Release/*.nupkg
+         - ElectronHostedBlazor/bin/Debug/*.nupkg
+         - ElectronHostedBlazor/bin/Debug/*.snupkg
+         - ElectronHostedBlazor/bin/Release/*.nupkg
+        overwrite: true
         draft: true
-    - 
-      name: NodeHostEnvironment C#
-      before_script:
-        - "cd NodeHostEnvironment"
-      language: csharp
-      mono: none
-      dotnet: 3.0.100
-      script:
-       - dotnet build
-    -
-      name: electron-blazor-glue       
-      stage: blazor hosting
-      os: linux
-      before_install:
-       - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
-       - export DOTNET_CLI_TELEMETRY_OPTOUT=1
-       - wget -q https://packages.microsoft.com/config/ubuntu/16.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-       - sudo dpkg -i packages-microsoft-prod.deb
-       - sudo apt-get update
-       - sudo apt-get install apt-transport-https
-       - sudo apt-get update
-       - sudo apt-get install dotnet-sdk-3.0
-      install: 
-       - cd coreclr-hosting
-       - npm install -g npm@'>=6.9.0'
-       - npm i -g prebuild
-       - npm i --build-from-source
-       - npm run configure
-       - npm run build:debug
-       # TODO: Why is process.env.DEBUG set when building production?
-       - "cd ../electron-blazor-glue"
-       - npm install -g npm@'>=6.9.0'
-       - npm i
-      script:
-       - npm run prepare
-    - 
-      name: ElectronHostedBlazor C#
-      before_script:
-        - "cd ElectronHostedBlazor"
-      language: csharp
-      mono: none
-      dotnet: 3.0.100
-      script:
-       - dotnet build

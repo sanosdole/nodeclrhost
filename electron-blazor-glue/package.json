@@ -3,6 +3,17 @@
   "version": "0.1.0-alpha.2",
   "description": "Test for hosting blazor",
   "main": "dist/blazor.electron.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sanosdole/nodeclrhost.git"
+  },
+  "homepage": "https://github.com/sanosdole/nodeclrhost",
+  "engines": {
+    "node": ">=10"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-js-glue": "node node_modules/webpack-cli/bin/cli.js --mode development --config ./webpack.config.js",
@@ -24,5 +35,9 @@
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10"
   },
-  "keywords": []
+  "keywords": [
+    "dotnet",
+    "blazor",
+    "electron"
+  ]
 }
