@@ -116,10 +116,8 @@ jobs:
       dotnet: 3.0.100
       script:
        - cd NodeHostEnvironment
-       - dotnet pack
        - dotnet pack -c Release
        - cd ../ElectronHostedBlazor
-       - dotnet pack
        - dotnet pack -c Release
       before_deploy:
        - cd ..
@@ -129,11 +127,9 @@ jobs:
         token: $GITHUB_TOKEN
         file_glob: true
         file: 
-         - NodeHostEnvironment/bin/Debug/*.nupkg
-         - NodeHostEnvironment/bin/Debug/*.snupkg
+         - NodeHostEnvironment/bin/Release/*.snupkg
          - NodeHostEnvironment/bin/Release/*.nupkg
-         - ElectronHostedBlazor/bin/Debug/*.nupkg
-         - ElectronHostedBlazor/bin/Debug/*.snupkg
+         - ElectronHostedBlazor/bin/Release/*.snupkg
          - ElectronHostedBlazor/bin/Release/*.nupkg
         overwrite: true
         draft: true
