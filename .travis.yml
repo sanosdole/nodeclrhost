@@ -30,9 +30,8 @@ jobs:
        - npm run mocha
        - cd ../electron-blazor-glue
        - npm run prepare
-      before_deploy:
        - cd ..
-       - ls coreclr-hosting/prebuilds/@nodeclrhost
+       - ls coreclr-hosting/prebuilds/@nodeclrhost             
       deploy:
        - provider: releases
          skip_cleanup: true
@@ -74,7 +73,6 @@ jobs:
       script:
        - npm run build-testapp
        - npm run mocha
-      before_deploy:
        - cd ..
        - ls coreclr-hosting/prebuilds/@nodeclrhost
       deploy:
@@ -101,9 +99,7 @@ jobs:
       script:
        - npm run build-testapp
        - npm run mocha
-      before_deploy:
-       - cd ..
-       - ls coreclr-hosting/prebuilds/@nodeclrhost
+       - cd ..      
       deploy:
         skip_cleanup: true
         provider: releases
