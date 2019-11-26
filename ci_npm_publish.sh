@@ -21,7 +21,7 @@ then
 	echo "Publishing electron-blazor-glue for tag $TRAVIS_TAG"
     # npm uninstall coreclr-hosting --ignore-scripts
     # npm install @nodeclrhosting/coreclr-hosting@$TRAVIS_TAG --ignore-scripts
-    sed -i 's_"coreclr-hosting": "file:../coreclr-hosting"_"@nodeclrhost/coreclr-hosting": "$TRAVIS_TAG"_g' package.json
+    sed -i 's!"coreclr-hosting": "file:../coreclr-hosting"!"@nodeclrhost/coreclr-hosting": "'"$TRAVIS_TAG"'"!g' package.json
     npm version $TRAVIS_TAG --allow-same-version
 	npm publish --access public --ignore-scripts
 else
