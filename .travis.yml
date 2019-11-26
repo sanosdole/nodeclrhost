@@ -39,16 +39,17 @@ jobs:
          file_glob: true
          file: coreclr-hosting/prebuilds/@nodeclrhost/*
          overwrite: true
-         draft: true
+         on:
+          tags: true
        - provider: npm
-         email: $NPM_EMAIL
-         api_key: $NPM_TOKEN
+         email: "$NPM_EMAIL"
+         api_key: "$NPM_TOKEN"
          access: public
          src: coreclr-hosting         
          skip_cleanup: true
        - provider: npm
-         email: $NPM_EMAIL
-         api_key: $NPM_TOKEN
+         email: "$NPM_EMAIL"
+         api_key: "$NPM_TOKEN"
          access: public
          src: electron-blazor-glue         
          skip_cleanup: true
@@ -130,4 +131,5 @@ jobs:
          - ElectronHostedBlazor/bin/Release/*.snupkg
          - ElectronHostedBlazor/bin/Release/*.nupkg
         overwrite: true
-        draft: true
+        on:
+          tags: true
