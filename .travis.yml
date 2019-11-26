@@ -28,7 +28,7 @@ jobs:
        - npm run mocha      
       before_deploy:
        - cd ..
-       - ls coreclr-hosting/prebuilds
+       - ls coreclr-hosting/prebuilds/@nodeclrhost
       deploy:
         skip_cleanup: true
         provider: releases
@@ -58,7 +58,7 @@ jobs:
        - npm run mocha
       before_deploy:
        - cd ..
-       - ls coreclr-hosting/prebuilds
+       - ls coreclr-hosting/prebuilds/@nodeclrhost
       deploy:
         skip_cleanup: true
         provider: releases
@@ -84,7 +84,7 @@ jobs:
        - npm run mocha
       before_deploy:
        - cd ..
-       - ls coreclr-hosting/prebuilds
+       - ls coreclr-hosting/prebuilds/@nodeclrhost
       deploy:
         skip_cleanup: true
         provider: releases
