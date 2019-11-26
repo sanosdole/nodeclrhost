@@ -65,7 +65,7 @@ jobs:
       install: 
        - choco install dotnetcore-sdk
        - "cd coreclr-hosting"
-       - npm install -g npm@'>=6.9.0'
+       # - npm install -g npm@'>=6.9.0'
        - dotnet --version
        - npm i -g prebuild
        - npm i --build-from-source
