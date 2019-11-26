@@ -26,11 +26,14 @@ jobs:
       script:
        - npm run build-testapp
        - npm run mocha      
+      before_deploy:
+       - cd ..
+       - ls coreclr-hosting/prebuilds
       deploy:
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
-        file: prebuilds/@nodeclrhost/*
+        file: coreclr-hosting/prebuilds/@nodeclrhost/*
         overwrite: true
         draft: true
     - 
@@ -52,11 +55,14 @@ jobs:
       script:
        - npm run build-testapp
        - npm run mocha
+      before_deploy:
+       - cd ..
+       - ls coreclr-hosting/prebuilds
       deploy:
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
-        file: prebuilds/@nodeclrhost/*
+        file: coreclr-hosting/prebuilds/@nodeclrhost/*
         overwrite: true
         draft: true
     - 
@@ -74,14 +80,16 @@ jobs:
       script:
        - npm run build-testapp
        - npm run mocha
+      before_deploy:
+       - cd ..
+       - ls coreclr-hosting/prebuilds
       deploy:
         provider: releases
         token: $GITHUB_TOKEN
         file_glob: true
-        file: prebuilds/@nodeclrhost/*
+        file: coreclr-hosting/prebuilds/@nodeclrhost/*
         overwrite: true
         draft: true
-        
     - 
       name: NodeHostEnvironment C#
       before_script:
