@@ -106,6 +106,7 @@ jobs:
       mono: none
       dotnet: 3.0.100
       script:
+       - echo "Creating package version ""${TRAVIS_TAG:1}"
        - cd NodeHostEnvironment
        - dotnet pack -c Release
        - cd ../ElectronHostedBlazor
