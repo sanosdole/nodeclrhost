@@ -28,6 +28,7 @@ jobs:
        - npm run mocha      
       deploy:
         provider: releases
+        token: $GITHUB_TOKEN
         file_glob: true
         file: prebuilds/@nodeclrhost/*
         overwrite: true
@@ -53,6 +54,7 @@ jobs:
        - npm run mocha
       deploy:
         provider: releases
+        token: $GITHUB_TOKEN
         file_glob: true
         file: prebuilds/@nodeclrhost/*
         overwrite: true
@@ -74,6 +76,7 @@ jobs:
        - npm run mocha
       deploy:
         provider: releases
+        token: $GITHUB_TOKEN
         file_glob: true
         file: prebuilds/@nodeclrhost/*
         overwrite: true
