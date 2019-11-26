@@ -7,7 +7,7 @@ if [ "$TRAVIS_TAG" != "" ]
 then
 	echo "Publishing coreclr-hosting for tag ""${TRAVIS_TAG:1}"
     npm version "${TRAVIS_TAG:1}" --allow-same-version
-	npm publish --access public --ignore-scripts
+    npm publish --access public --ignore-scripts
 else
     echo "Dry run publishing coreclr-hosting"
     npm publish --access public --ignore-scripts --dry-run
