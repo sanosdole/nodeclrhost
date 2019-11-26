@@ -36,13 +36,14 @@ jobs:
 
        - cd coreclr-hosting
        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-       - npm publish --access public --dry-run --ignore-scripts
+       - if [ "$TRAVIS_TAG" != "" ]; npm publish --access public --ignore-scripts; fi
+       - if [ "$TRAVIS_TAG" = "" ]; npm publish --access public --ignore-scripts --dry_run; fi
        
        - cd ../electron-blazor-glue
        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-       - npm publish --access public --dry-run --ignore-scripts
-       on:
-          tags: true
+       - if [ "$TRAVIS_TAG" != "" ]; npm publish --access public --ignore-scripts; fi
+       - if [ "$TRAVIS_TAG" = "" ]; npm publish --access public --ignore-scripts --dry_run; fi
+       
       deploy:
        - provider: releases
          skip_cleanup: true
