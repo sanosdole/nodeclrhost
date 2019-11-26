@@ -1,7 +1,7 @@
 {
-  "name": "@nodeclrhost/coreclr-hosting",
+  "name": "coreclr-hosting",
   "version": "0.1.0-dev.1",
-  "description": "Hosting coreclr in node",
+  "description": "Hosting dotnet coreclr in node",
   "main": "bindings.js",
   "gypfile": true,
   "repository": {

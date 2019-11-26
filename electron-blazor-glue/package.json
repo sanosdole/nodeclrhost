@@ -1,7 +1,7 @@
 {
-  "name": "@nodeclrhost/electron-blazor-glue",
+  "name": "electron-blazor-glue",
   "version": "0.1.0-dev.1",
-  "description": "Test for hosting blazor",
+  "description": "Glue code for running blazor apps in an electron renderer",
   "main": "dist/blazor.electron.js",
   "types": "dist/Boot.Electron.d.ts",
   "repository": {
