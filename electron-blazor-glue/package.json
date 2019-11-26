@@ -1,6 +1,6 @@
 {
   "name": "@nodeclrhost/electron-blazor-glue",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-dev.1",
   "description": "Test for hosting blazor",
   "main": "dist/blazor.electron.js",
   "types": "dist/Boot.Electron.d.ts",

@@ -8,7 +8,8 @@
 
   <PropertyGroup>
     <PackageId>NodeHostEnvironment</PackageId>
-    <Version>0.1.0-alpha.2</Version>
+    <Version Condition="'$(TRAVIS_TAG)'==''">0.1.0-dev.1</Version>
+    <Version Condition="'$(TRAVIS_TAG)'!=''">$(TRAVIS_TAG)</Version>
     <Authors>sanosdole2</Authors>
     <Company>nodeclrhost</Company>
 
