@@ -31,19 +31,11 @@ jobs:
        - cd ../electron-blazor-glue
        - npm run prepare       
       after_success:
+       - echo $TRAVIS_TAG
        - cd ..
        - ls coreclr-hosting/prebuilds/@nodeclrhost
+       - ./ci_npm_publish.sh
 
-       - cd coreclr-hosting
-       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-       - if [ "$TRAVIS_TAG" != "" ]; npm publish --access public --ignore-scripts; fi
-       - if [ "$TRAVIS_TAG" = "" ]; npm publish --access public --ignore-scripts --dry_run; fi
-       
-       - cd ../electron-blazor-glue
-       - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-       - if [ "$TRAVIS_TAG" != "" ]; npm publish --access public --ignore-scripts; fi
-       - if [ "$TRAVIS_TAG" = "" ]; npm publish --access public --ignore-scripts --dry_run; fi
-       
       deploy:
        - provider: releases
          skip_cleanup: true
