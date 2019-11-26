@@ -29,19 +29,18 @@ jobs:
        - npm run build-testapp
        - npm run mocha
        - cd ../electron-blazor-glue
-       - npm run prepare
+       - npm run prepare       
+      after_success:
        - cd ..
        - ls coreclr-hosting/prebuilds/@nodeclrhost
 
        - cd coreclr-hosting
        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-       - npm whoami
-       - npm publish --access public --dry-run
+       - npm publish --access public --dry-run --ignore-scripts
        
        - cd ../electron-blazor-glue
        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-       - npm publish --access public --dry-run
-       
+       - npm publish --access public --dry-run --ignore-scripts
       deploy:
        - provider: releases
          skip_cleanup: true
