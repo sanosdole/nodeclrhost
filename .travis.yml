@@ -41,6 +41,8 @@ jobs:
        - cd ../electron-blazor-glue
        - echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
        - npm publish --access public --dry-run --ignore-scripts
+       on:
+          tags: true
       deploy:
        - provider: releases
          skip_cleanup: true
