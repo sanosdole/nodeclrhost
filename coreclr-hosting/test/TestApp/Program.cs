@@ -15,12 +15,6 @@
                 var host = NodeHost.InProcess("./build/Release/coreclr-hosting.node");
                 var global = host.Global;
 
-                global.testPromise = global.Promise.CreateNewInstance(
-                    new Action<dynamic, dynamic>((resolve, reject) => 
-                    {
-                        resolve(5);
-                    }));
-
                 global.registerAsyncTest(new Func<Task>(() => Task.Delay(5)));
 
                 // Important: As mocha runs the tests asynchronously, we have to dispose after all tests have been run.
@@ -113,6 +107,7 @@
 
                     global.it("should return failed Task from createPromise", new Func<Task>(async () => 
                     {
+                        // DM 27.11.2019: We need the try/catch as FluentAssertions waits on the threadpool :(
                         var didThrow = false;
                         try
                         {
@@ -125,15 +120,6 @@
                         }
                         didThrow.Should().Be(true);
                         
-                    }));
-
-                    // TODO DM 23.11.2019: Create new suite for those two tests
-                    global.itCb("invoke done", new Action<dynamic>((done) => {
-                        done();
-                    }));
-
-                    global.it("async test", new Func<Task>(() => {
-                        return Task.Delay(10);
                     }));
 
                 }));
