@@ -47,7 +47,7 @@ extern "C" struct DotNetHandle {
       const Napi::Env &env,
       std::function<Napi::Function(DotNetHandle *)> function_factory) {
     if (type_ == DotNetType::Null) return env.Null();
-    if (type_ == DotNetType::JsHandle) return jshandle_value_->ToValue(env);
+    if (type_ == DotNetType::JsHandle) return jshandle_value_->AsObject(env);
     if (type_ == DotNetType::String)
       return Napi::String::New(
           env, string_value_);  // TODO: string is copied, we could use char16_t

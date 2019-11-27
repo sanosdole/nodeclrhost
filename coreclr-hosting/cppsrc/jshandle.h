@@ -79,14 +79,21 @@ struct JsHandle {
     type_ = type;
   }
 
-  Napi::Value ToValue(const Napi::Env& env) const {
+  Napi::Value AsObject(const Napi::Env& env) const {
     if (type_ == JsType::Object) {
       if (nullptr == object_value_) return env.Global();
       return object_value_->Value();
     }
     if (type_ == JsType::Function) return function_value_->Value();
 
-    // TODO: Support blittable types
+    if (type_ == JsType::Error) {
+      Napi::Error::New(env, string_value_)
+          .ThrowAsJavaScriptException();
+      return Napi::Value();
+    }
+
+    Napi::Error::New(env, "JsHandle is neither a object nor a function!")
+          .ThrowAsJavaScriptException();
     return Napi::Value();
   }
 

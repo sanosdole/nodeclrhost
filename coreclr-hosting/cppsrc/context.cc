@@ -169,7 +169,7 @@ JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
 
   Napi::HandleScope handleScope(env_);
 
-  auto owner = owner_handle.ToValue(env_);
+  auto owner = owner_handle.AsObject(env_);
   // std::assert(owner.IsObject());
   auto owner_object = owner.ToObject();
   auto result = owner_object.Get(name);
@@ -188,7 +188,7 @@ JsHandle Context::SetMember(JsHandle& owner_handle, const char* name,
 
   Napi::HandleScope handleScope(env_);
 
-  auto owner = owner_handle.ToValue(env_);
+  auto owner = owner_handle.AsObject(env_);
   auto owner_object = owner.ToObject();
   auto value = dotnet_handle.ToValue(env_, function_factory_);
   dotnet_handle.Release();
@@ -210,7 +210,7 @@ JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
     }
 
     napi_value result;
-    auto status = napi_new_instance(env_, prototype_function.ToValue(env_),
+    auto status = napi_new_instance(env_, prototype_function.AsObject(env_),
                                     argc, arguments.data(), &result);
     if (status != napi_ok) {
       return JsHandle::Error("Could not create instance");
@@ -229,7 +229,7 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
 
   Napi::HandleScope handleScope(env_);
 
-  auto function = handle.ToValue(env_).As<Napi::Function>();
+  auto function = handle.AsObject(env_).As<Napi::Function>();
   std::vector<napi_value> arguments(argc);
   for (int c = 0; c < argc; c++) {
     arguments[c] = argv[c].ToValue(env_, function_factory_);
@@ -238,7 +238,7 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
     argv[c].Release();
   }
 
-  auto result = function.MakeCallback(receiver_handle.ToValue(env_), arguments);
+  auto result = function.MakeCallback(receiver_handle.AsObject(env_), arguments);
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }
