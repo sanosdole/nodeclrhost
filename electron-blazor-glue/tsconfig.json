@@ -15,7 +15,6 @@
       "noEmitOnError": true,
       "removeComments": false,    
       "downlevelIteration": true,
-      "strict": true,
-      "esModuleInterop": true
+      "strict": true
     }
   }
