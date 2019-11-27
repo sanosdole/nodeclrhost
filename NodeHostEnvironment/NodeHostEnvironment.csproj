@@ -2,8 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <!-- <PublishTrimmed>true</PublishTrimmed> -->    
-    <!-- <GenerateAssemblyInfo>false</GenerateAssemblyInfo> -->
   </PropertyGroup>
 
   <PropertyGroup>
