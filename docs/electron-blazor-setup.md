@@ -33,7 +33,7 @@ dotnet new blazorserver
 dotnet add package ElectronHostedBlazor -v 0.1.0-alpha.10
 ```
 
-Replace the `CreateHostBuilder` method in `Program.cs` with:
+Replace the `CreateHostBuilder` method in `~/RenderApp/Program.cs` with:
 
 ```cs
 public static INodeHostBuilder CreateHostBuilder(string[] args) =>
@@ -41,7 +41,7 @@ public static INodeHostBuilder CreateHostBuilder(string[] args) =>
                 .UseBlazorStartup<Startup>();
 ```
 
-Also replace `Startup` with the following implementation:
+Also replace `~/RenderApp/Startup` with the following implementation:
 
 ```cs
 public class Startup
@@ -60,8 +60,8 @@ public class Startup
 
 And of course add proper using statements ;)
 
-Delete the `RenderApp/_Host.cshtml`, as it is no longer needed.
-Add the `RenderApp/wwwroot/index.html` file with content like this:
+Delete the `~/RenderApp/_Host.cshtml`, as it is no longer needed.
+Add the `~/RenderApp/wwwroot/index.html` file with content like this:
 
 ```html
 <!DOCTYPE html>
@@ -70,7 +70,6 @@ Add the `RenderApp/wwwroot/index.html` file with content like this:
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
     <base href="./" />
-    <!-- <base href="~/" /> -->
     <link rel="stylesheet" href="css/bootstrap/bootstrap.min.css" />
     <link href="css/site.css" rel="stylesheet" />
     <title>Blazor in renderer process!</title>
@@ -100,11 +99,11 @@ Add the following scripts to `package.json`:
 
 ```json
 "build-renderapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js RenderApp/RenderApp.csproj bin",
-"start": "npm run build-renderapp && electron .",
+"start": "npm run build-renderapp && npm run electron",
 "electron": "electron ."
 ```
 
-Create (and reference if not done by `npm init`) from `package.json` a `index.js` like this:
+Create (and reference from `package.json` if not done by `npm init`) a `index.js` like this:
 
 ```javascript
 const { app, BrowserWindow } = require('electron');
@@ -122,7 +121,7 @@ app.on("ready", function(launchInfo) {
 });
 ```
 
-This could also be implemented using a dotnet app and `coreclr-hosting`.
+This could also be implemented using a .NET console app and `coreclr-hosting`/`NodeHostEnvironment`.
 
 ## Run it
 
