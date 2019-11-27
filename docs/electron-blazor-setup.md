@@ -16,6 +16,12 @@ npm i --save-dev electron-rebuild
 npm i electron-blazor-glue
 ```
 
+Run `electron-rebuild`. This can be done by adding and running the following script:
+
+```json
+"postinstall": "electron-rebuild"
+```
+
 ## Setup dotnet renderer app
 
 Setup new node project using:
@@ -24,8 +30,7 @@ Setup new node project using:
 mkdir RenderApp
 cd RenderApp
 dotnet new blazorserver
-dotnet add package ElectronHostedBlazor
-dotnet add package ElectronHostedBlazor -v 0.1.0-alpha.9
+dotnet add package ElectronHostedBlazor -v 0.1.0-alpha.10
 ```
 
 Replace the `CreateHostBuilder` method in `Program.cs` with:
@@ -42,7 +47,9 @@ Also replace `Startup` with the following implementation:
 public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
-    { }
+    {
+        services.AddSingleton<WeatherForecastService>();
+    }
 
     public void Configure(IComponentsApplicationBuilder app)
     {
@@ -51,7 +58,7 @@ public class Startup
 }
 ```
 
-And add proper using statements ;)
+And of course add proper using statements ;)
 
 Delete the `RenderApp/_Host.cshtml`, as it is no longer needed.
 Add the `RenderApp/wwwroot/index.html` file with content like this:
@@ -97,7 +104,7 @@ Add the following scripts to `package.json`:
 "electron": "electron ."
 ```
 
-Create and reference from `package.json` a `index.js` like this:
+Create (and reference if not done by `npm init`) from `package.json` a `index.js` like this:
 
 ```javascript
 const { app, BrowserWindow } = require('electron');

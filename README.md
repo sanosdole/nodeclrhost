@@ -1,13 +1,17 @@
 # nodeclrhost - Hosting .NET core in node and electron
 
-[![Build Status](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=master)](https://travis-ci.com/sanosdole/nodeclrhost)
+[![Build Status](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=master)](https://travis-ci.com/sanosdole/nodeclrhost) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 This is an experimental project that enables writing node/electron applications with .NET core.
 This is achieved by native node module (`coreclr-hosting`) that runs a .NET core application.
 The .NET application uses the `NodeHostEnvironment` library to interact with the node runtime.
 The .NET application is kept alive until it explicitly ends the hosting.
 
-Currently the application needs to be published as standalone for the addon to find the .NET runtime.
+Currently the application needs to be published as standalone for the addon to load the .NET runtime.
+
+Besides running .NET in node, we can also run [.NET Blazor apps](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor) in a [Electron](https://electronjs.org/) renderer process without WebAssembly.
+This enables access to the DOM and the full .NET core framework at the same time (including full debugger support).
+Instructions on how to set this up can be found [here](docs/electron-blazor-setup.md).
 
 ## Simple example
 
