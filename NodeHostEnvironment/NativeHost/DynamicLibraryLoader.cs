@@ -17,7 +17,10 @@ namespace NodeHostEnvironment.NativeHost
             // DM 11.09.2019: We do not unload the library, as it is loaded already and we only live as long as it is loaded...
             var libraryHandle = loader.LoadLibrary(libraryName);
             if (libraryHandle == IntPtr.Zero)
-                throw new InvalidOperationException($"Could not load library '{libraryName} with base path '{System.IO.Path.GetFullPath(".")}'");
+                throw new InvalidOperationException($"Could not load library '{libraryName}' with base path '{System.IO.Path.GetFullPath(".")}'");
+
+            // TODO DM 27.11.2019: Remove once the multiple loading problem is solved
+            Console.WriteLine($"Loaded library '{libraryName}' with base path '{System.IO.Path.GetFullPath(".")}' [Handle: {libraryHandle.ToInt64():X}]");            
 
             var ctor = typeof(T).GetConstructors().Single();
             var parameters = ctor.GetParameters();
