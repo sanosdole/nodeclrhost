@@ -121,12 +121,12 @@ jobs:
        - cd ..
        - if [ "$TRAVIS_TAG" != "" ]; then
            cd NodeHostEnvironment/bin/Release;
-           dotnet nuget push NodeHostEnvironment."${TRAVIS_TAG:1}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-           dotnet nuget push NodeHostEnvironment."${TRAVIS_TAG:1}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-           cd ../../../ElectronHostedBlazor/bin/Release
-           dotnet nuget push ElectronHostedBlazor."${TRAVIS_TAG:1}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-           dotnet nuget push ElectronHostedBlazor."${TRAVIS_TAG:1}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-           cd ../../..
+           dotnet nuget push NodeHostEnvironment."${TRAVIS_TAG:1}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json;
+           dotnet nuget push NodeHostEnvironment."${TRAVIS_TAG:1}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json;
+           cd ../../../ElectronHostedBlazor/bin/Release;
+           dotnet nuget push ElectronHostedBlazor."${TRAVIS_TAG:1}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json;
+           dotnet nuget push ElectronHostedBlazor."${TRAVIS_TAG:1}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json;
+           cd ../../..;
          fi
       deploy:
         skip_cleanup: true
