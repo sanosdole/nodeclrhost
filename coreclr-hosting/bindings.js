@@ -1,9 +1,7 @@
-var coreclrHosting;
+const path = require('path');
 
-if (process.env.DEBUG) {
-    coreclrHosting = require(__dirname + '/build/Debug/coreclr-hosting.node');
-} else {
-    coreclrHosting = require(__dirname + '/build/Release/coreclr-hosting.node');
-}
+var nativeModulePath = path.join(__dirname, 'build', process.env.DEBUG ? 'Debug' : 'Release', 'coreclr-hosting.node');
+console.log("Loading coreclr-hosting.node from " + nativeModulePath);
+var coreclrHosting = require(nativeModulePath);
 
 module.exports = coreclrHosting;
