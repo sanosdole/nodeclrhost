@@ -250,7 +250,7 @@ void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
 
   // TODO DM 23.11.2019: We could push this function to the event loop 
   //                     instead of requiring the managed code to use the scheduler.
-  //                     This would have the benefit of sparing: managed -> native -> managed -> native
+  //                     This would have the benefit of sparing: managed -schedule-> native -call callback-> managed -call this-> native
   //Napi::AsyncContext async_context(env_, "dotnet_callback");
   //Napi::CallbackScope cb_scope(env_, async_context);
 
