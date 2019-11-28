@@ -9,7 +9,7 @@ It also provides the native implementation utilized by the `NodeHostEnvironment`
 ## Installation
 
 ```shell
-npm install --save @nodeclrhost/coreclr-hosting
+npm install --save coreclr-hosting
 ```
 
 ## Usage

@@ -60,7 +60,7 @@ public class Startup
 
 And of course add proper using statements ;)
 
-Delete the `~/RenderApp/_Host.cshtml`, as it is no longer needed.
+Delete the `~/RenderApp/Pages/_Host.cshtml`, as it is no longer needed.
 Add the `~/RenderApp/wwwroot/index.html` file with content like this:
 
 ```html

@@ -7,7 +7,7 @@ This requires that the Blazor application is written using the `ElectronHostedBl
 ## Installation
 
 ```shell
-npm install --save @nodeclrhost/celectron-blazor-glue
+npm install --save electron-blazor-glue
 ```
 
 ## Usage
