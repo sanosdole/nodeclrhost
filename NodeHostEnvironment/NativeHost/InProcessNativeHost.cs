@@ -1,21 +1,19 @@
 namespace NodeHostEnvironment.NativeHost
 {
     using System.Collections.Generic;
-    using System.Linq;
     using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
     using System;
-    using NodeHostEnvironment.InProcess;
+    using InProcess;
 
     internal sealed class NativeNodeHost : IHostInProcess
     {
         private readonly IntPtr _context;
         private readonly NodeTaskScheduler _scheduler;
-        // TODO DM 23-11-2019: Consider using Dict<IntPtr, CallbackHolder> to improve lookup
-        private readonly HashSet<CallbackHolder> _registry = new HashSet<CallbackHolder>();
-        private readonly HashSet<TaskHolder> _taskRegistry = new HashSet<TaskHolder>();
+        private readonly Dictionary<IntPtr, CallbackHolder> _registry = new Dictionary<IntPtr, CallbackHolder>();
+        private readonly Dictionary<IntPtr, TaskHolder> _taskRegistry = new Dictionary<IntPtr, TaskHolder>();
         private readonly ReleaseDotNetValue ReleaseCallback;
         private readonly ReleaseDotNetValue ReleaseTaskCallback;
 
@@ -48,7 +46,7 @@ namespace NodeHostEnvironment.NativeHost
         public IntPtr MarshallCallback(DotNetCallback callback, out ReleaseDotNetValue releaseCallback)
         {
             var holder = new CallbackHolder(callback, this);
-            _registry.Add(holder);
+            _registry.Add(holder.CallbackPtr, holder);
             releaseCallback = ReleaseCallback;
             return holder.CallbackPtr;
         }
@@ -56,21 +54,19 @@ namespace NodeHostEnvironment.NativeHost
         public IntPtr MarshallTask(Task task, out ReleaseDotNetValue releaseCallback)
         {
             var holder = new TaskHolder(task, this);
-            _taskRegistry.Add(holder);
+            _taskRegistry.Add(holder.CallbackPtr, holder);
             releaseCallback = ReleaseTaskCallback;
             return holder.CallbackPtr;
         }
 
         private void ReleaseCallbackIntern(DotNetType type, IntPtr value)
         {
-            //Console.WriteLine($"Removing callback {value} from registry");
-            _registry.Remove(_registry.First(ch => ch.CallbackPtr == value));
+            _registry.Remove(value);
         }
 
         private void ReleaseTaskCallbackIntern(DotNetType type, IntPtr value)
         {
-            //Console.WriteLine($"Removing task {value} from registry");
-            _taskRegistry.Remove(_taskRegistry.First(ch => ch.CallbackPtr == value));
+            _taskRegistry.Remove(value);
         }
 
         /// <summary>
@@ -88,7 +84,6 @@ namespace NodeHostEnvironment.NativeHost
                 Wrapped = toWrap;
                 _wrapper = OnCalled;
                 CallbackPtr = Marshal.GetFunctionPointerForDelegate(_wrapper);
-                //Console.WriteLine($"Marshalling callback {CallbackPtr} from registry");
                 _parent = parent;
             }
 
@@ -128,7 +123,6 @@ namespace NodeHostEnvironment.NativeHost
                 _task = task;
                 _wrapper = OnCalled;
                 CallbackPtr = Marshal.GetFunctionPointerForDelegate(_wrapper);
-                //Console.WriteLine($"Marshalling callback {CallbackPtr} from registry");
                 _parent = parent;
             }
 
