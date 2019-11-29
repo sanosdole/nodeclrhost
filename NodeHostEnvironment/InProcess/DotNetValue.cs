@@ -3,6 +3,8 @@ namespace NodeHostEnvironment.InProcess
     using System.Runtime.InteropServices;
     using System.Text;
     using System;
+    using System.Dynamic;
+    using System.Threading.Tasks;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void ReleaseDotNetValue(DotNetType type, IntPtr value);
@@ -39,6 +41,8 @@ namespace NodeHostEnvironment.InProcess
                 return FromByteArray((byte[])obj);
             if (obj is Exception)
                 return FromException((Exception)obj);
+            if (obj is Task)
+                return FromTask((Task)obj, host);
 
             throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
         }
@@ -58,9 +62,16 @@ namespace NodeHostEnvironment.InProcess
                 var mappedArgs = new object[requiredParameters.Length];
                 for (int c = 0; c < requiredParameters.Length; c++)
                 {
-                    object parameter;
-                    if (!argv[c].TryGetObject(host, out parameter))
-                        throw new InvalidOperationException("Cannot convert JsHandle to target type");
+                    if (!argv[c].TryGetObject(host, out object parameter))
+                        throw new InvalidOperationException("Cannot get object from JsHandle");
+
+                    var asDynamic = parameter as JsDynamicObject;
+                    if (asDynamic != null)
+                    {
+                        var wasConverted = asDynamic.TryConvertIntern(requiredParameters[c].ParameterType, out object converted);
+                        if (wasConverted)
+                            parameter = converted;
+                    }
 
                     mappedArgs[c] = parameter;
                 }
@@ -137,6 +148,17 @@ namespace NodeHostEnvironment.InProcess
                 Type = DotNetType.Exception,
                 Value = NativeUtf8FromString($"{value.GetType().Name}: {value.Message}\n{value.StackTrace}"),
                 ReleaseFunc = ReleaseHGlobal
+            };
+        }
+
+        public static DotNetValue FromTask(Task value, IHostInProcess host)
+        {
+            ReleaseDotNetValue releaseDotNetCallback;
+            return new DotNetValue
+            {
+                Type = DotNetType.Task,
+                Value = host.MarshallTask(value, out releaseDotNetCallback),
+                ReleaseFunc = releaseDotNetCallback
             };
         }
 

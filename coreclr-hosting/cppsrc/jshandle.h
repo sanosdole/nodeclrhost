@@ -64,6 +64,11 @@ struct JsHandle {
     memcpy(string_value_, utf8.c_str(), utf8.size() + 1);
     type_ = JsType::String;
   }
+  JsHandle(Napi::Boolean boolean_value) {
+    type_ = JsType::Boolean;
+    //* ( void * * ) &doubleValue
+    value_ = boolean_value.Value() ? (void*)1 : (void*)0;    
+  }
   JsHandle(double double_value) {
     type_ = JsType::Number;
     //* ( void * * ) &doubleValue
@@ -74,14 +79,21 @@ struct JsHandle {
     type_ = type;
   }
 
-  Napi::Value ToValue(const Napi::Env& env) const {
+  Napi::Value AsObject(const Napi::Env& env) const {
     if (type_ == JsType::Object) {
       if (nullptr == object_value_) return env.Global();
       return object_value_->Value();
     }
     if (type_ == JsType::Function) return function_value_->Value();
 
-    // TODO: Support blittable types
+    if (type_ == JsType::Error) {
+      Napi::Error::New(env, string_value_)
+          .ThrowAsJavaScriptException();
+      return Napi::Value();
+    }
+
+    Napi::Error::New(env, "JsHandle is neither a object nor a function!")
+          .ThrowAsJavaScriptException();
     return Napi::Value();
   }
 
@@ -92,15 +104,15 @@ struct JsHandle {
     if (value.IsString()) {
       return JsHandle(value.ToString());
     }
+    if (value.IsBoolean()) {
+      return JsHandle(value.ToBoolean());
+    }
     if (value.IsNumber()) {
       auto number = value.ToNumber();
       // TODO: How to handle 32bit processes...
       auto doubleValue = number.DoubleValue();
       return JsHandle(doubleValue);
-    }
-    if (value.IsBoolean()) {
-      return JsHandle(value.ToBoolean());
-    }
+    }    
     if (value.IsFunction()) {
       return JsHandle(value.As<Napi::Function>());
     }

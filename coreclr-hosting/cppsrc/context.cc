@@ -44,6 +44,11 @@ Context::~Context() {
 
 void Context::UvAsyncCallback() {
   ThreadInstance _(this);
+
+  Napi::HandleScope handleScope(env_);
+  Napi::AsyncContext async_context(env_, "dotnet_callbacks");
+  Napi::CallbackScope cb_scope(env_, async_context);
+
   while (true) {
     netCallbacks_t callbacks;
     {
@@ -55,7 +60,6 @@ void Context::UvAsyncCallback() {
     }
 
     for (const auto& callback : callbacks) {
-      // printf("Executing callback\n");
       callback.first(callback.second);
     }
   }
@@ -150,7 +154,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   }
 }
 
-JsHandle Context::GetMember(JsHandle owner_handle, const char* name) {
+JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
   if (!owner_handle.IsObject())
     return JsHandle::Error("Only objects support GetMember");
   if (!IsActiveContext())
@@ -158,15 +162,17 @@ JsHandle Context::GetMember(JsHandle owner_handle, const char* name) {
 
   Napi::HandleScope handleScope(env_);
 
-  auto owner = owner_handle.ToValue(env_);
-  // std::assert(owner.IsObject());
+  auto owner = owner_handle.AsObject(env_);
   auto owner_object = owner.ToObject();
   auto result = owner_object.Get(name);
+  if (env_.IsExceptionPending()) {
+    return JsHandle::Error(env_.GetAndClearPendingException().Message());
+  }
 
   return JsHandle::FromValue(result);
 }
-JsHandle Context::SetMember(JsHandle owner_handle, const char* name,
-                            DotNetHandle dotnet_handle) {
+JsHandle Context::SetMember(JsHandle& owner_handle, const char* name,
+                            DotNetHandle& dotnet_handle) {
   if (!owner_handle.IsObject())
     return JsHandle::Error("Only objects support SetMember");
   if (!IsActiveContext())
@@ -174,14 +180,14 @@ JsHandle Context::SetMember(JsHandle owner_handle, const char* name,
 
   Napi::HandleScope handleScope(env_);
 
-  auto owner = owner_handle.ToValue(env_);
+  auto owner = owner_handle.AsObject(env_);
   auto owner_object = owner.ToObject();
   auto value = dotnet_handle.ToValue(env_, function_factory_);
   dotnet_handle.Release();
   owner_object.Set(name, value);
   return JsHandle::FromValue(value);
 }
-JsHandle Context::CreateObject(JsHandle prototype_function, int argc,
+JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
                                DotNetHandle* argv) {
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
@@ -196,7 +202,7 @@ JsHandle Context::CreateObject(JsHandle prototype_function, int argc,
     }
 
     napi_value result;
-    auto status = napi_new_instance(env_, prototype_function.ToValue(env_),
+    auto status = napi_new_instance(env_, prototype_function.AsObject(env_),
                                     argc, arguments.data(), &result);
     if (status != napi_ok) {
       return JsHandle::Error("Could not create instance");
@@ -208,14 +214,14 @@ JsHandle Context::CreateObject(JsHandle prototype_function, int argc,
 
   return JsHandle(newObj);
 }
-JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc,
+JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
                          DotNetHandle* argv) {
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
   Napi::HandleScope handleScope(env_);
 
-  auto function = handle.ToValue(env_).As<Napi::Function>();
+  auto function = handle.AsObject(env_).As<Napi::Function>();
   std::vector<napi_value> arguments(argc);
   for (int c = 0; c < argc; c++) {
     arguments[c] = argv[c].ToValue(env_, function_factory_);
@@ -224,12 +230,35 @@ JsHandle Context::Invoke(JsHandle handle, JsHandle receiver_handle, int argc,
     argv[c].Release();
   }
 
-  auto result = function.MakeCallback(receiver_handle.ToValue(env_), arguments);
-  if (env_.IsExceptionPending())
-  {
+  auto result =
+      function.MakeCallback(receiver_handle.AsObject(env_), arguments);
+  if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }
   return JsHandle::FromValue(result);
+}
+
+void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
+  
+  auto completeFunc = [this, handle] (void* passed) mutable {
+      // TODO DM 29.11.2019: How to handle errors here?
+      auto deferred = reinterpret_cast<napi_deferred>(passed);
+      if (handle.type_ == DotNetType::Exception) {
+        auto error = Napi::Error::New(env_, handle.string_value_);
+        napi_reject_deferred(env_, deferred, error.Value());
+      } else {
+        napi_resolve_deferred(env_, deferred,
+                              handle.ToValue(env_, function_factory_));
+      }
+      handle.Release();
+    };
+
+  if (IsActiveContext()) {
+    Napi::HandleScope handleScope(env_);
+    completeFunc(deferred);
+  } else {
+    PostCallback(completeFunc, deferred);
+  }
 }
 
 Napi::Function Context::CreateFunction(DotNetHandle* handle) {
@@ -246,7 +275,7 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         for (size_t c = 0; c < argc; c++) {
           arguments.push_back(JsHandle::FromValue(info[c]));
         }
-        
+
         DotNetHandle resultIntern;
         (*function_value)(argc, arguments.data(), resultIntern);
 

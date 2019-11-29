@@ -12,6 +12,7 @@ namespace NodeHostEnvironment.InProcess
         JsHandle, // A handle that was received from node
         Function,
         ByteArray,
+        Task,
         Exception
     }
 }

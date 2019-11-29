@@ -34,5 +34,7 @@ namespace NodeHostEnvironment.InProcess
         string StringFromNativeUtf8(IntPtr nativeUtf8);
 
         IntPtr MarshallCallback(DotNetCallback callback, out ReleaseDotNetValue releaseCallback);
+
+        IntPtr MarshallTask(Task task, out ReleaseDotNetValue releaseCallback);
     }
 }

@@ -1,29 +1,33 @@
 namespace NodeHostEnvironment.NativeHost
 {
     using System.Collections.Generic;
-    using System.Linq;
+    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
     using System;
-    using NodeHostEnvironment.InProcess;
-    using System.Reflection;
+    using InProcess;
 
     internal sealed class NativeNodeHost : IHostInProcess
     {
         private readonly IntPtr _context;
         private readonly NodeTaskScheduler _scheduler;
+        private readonly Dictionary<IntPtr, CallbackHolder> _registry = new Dictionary<IntPtr, CallbackHolder>();
+        private readonly Dictionary<IntPtr, TaskHolder> _taskRegistry = new Dictionary<IntPtr, TaskHolder>();
+        private readonly ReleaseDotNetValue ReleaseCallback;
+        private readonly ReleaseDotNetValue ReleaseTaskCallback;
 
         private DelegateBasedNativeApi NativeMethods { get; }
 
         public NativeNodeHost(DelegateBasedNativeApi nativeMethods)
         {
-            NativeMethods = nativeMethods;            
+            NativeMethods = nativeMethods;
             _context = NativeMethods.GetContext();
             if (_context == IntPtr.Zero)
                 throw new InvalidOperationException("Host can only be created on the node main thread");
             _scheduler = new NodeTaskScheduler(PostCallbackIntern);
             ReleaseCallback = ReleaseCallbackIntern;
+            ReleaseTaskCallback = ReleaseTaskCallbackIntern;
         }
 
         private void PostCallbackIntern(NodeCallback callback, IntPtr data)
@@ -39,27 +43,34 @@ namespace NodeHostEnvironment.NativeHost
                 throw new InvalidOperationException("We are not on the node context!");
         }
 
-        private readonly HashSet<CallbackHolder> _registry = new HashSet<CallbackHolder>();
         public IntPtr MarshallCallback(DotNetCallback callback, out ReleaseDotNetValue releaseCallback)
         {
             var holder = new CallbackHolder(callback, this);
-            _registry.Add(holder);
+            _registry.Add(holder.CallbackPtr, holder);
             releaseCallback = ReleaseCallback;
             return holder.CallbackPtr;
         }
 
-        private readonly ReleaseDotNetValue ReleaseCallback;
+        public IntPtr MarshallTask(Task task, out ReleaseDotNetValue releaseCallback)
+        {
+            var holder = new TaskHolder(task, this);
+            _taskRegistry.Add(holder.CallbackPtr, holder);
+            releaseCallback = ReleaseTaskCallback;
+            return holder.CallbackPtr;
+        }
 
         private void ReleaseCallbackIntern(DotNetType type, IntPtr value)
         {
-            //Console.WriteLine($"Removing callback {value} from registry");
-            _registry.Remove(_registry.First(ch => ch.CallbackPtr == value));
+            _registry.Remove(value);
+        }
+
+        private void ReleaseTaskCallbackIntern(DotNetType type, IntPtr value)
+        {
+            _taskRegistry.Remove(value);
         }
 
         /// <summary>
         /// This class keeps a delegate alive until the node runtime garbage collects its usages.
-        /// As node does no gc on its own, this keeps callbacks alive until js code calls `global.gc()`.
-        /// This requires the `--expose-gc` switch when starting node.
         /// </summary>
         private sealed class CallbackHolder
         {
@@ -73,7 +84,6 @@ namespace NodeHostEnvironment.NativeHost
                 Wrapped = toWrap;
                 _wrapper = OnCalled;
                 CallbackPtr = Marshal.GetFunctionPointerForDelegate(_wrapper);
-                //Console.WriteLine($"Marshalling callback {CallbackPtr} from registry");
                 _parent = parent;
             }
 
@@ -95,6 +105,59 @@ namespace NodeHostEnvironment.NativeHost
                     result = DotNetValue.FromException(e);
                 }
 
+            }
+        }
+
+        /// <summary>
+        /// This class keeps a Task alive until the node runtime garbage collects its usages.
+        /// </summary>
+        private sealed class TaskHolder
+        {
+            public IntPtr CallbackPtr { get; }
+            private readonly Task _task;
+            private readonly SetupDeferred _wrapper;
+            private readonly NativeNodeHost _parent;
+
+            public TaskHolder(Task task, NativeNodeHost parent)
+            {
+                _task = task;
+                _wrapper = OnCalled;
+                CallbackPtr = Marshal.GetFunctionPointerForDelegate(_wrapper);
+                _parent = parent;
+            }
+
+            private void OnCalled(IntPtr deferred)
+            {
+                if (_task.IsCompleted)
+                {
+                    var exception = _task.Exception;
+                        // TODO DM 23.11.2019: Unwrap AggregateExceptions
+                        var value = exception == null ?
+                            DotNetValue.FromObject(GetResult(_task), _parent) :
+                            DotNetValue.FromException(exception);
+                        _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
+                    return;
+                }
+                _task.ContinueWith(t =>
+                    {
+                        var exception = t.Exception;
+                        // TODO DM 23.11.2019: Unwrap AggregateExceptions
+                        var value = exception == null ?
+                            DotNetValue.FromObject(GetResult(t), _parent) :
+                            DotNetValue.FromException(exception);
+                        _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
+                    }, TaskContinuationOptions.ExecuteSynchronously);
+            }
+
+            private object GetResult(Task t)
+            {
+                var type = t.GetType();
+                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
+                {
+                    // DM 23.11.2019: This could be optimized if necessary
+                    return type.GetProperty(nameof(Task<object>.Result)).GetValue(t);
+                }
+                return null;
             }
         }
 

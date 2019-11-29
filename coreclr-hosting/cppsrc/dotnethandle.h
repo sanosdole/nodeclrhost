@@ -17,6 +17,7 @@ typedef enum {
   JsHandle,  // A handle that was received from node
   Function,
   ByteArray,
+  Task,
   Exception
 } Enum;
 }
@@ -32,6 +33,7 @@ extern "C" struct DotNetHandle {
     int64_t int64_value_;
     double double_value_;
     void (*function_value_)(int, JsHandle *, DotNetHandle &);
+    void (*task_value_)(napi_deferred);
   };
 
   void (*release_func_)(DotNetType::Enum, void *);
@@ -45,7 +47,7 @@ extern "C" struct DotNetHandle {
       const Napi::Env &env,
       std::function<Napi::Function(DotNetHandle *)> function_factory) {
     if (type_ == DotNetType::Null) return env.Null();
-    if (type_ == DotNetType::JsHandle) return jshandle_value_->ToValue(env);
+    if (type_ == DotNetType::JsHandle) return jshandle_value_->AsObject(env);
     if (type_ == DotNetType::String)
       return Napi::String::New(
           env, string_value_);  // TODO: string is copied, we could use char16_t
@@ -76,6 +78,17 @@ extern "C" struct DotNetHandle {
             copy.release_func_ = release_func;
             copy.Release();
           });
+    }
+    if (type_ == DotNetType::Task) {
+      napi_deferred deferred;
+      napi_value promise;
+      napi_status status = napi_create_promise(env, &deferred, &promise);
+      if ((status) != napi_ok) {
+        Napi::Error::New(env).ThrowAsJavaScriptException();
+        return Napi::Value();
+      }
+      task_value_(deferred);
+      return Napi::Promise(env, promise);
     }
 
     if (type_ == DotNetType::Exception) {
