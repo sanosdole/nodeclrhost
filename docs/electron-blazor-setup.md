@@ -30,7 +30,7 @@ Setup new node project using:
 mkdir RenderApp
 cd RenderApp
 dotnet new blazorserver
-dotnet add package ElectronHostedBlazor -v 0.1.0-alpha.10
+dotnet add package ElectronHostedBlazor -v 0.1.0-alpha.13
 ```
 
 Replace the `CreateHostBuilder` method in `~/RenderApp/Program.cs` with:
@@ -76,19 +76,19 @@ Add the `~/RenderApp/wwwroot/index.html` file with content like this:
   </head>
   <body>
     <app>
-    <h1>Hello World!</h1>
-    We are using node <script>document.write(process.versions.node)</script>,
-    Chrome <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
-    <br/>
-    We are in process <script>document.write(process.pid)</script>.
-    <br/>
-    Loading coreclr and blazor app...
-    </app>
-    <script>
-      const glue = require('electron-blazor-glue');
-      window.runBlazorApp(__dirname + "/..", "RenderApp.dll");
-    </script>
+      <h1>Hello World!</h1>
+      We are using node <script>document.write(process.versions.node)</script>,
+      Chrome <script>document.write(process.versions.chrome)</script>,
+      and Electron <script>document.write(process.versions.electron)</script>.
+      <br/>
+      We are in process <script>document.write(process.pid)</script>.
+      <br/>
+      Loading coreclr and blazor app...
+      </app>
+      <script>
+        const glue = require('electron-blazor-glue');
+        glue.runBlazorApp(__dirname + "/..", "RenderApp.dll");
+      </script>
   </body>
 </html>
 ```

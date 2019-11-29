@@ -94,7 +94,7 @@ namespace NodeHostEnvironment.NativeHost
                 try
                 {
                     using(_parent._scheduler.SetNodeContext())
-                        Wrapped(argc, argv ?? new JsValue[0], out result);
+                    Wrapped(argc, argv ?? new JsValue[0], out result);
                 }
                 catch (TargetInvocationException tie)
                 {
@@ -126,35 +126,56 @@ namespace NodeHostEnvironment.NativeHost
                 _parent = parent;
             }
 
-            private void OnCalled(IntPtr deferred)
+            private DotNetValue OnCalled(IntPtr deferred)
             {
-                if (_task.IsCompleted)
+                try
                 {
-                    var exception = _task.Exception;
+
+                    if (_task.IsCompleted)
+                    {
+                        var exception = _task.Exception;
                         // TODO DM 23.11.2019: Unwrap AggregateExceptions
                         var value = exception == null ?
                             DotNetValue.FromObject(GetResult(_task), _parent) :
                             DotNetValue.FromException(exception);
                         _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
-                    return;
-                }
-                _task.ContinueWith(t =>
+
+                    }
+                    else
                     {
-                        var exception = t.Exception;
-                        // TODO DM 23.11.2019: Unwrap AggregateExceptions
-                        var value = exception == null ?
-                            DotNetValue.FromObject(GetResult(t), _parent) :
-                            DotNetValue.FromException(exception);
-                        _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
-                    }, TaskContinuationOptions.ExecuteSynchronously);
+                        _task.ContinueWith(t =>
+                        {
+                            var exception = t.Exception;
+                            // TODO DM 23.11.2019: Unwrap AggregateExceptions
+                            var value = exception == null ?
+                                DotNetValue.FromObject(GetResult(t), _parent) :
+                                DotNetValue.FromException(exception);
+                            _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
+                        }, TaskContinuationOptions.ExecuteSynchronously);
+                    }
+                    return new DotNetValue
+                    {
+                        Type = DotNetType.Null,
+                            Value = IntPtr.Zero,
+                            ReleaseFunc = null
+                    };
+                }
+                catch (Exception e)
+                {
+                    return DotNetValue.FromException(e);
+                }
             }
 
             private object GetResult(Task t)
             {
+                // DM 23.11.2019: This could be optimized if necessary
                 var type = t.GetType();
                 if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
                 {
-                    // DM 23.11.2019: This could be optimized if necessary
+                    // TODO DM 29.11.2019: This is required to prevent failure for some .NET generated Task instances
+                    if (type.GetGenericArguments() [0].Name == "VoidTaskResult")
+                        return null;
+
                     return type.GetProperty(nameof(Task<object>.Result)).GetValue(t);
                 }
                 return null;

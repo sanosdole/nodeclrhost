@@ -33,7 +33,7 @@ extern "C" struct DotNetHandle {
     int64_t int64_value_;
     double double_value_;
     void (*function_value_)(int, JsHandle *, DotNetHandle &);
-    void (*task_value_)(napi_deferred);
+    DotNetHandle (*task_value_)(napi_deferred);
   };
 
   void (*release_func_)(DotNetType::Enum, void *);
@@ -87,12 +87,21 @@ extern "C" struct DotNetHandle {
         Napi::Error::New(env).ThrowAsJavaScriptException();
         return Napi::Value();
       }
-      task_value_(deferred);
+      // DM 29.11.2019: Connect the deferred with the .NET Task
+      auto result = task_value_(deferred);
+      // This must return either DotNetType::Null or an DotNetType::Exception
+      if (result.type_ == DotNetType::Exception) {
+        // Reject with the error right away
+        auto error = Napi::Error::New(env, result.string_value_);
+        napi_reject_deferred(env, deferred, error.Value());
+      }
+      result.Release();
+
       return Napi::Promise(env, promise);
     }
 
     if (type_ == DotNetType::Exception) {
-      //printf("Throwing: %s\n", string_value_);
+      // printf("Throwing: %s\n", string_value_);
       Napi::Error::New(env, string_value_).ThrowAsJavaScriptException();
       return Napi::Value();
     }

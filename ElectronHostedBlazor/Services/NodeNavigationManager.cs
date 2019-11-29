@@ -32,7 +32,7 @@ namespace BlazorApp.Services
             var blazor = window.Blazor._internal;
 
             // TODO DM 26.08.2019: Use boolean once callbacks can convert Number to Boolean
-            blazor.navigationManager.listenForNavigationEvents(new Action<string, double>(NotifyLocationChangedFromJs));
+            blazor.navigationManager.listenForNavigationEvents(new Action<string, bool>(NotifyLocationChangedFromJs));
             var baseUri = (string)blazor.navigationManager.getBaseURI();
             var uri = (string)blazor.navigationManager.getLocationHref();
             /*string uri = window.location.href;
@@ -63,9 +63,9 @@ namespace BlazorApp.Services
         /// For framework use only.
         /// </summary>
         //[JSInvokable(nameof(NotifyLocationChanged))]
-        private static void NotifyLocationChangedFromJs(string newAbsoluteUri, double isInterceptedLink)
+        private static void NotifyLocationChangedFromJs(string newAbsoluteUri, bool isInterceptedLink)
         {
-            Instance.SetLocation(newAbsoluteUri, isInterceptedLink > 0.0);
+            Instance.SetLocation(newAbsoluteUri, isInterceptedLink);
         }
 
         public void SetLocation(string uri, bool isInterceptedLink)

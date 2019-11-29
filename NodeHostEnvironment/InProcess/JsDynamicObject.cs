@@ -2,7 +2,6 @@ namespace NodeHostEnvironment.InProcess
 {
     using System.Dynamic;
     using System.Linq;
-    using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
     using System;
 
@@ -134,10 +133,10 @@ namespace NodeHostEnvironment.InProcess
             }
             if (typeof(Task).IsAssignableFrom(type))
             {
-                var jsResult = _host.GetMember(Handle, "then");
+                var thenHandle = _host.GetMember(Handle, "then");
                 try
                 {
-                    if (jsResult.Type == JsType.Function)
+                    if (thenHandle.Type == JsType.Function)
                     {
                         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
                         {
@@ -146,25 +145,25 @@ namespace NodeHostEnvironment.InProcess
                             var resultType = type.GetGenericArguments() [0];
                             var completionSourceType = typeof(TaskCompletionSource<>).MakeGenericType(resultType);
                             var tcs = Activator.CreateInstance(completionSourceType);
-                            var thenResult = _host.Invoke(jsResult, Handle, 2, new DotNetValue[]
+                            var thenResult = _host.Invoke(thenHandle, Handle, 2, new DotNetValue[]
                             {
                                 DotNetValue.FromDelegate(new Action<object>((value) =>
+                                {
+                                    if (value is JsDynamicObject dyna)
                                     {
-                                        if (value is JsDynamicObject dyna)
-                                        {
-                                            if (dyna.TryConvertIntern(resultType, out object temp))
-                                                value = temp;
-                                        }
-                                        completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetResult))
-                                            .Invoke(tcs, new object[] { value });
-                                    }), _host),
-                                    DotNetValue.FromDelegate(new Action<object>((error) =>
-                                    {
-                                        completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetException))
-                                            .Invoke(tcs, new object[] { error });
-                                    }), _host)
+                                        if (dyna.TryConvertIntern(resultType, out object temp))
+                                            value = temp;
+                                    }
+                                    completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetResult))
+                                        .Invoke(tcs, new object[] { value });
+                                }), _host),
+                                DotNetValue.FromDelegate(new Action<object>((error) =>
+                                {
+                                    completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetException))
+                                        .Invoke(tcs, new object[] { GetExceptionFromPromiseRejection(error) });
+                                }), _host)
                             });
-                            // TODO: Propagate thenResult.Type == Error cases
+                            // DM 29.11.2019: thenResult is always another promise                            
                             _host.Release(thenResult);
                             result = completionSourceType.GetProperty(nameof(TaskCompletionSource<object>.Task))
                                 .GetValue(tcs);
@@ -174,21 +173,15 @@ namespace NodeHostEnvironment.InProcess
                         else
                         {
                             var tcs = new TaskCompletionSource<object>();
-                            var thenResult = _host.Invoke(jsResult, Handle, 2, new DotNetValue[]
+                            var thenResult = _host.Invoke(thenHandle, Handle, 2, new DotNetValue[]
                             {
-                                DotNetValue.FromDelegate(new Action<object>((value) => tcs.SetResult(value)), _host),
-                                    DotNetValue.FromDelegate(new Action<object>((error) =>
-                                    {
-                                        Exception toSet = null;
-                                        if (error is JsDynamicObject dyna)
-                                            if (dyna.TryConvertIntern(typeof(Exception), out object exception))
-                                                toSet = (Exception) exception;
-                                        if (error is string str)
-                                            toSet = new InvalidOperationException(str);
-                                        tcs.SetException(toSet ?? new InvalidOperationException("Unkonwn promise rejection value"));
-                                    }), _host)
+                                DotNetValue.FromDelegate(new Action(() => tcs.SetResult(null)), _host),
+                                DotNetValue.FromDelegate(new Action<object>((error) =>
+                                {
+                                    tcs.SetException(GetExceptionFromPromiseRejection(error));
+                                }), _host)
                             });
-                            // TODO: Propagate thenResult.Type == Error cases
+                            // DM 29.11.2019: thenResult is always another promise
                             _host.Release(thenResult);
                             result = tcs.Task;
                             return true;
@@ -197,7 +190,7 @@ namespace NodeHostEnvironment.InProcess
                 }
                 finally
                 {
-                    _host.Release(jsResult);
+                    _host.Release(thenHandle);
                 }
 
             }
@@ -215,6 +208,18 @@ namespace NodeHostEnvironment.InProcess
 
             result = null;
             return false;
+        }
+
+        private static Exception GetExceptionFromPromiseRejection(object error)
+        {
+            Exception toSet = null;
+            if (error is JsDynamicObject dyna)
+                if (dyna.TryConvertIntern(typeof(Exception), out object exception))
+                    toSet = (Exception) exception;
+            if (error is string str)
+                toSet = new InvalidOperationException(str);
+            toSet = toSet ?? new InvalidOperationException("Unkonwn promise rejection value");
+            return toSet;
         }
 
         public override bool TrySetMember(SetMemberBinder binder, object value)

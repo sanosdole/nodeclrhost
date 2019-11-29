@@ -122,6 +122,27 @@
                         
                     }));
 
+                    global.it("should marshal Task with unsupported result type as exception", new Func<Task>(async () => 
+                    {
+                        var task = Task.FromResult(new UnsupportedType());
+                        ((bool)global.testObject.isPromise(task)).Should().Be(true);
+
+                       // DM 27.11.2019: We need the try/catch as FluentAssertions waits on the threadpool :(
+                        var didThrow = false;
+                        try
+                        {
+                            await (Task)global.testObject.awaitPromise(task);
+                        }
+                        catch(Exception e)
+                        {
+                            didThrow = true;
+                            e.Message.Should().Contain("Error: InvalidOperationException: Unsupported object type for passing into JS: TestApp.Program+UnsupportedType");
+                        }
+                        didThrow.Should().Be(true);
+                        
+                        
+                    }));
+
                 }));
 
             }
@@ -130,5 +151,7 @@
                 Console.WriteLine("Exception: {0}", e);
             }
         }
+
+        private sealed class UnsupportedType { }
     }
 }

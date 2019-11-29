@@ -117,7 +117,7 @@ namespace BlazorApp.Rendering
 
                 /*var segment = new ArraySegment<byte>(arrayBuilder.Buffer, 0, arrayBuilder.Count);
                 var bytes = segment.Array;*/
-                global.console.info($"Rendering with {batch.UpdatedComponents.Count} updates in {bytes.Length} bytes. First byte: {bytes[0]}");
+                //global.console.info($"Rendering with {batch.UpdatedComponents.Count} updates in {bytes.Length} bytes. First byte: {bytes[0]}");
 
                 global.window.Blazor._internal.renderBatch(_NodeRendererId, bytes);
             }

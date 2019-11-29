@@ -20,10 +20,10 @@ namespace BlazorApp.Rendering
         internal static void Register(NodeJSRuntime runtime)
         {
             // TODO DM 26.08.2019: Return task once they are marshalled as promises
-            runtime.Host.Global.window.Blazor._internal.HandleRendererEvent = new Action<dynamic, string>(DispatchEvent);
+            runtime.Host.Global.window.Blazor._internal.HandleRendererEvent = new Func<dynamic, string, Task>(DispatchEvent);
         }
 
-        private static void DispatchEvent(dynamic eventDescriptor, string eventArgsJson)
+        private static Task DispatchEvent(dynamic eventDescriptor, string eventArgsJson)
         {
             // TODO DM 26.08.2019: This fails due to errors on string marshalling (missing NULL terminator?)
             EventFieldInfo fieldInfo = null;
@@ -32,18 +32,18 @@ namespace BlazorApp.Rendering
             {
                 fieldInfo = new EventFieldInfo
                 {
-                    ComponentId = eventDescriptor.eventFieldInfo.componentId,
-                    FieldValue = eventDescriptor.eventFieldInfo.fieldValue
+                ComponentId = eventDescriptor.eventFieldInfo.componentId,
+                FieldValue = eventDescriptor.eventFieldInfo.fieldValue
                 };
             }
-            DispatchEventOriginal(new WebEventDescriptor
-            {
-                // TODO DM 26.08.2019: Replace those casts once we support proper number handling
-                BrowserRendererId = (int)(double)eventDescriptor.browserRendererId,
-                EventHandlerId = (ulong)(double)eventDescriptor.eventHandlerId,
-                EventArgsType = eventDescriptor.eventArgsType,
-                EventFieldInfo = fieldInfo
-            },
+            return DispatchEventOriginal(new WebEventDescriptor
+                {
+                    // TODO DM 26.08.2019: Replace those casts once we support proper number handling
+                    BrowserRendererId = (int) (double) eventDescriptor.browserRendererId,
+                        EventHandlerId = (ulong) (double) eventDescriptor.eventHandlerId,
+                        EventArgsType = eventDescriptor.eventArgsType,
+                        EventFieldInfo = fieldInfo
+                },
                 eventArgsJson);
         }
 
@@ -116,18 +116,30 @@ namespace BlazorApp.Rendering
                     {
                         case "change":
                             return DeserializeChangeEventArgs(eventArgsJson);
-                        case "clipboard": return Deserialize<ClipboardEventArgs>(eventArgsJson);
-                        case "drag": return Deserialize<DragEventArgs>(eventArgsJson);
-                        case "error": return Deserialize<ErrorEventArgs>(eventArgsJson);
-                        case "focus": return Deserialize<FocusEventArgs>(eventArgsJson);
-                        case "keyboard": return Deserialize<KeyboardEventArgs>(eventArgsJson);
-                        case "mouse": return Deserialize<MouseEventArgs>(eventArgsJson);
-                        case "pointer": return Deserialize<PointerEventArgs>(eventArgsJson);
-                        case "progress": return Deserialize<ProgressEventArgs>(eventArgsJson);
-                        case "touch": return Deserialize<TouchEventArgs>(eventArgsJson);
-                        case "unknown": return EventArgs.Empty;
-                        case "wheel": return Deserialize<WheelEventArgs>(eventArgsJson);
-                        default: throw new InvalidOperationException($"Unsupported event type '{eventArgsType}'. EventId: '{eventHandlerId}'.");
+                        case "clipboard":
+                            return Deserialize<ClipboardEventArgs>(eventArgsJson);
+                        case "drag":
+                            return Deserialize<DragEventArgs>(eventArgsJson);
+                        case "error":
+                            return Deserialize<ErrorEventArgs>(eventArgsJson);
+                        case "focus":
+                            return Deserialize<FocusEventArgs>(eventArgsJson);
+                        case "keyboard":
+                            return Deserialize<KeyboardEventArgs>(eventArgsJson);
+                        case "mouse":
+                            return Deserialize<MouseEventArgs>(eventArgsJson);
+                        case "pointer":
+                            return Deserialize<PointerEventArgs>(eventArgsJson);
+                        case "progress":
+                            return Deserialize<ProgressEventArgs>(eventArgsJson);
+                        case "touch":
+                            return Deserialize<TouchEventArgs>(eventArgsJson);
+                        case "unknown":
+                            return EventArgs.Empty;
+                        case "wheel":
+                            return Deserialize<WheelEventArgs>(eventArgsJson);
+                        default:
+                            throw new InvalidOperationException($"Unsupported event type '{eventArgsType}'. EventId: '{eventHandlerId}'.");
                     }
                 }
                 catch (Exception e)
@@ -151,13 +163,13 @@ namespace BlazorApp.Rendering
                             return new EventFieldInfo
                             {
                                 ComponentId = fieldInfo.ComponentId,
-                                FieldValue = attributeValueJsonElement.GetBoolean()
+                                    FieldValue = attributeValueJsonElement.GetBoolean()
                             };
                         default:
                             return new EventFieldInfo
                             {
                                 ComponentId = fieldInfo.ComponentId,
-                                FieldValue = attributeValueJsonElement.GetString()
+                                    FieldValue = attributeValueJsonElement.GetString()
                             };
                     }
                 }
@@ -168,7 +180,7 @@ namespace BlazorApp.Rendering
             private static ChangeEventArgs DeserializeChangeEventArgs(string eventArgsJson)
             {
                 var changeArgs = Deserialize<ChangeEventArgs>(eventArgsJson);
-                var jsonElement = (JsonElement)changeArgs.Value;
+                var jsonElement = (JsonElement) changeArgs.Value;
                 switch (jsonElement.ValueKind)
                 {
                     case JsonValueKind.Null:

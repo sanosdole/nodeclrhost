@@ -5,7 +5,7 @@ using NodeHostEnvironment.InProcess;
 namespace NodeHostEnvironment.NativeHost
 {
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    internal delegate void SetupDeferred(IntPtr deferred);
+    internal delegate DotNetValue SetupDeferred(IntPtr deferred);
 
     internal sealed class DelegateBasedNativeApi
     {
