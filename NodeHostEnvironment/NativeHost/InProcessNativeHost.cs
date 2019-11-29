@@ -99,7 +99,7 @@ namespace NodeHostEnvironment.NativeHost
                 try
                 {
                     using(_parent._scheduler.SetNodeContext())
-                    Wrapped(argc, argv ?? new JsValue[0], out result);
+                        Wrapped(argc, argv ?? new JsValue[0], out result);
                 }
                 catch (TargetInvocationException tie)
                 {
@@ -152,8 +152,7 @@ namespace NodeHostEnvironment.NativeHost
                             DotNetValue.FromObject(GetResult(t), _parent) :
                             DotNetValue.FromException(exception);
                         _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
-                    },
-                    _parent._scheduler);
+                    }, TaskContinuationOptions.ExecuteSynchronously);
             }
 
             private object GetResult(Task t)

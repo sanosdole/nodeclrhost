@@ -45,9 +45,9 @@ Context::~Context() {
 void Context::UvAsyncCallback() {
   ThreadInstance _(this);
 
-  /*Napi::HandleScope handleScope(env_);
-  Napi::AsyncContext async_context(env_, "dotnet_callback");
-  Napi::CallbackScope cb_scope(env_, async_context);*/
+  Napi::HandleScope handleScope(env_);
+  Napi::AsyncContext async_context(env_, "dotnet_callbacks");
+  Napi::CallbackScope cb_scope(env_, async_context);
 
   while (true) {
     netCallbacks_t callbacks;
@@ -60,13 +60,6 @@ void Context::UvAsyncCallback() {
     }
 
     for (const auto& callback : callbacks) {
-      // printf("Executing callback\n");
-      // TODO DM 23.11.2019: Decide whether we want this per callback or per
-      // batch or per UvAsyncCallback invocation
-      Napi::HandleScope handleScope(env_);
-      Napi::AsyncContext async_context(env_, "dotnet_callback");
-      Napi::CallbackScope cb_scope(env_, async_context);
-
       callback.first(callback.second);
     }
   }
@@ -170,7 +163,6 @@ JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
   Napi::HandleScope handleScope(env_);
 
   auto owner = owner_handle.AsObject(env_);
-  // std::assert(owner.IsObject());
   auto owner_object = owner.ToObject();
   auto result = owner_object.Get(name);
   if (env_.IsExceptionPending()) {
@@ -238,7 +230,8 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
     argv[c].Release();
   }
 
-  auto result = function.MakeCallback(receiver_handle.AsObject(env_), arguments);
+  auto result =
+      function.MakeCallback(receiver_handle.AsObject(env_), arguments);
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }
@@ -246,23 +239,26 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
 }
 
 void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
-  Napi::HandleScope handleScope(env_);
+  
+  auto completeFunc = [this, handle] (void* passed) mutable {
+      // TODO DM 29.11.2019: How to handle errors here?
+      auto deferred = reinterpret_cast<napi_deferred>(passed);
+      if (handle.type_ == DotNetType::Exception) {
+        auto error = Napi::Error::New(env_, handle.string_value_);
+        napi_reject_deferred(env_, deferred, error.Value());
+      } else {
+        napi_resolve_deferred(env_, deferred,
+                              handle.ToValue(env_, function_factory_));
+      }
+      handle.Release();
+    };
 
-  // TODO DM 23.11.2019: We could push this function to the event loop 
-  //                     instead of requiring the managed code to use the scheduler.
-  //                     This would have the benefit of sparing: managed -schedule-> native -call callback-> managed -call this-> native
-  //Napi::AsyncContext async_context(env_, "dotnet_callback");
-  //Napi::CallbackScope cb_scope(env_, async_context);
-
-  // TODO DM 23.11.2019: How to check thread? What to do if status returns failure? The managed code can not process errors here :(
-  if (handle.type_ == DotNetType::Exception) {
-    auto error = Napi::Error::New(env_, handle.string_value_);
-    napi_reject_deferred(env_, deferred, error.Value());
+  if (IsActiveContext()) {
+    Napi::HandleScope handleScope(env_);
+    completeFunc(deferred);
   } else {
-    napi_resolve_deferred(env_, deferred,
-                          handle.ToValue(env_, function_factory_));
+    PostCallback(completeFunc, deferred);
   }
-  handle.Release();
 }
 
 Napi::Function Context::CreateFunction(DotNetHandle* handle) {
