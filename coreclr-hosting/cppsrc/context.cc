@@ -68,6 +68,8 @@ void Context::UvAsyncCallback() {
   {
     std::lock_guard<std::mutex> lock(mutex_);
     if (release_called_) {
+      // TODO: Free the context pointer! Attention: It is still needed for the
+      // finalizers :(
       uv_close(reinterpret_cast<uv_handle_t*>(&async_handle_),
                &asyncReleaseCallback);
     }
@@ -239,19 +241,18 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
 }
 
 void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
-  
-  auto completeFunc = [this, handle] (void* passed) mutable {
-      // TODO DM 29.11.2019: How to handle errors here?
-      auto deferred = reinterpret_cast<napi_deferred>(passed);
-      if (handle.type_ == DotNetType::Exception) {
-        auto error = Napi::Error::New(env_, handle.string_value_);
-        napi_reject_deferred(env_, deferred, error.Value());
-      } else {
-        napi_resolve_deferred(env_, deferred,
-                              handle.ToValue(env_, function_factory_));
-      }
-      handle.Release();
-    };
+  auto completeFunc = [this, handle](void* passed) mutable {
+    // TODO DM 29.11.2019: How to handle errors here?
+    auto deferred = reinterpret_cast<napi_deferred>(passed);
+    if (handle.type_ == DotNetType::Exception) {
+      auto error = Napi::Error::New(env_, handle.string_value_);
+      napi_reject_deferred(env_, deferred, error.Value());
+    } else {
+      napi_resolve_deferred(env_, deferred,
+                            handle.ToValue(env_, function_factory_));
+    }
+    handle.Release();
+  };
 
   if (IsActiveContext()) {
     Napi::HandleScope handleScope(env_);
@@ -260,6 +261,11 @@ void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
     PostCallback(completeFunc, deferred);
   }
 }
+
+struct FunctionFinalizerData {
+  DotNetHandle* handle;
+  Context* context;
+};
 
 Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   auto release_func = handle->release_func_;
@@ -290,12 +296,22 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   releaseCopy->function_value_ = function_value;
   releaseCopy->release_func_ = release_func;
 
+  auto finalizerData = new FunctionFinalizerData;
+  finalizerData->handle = releaseCopy;
+  finalizerData->context = this;
+
   napi_add_finalizer(
-      env_, function, (void*)releaseCopy,
-      [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {
-        auto toRelease = (DotNetHandle*)finalize_data;
-        toRelease->Release();
-        delete toRelease;
+      env_, function, (void*)finalizerData,
+      [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {        
+        auto data = (FunctionFinalizerData*)finalize_data;
+
+        std::lock_guard<std::mutex> lock(data->context->mutex_);
+        if (!data->context->release_called_) {
+          data->handle->Release();
+        }
+
+        delete data->handle;
+        delete data;
       },
       nullptr, nullptr);
 
