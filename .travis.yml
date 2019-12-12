@@ -21,8 +21,8 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 10.15.3;
-           prebuild -t 7.1.2 -r electron;
+           prebuild -t 12.13.1;
+           prebuild -t 7.1.4 -r electron;
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
@@ -62,8 +62,8 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 10.15.3;
-           prebuild -t 7.1.2 -r electron;
+           prebuild -t 12.13.1;
+           prebuild -t 7.1.4 -r electron;
          fi
       script:
        - npm run build-testapp
@@ -90,8 +90,8 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 10.15.3;
-           prebuild -t 7.1.2 -r electron;
+           prebuild -t 12.13.1;
+           prebuild -t 7.1.4 -r electron;
          fi
       script:
        - npm run build-testapp
