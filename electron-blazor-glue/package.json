@@ -10,7 +10,7 @@
   },
   "homepage": "https://github.com/sanosdole/nodeclrhost",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "publishConfig": {
     "access": "public"
@@ -24,13 +24,13 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "dependencies": {
-    "@dotnet/jsinterop": "^3.0.0",
+    "@dotnet/jsinterop": "^3.1.0",
     "coreclr-hosting": "file:../coreclr-hosting",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "devDependencies": {
-    "@types/node": "^12.12.12",
-    "electron": "^7.1.2",
+    "@types/node": "^12.12.17",
+    "electron": "^7.1.4",
     "node-loader": "^0.6.0",
     "ts-loader": "^6.2.1",
     "webpack": "^4.41.2",

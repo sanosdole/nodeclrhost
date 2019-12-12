@@ -10,7 +10,7 @@
   },
   "homepage": "https://github.com/sanosdole/nodeclrhost",
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "keywords": [
     "dotnet"
@@ -38,7 +38,7 @@
     "node-gyp": "^6.0.1"
   },
   "dependencies": {
-    "node-addon-api": "1.7.1",
+    "node-addon-api": "2.0.0",
     "prebuild-install": "^5.3.3"
   }
 }
