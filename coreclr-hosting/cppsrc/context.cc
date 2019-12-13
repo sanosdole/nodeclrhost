@@ -302,11 +302,16 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
 
   napi_add_finalizer(
       env_, function, (void*)finalizerData,
-      [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {        
+      [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {
         auto data = (FunctionFinalizerData*)finalize_data;
 
-        std::lock_guard<std::mutex> lock(data->context->mutex_);
-        if (!data->context->release_called_) {
+        auto wasReleased = false;
+        {
+          std::lock_guard<std::mutex> lock(data->context->mutex_);
+          wasReleased = data->context->release_called_;
+        }
+
+        if (!wasReleased) {
           data->handle->Release();
         }
 
