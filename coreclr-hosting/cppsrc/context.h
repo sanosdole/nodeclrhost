@@ -4,7 +4,7 @@
 #include <mutex>
 #include <string>
 #include <vector>
-//#include <functional>
+#include <set>
 #include <future>
 #include <iostream>
 
@@ -18,12 +18,15 @@
 namespace coreclrhosting {
 
 class Context {
+  struct FunctionFinalizerData;
   typedef std::function<void(void*)> netCallback_t;
   typedef std::vector<std::pair<netCallback_t, void*>> netCallbacks_t;
-
+  
   Napi::Env env_;
   uv_async_t async_handle_;
   netCallbacks_t dotnet_callbacks_;
+  std::set<FunctionFinalizerData*> function_finalizers_;
+  std::shared_ptr<std::mutex> finalizer_mutex_;
   std::mutex mutex_;
   bool release_called_;
   std::unique_ptr<DotNetHost> host_;

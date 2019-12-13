@@ -23,12 +23,19 @@ void asyncReleaseCallback(uv_handle_t* handle) {
 
 namespace coreclrhosting {
 
+struct  Context::FunctionFinalizerData {
+  std::unique_ptr<DotNetHandle> handle_;
+  Context* context_;
+  std::shared_ptr<std::mutex> mutex_;
+};
+
 thread_local Context* Context::ThreadInstance::thread_instance_;
 
 Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
     : env_(env),
       release_called_(false),
       host_(std::move(dotnet_host)),
+      finalizer_mutex_(std::make_shared<std::mutex>()),
       function_factory_(
           std::bind(&Context::CreateFunction, this, std::placeholders::_1)) {
   auto async_data = new AsyncHandleData();
@@ -38,6 +45,10 @@ Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
   uv_async_init(uv_default_loop(), &async_handle_, &asyncCallback);
 }
 Context::~Context() {
+  std::lock_guard<std::mutex> lock(*finalizer_mutex_);
+  for (auto finalizer_data : function_finalizers_) {
+    finalizer_data->context_ = nullptr;
+  }
   ThreadInstance _(this);
   host_.reset(nullptr);  // Explicit reset while having thread instance set
 }
@@ -68,8 +79,6 @@ void Context::UvAsyncCallback() {
   {
     std::lock_guard<std::mutex> lock(mutex_);
     if (release_called_) {
-      // TODO: Free the context pointer! Attention: It is still needed for the
-      // finalizers :(
       uv_close(reinterpret_cast<uv_handle_t*>(&async_handle_),
                &asyncReleaseCallback);
     }
@@ -262,11 +271,6 @@ void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
   }
 }
 
-struct FunctionFinalizerData {
-  DotNetHandle* handle;
-  Context* context;
-};
-
 Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   auto release_func = handle->release_func_;
   auto function_value = handle->function_value_;
@@ -291,31 +295,27 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         return napiResultValue;
       });
 
-  auto releaseCopy = new DotNetHandle;
-  releaseCopy->type_ = DotNetType::Function;
-  releaseCopy->function_value_ = function_value;
-  releaseCopy->release_func_ = release_func;
-
-  auto finalizerData = new FunctionFinalizerData;
-  finalizerData->handle = releaseCopy;
-  finalizerData->context = this;
+  auto finalizer_data = new FunctionFinalizerData;
+  finalizer_data->handle_ = std::make_unique<DotNetHandle>();
+  finalizer_data->handle_->type_ = DotNetType::Function;
+  finalizer_data->handle_->function_value_ = function_value;
+  finalizer_data->handle_->release_func_ = release_func;
+  finalizer_data->context_ = this;
+  finalizer_data->mutex_ = finalizer_mutex_;
+  function_finalizers_.insert(finalizer_data);
 
   napi_add_finalizer(
-      env_, function, (void*)finalizerData,
+      env_, function, (void*)finalizer_data,
       [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {
         auto data = (FunctionFinalizerData*)finalize_data;
+        std::lock_guard<std::mutex> lock(*data->mutex_);
 
-        auto wasReleased = false;
-        {
-          std::lock_guard<std::mutex> lock(data->context->mutex_);
-          wasReleased = data->context->release_called_;
+        if (data->context_) {
+          data->context_->function_finalizers_.erase(data);
+          data->handle_->Release();
         }
 
-        if (!wasReleased) {
-          data->handle->Release();
-        }
-
-        delete data->handle;
+        data->handle_.reset(nullptr);
         delete data;
       },
       nullptr, nullptr);
