@@ -22,8 +22,4 @@ jsObject.someFunction(new { a: 5, b: { c: "string", d: anotherJsObject }});
 
 We want to call require from .NET.
 
-## Marshall exceptions from .NET callbacks to node
-
-When a callback throws an exception, we want to throw an error at the JS call site.
-
 ## Optimize string marshalling

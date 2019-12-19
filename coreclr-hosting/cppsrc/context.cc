@@ -23,12 +23,19 @@ void asyncReleaseCallback(uv_handle_t* handle) {
 
 namespace coreclrhosting {
 
+struct  Context::FunctionFinalizerData {
+  std::unique_ptr<DotNetHandle> handle_;
+  Context* context_;
+  std::shared_ptr<std::mutex> mutex_;
+};
+
 thread_local Context* Context::ThreadInstance::thread_instance_;
 
 Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
     : env_(env),
       release_called_(false),
       host_(std::move(dotnet_host)),
+      finalizer_mutex_(std::make_shared<std::mutex>()),
       function_factory_(
           std::bind(&Context::CreateFunction, this, std::placeholders::_1)) {
   auto async_data = new AsyncHandleData();
@@ -38,6 +45,10 @@ Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
   uv_async_init(uv_default_loop(), &async_handle_, &asyncCallback);
 }
 Context::~Context() {
+  std::lock_guard<std::mutex> lock(*finalizer_mutex_);
+  for (auto finalizer_data : function_finalizers_) {
+    finalizer_data->context_ = nullptr;
+  }
   ThreadInstance _(this);
   host_.reset(nullptr);  // Explicit reset while having thread instance set
 }
@@ -239,19 +250,18 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
 }
 
 void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
-  
-  auto completeFunc = [this, handle] (void* passed) mutable {
-      // TODO DM 29.11.2019: How to handle errors here?
-      auto deferred = reinterpret_cast<napi_deferred>(passed);
-      if (handle.type_ == DotNetType::Exception) {
-        auto error = Napi::Error::New(env_, handle.string_value_);
-        napi_reject_deferred(env_, deferred, error.Value());
-      } else {
-        napi_resolve_deferred(env_, deferred,
-                              handle.ToValue(env_, function_factory_));
-      }
-      handle.Release();
-    };
+  auto completeFunc = [this, handle](void* passed) mutable {
+    // TODO DM 29.11.2019: How to handle errors here?
+    auto deferred = reinterpret_cast<napi_deferred>(passed);
+    if (handle.type_ == DotNetType::Exception) {
+      auto error = Napi::Error::New(env_, handle.string_value_);
+      napi_reject_deferred(env_, deferred, error.Value());
+    } else {
+      napi_resolve_deferred(env_, deferred,
+                            handle.ToValue(env_, function_factory_));
+    }
+    handle.Release();
+  };
 
   if (IsActiveContext()) {
     Napi::HandleScope handleScope(env_);
@@ -285,17 +295,28 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         return napiResultValue;
       });
 
-  auto releaseCopy = new DotNetHandle;
-  releaseCopy->type_ = DotNetType::Function;
-  releaseCopy->function_value_ = function_value;
-  releaseCopy->release_func_ = release_func;
+  auto finalizer_data = new FunctionFinalizerData;
+  finalizer_data->handle_ = std::make_unique<DotNetHandle>();
+  finalizer_data->handle_->type_ = DotNetType::Function;
+  finalizer_data->handle_->function_value_ = function_value;
+  finalizer_data->handle_->release_func_ = release_func;
+  finalizer_data->context_ = this;
+  finalizer_data->mutex_ = finalizer_mutex_;
+  function_finalizers_.insert(finalizer_data);
 
   napi_add_finalizer(
-      env_, function, (void*)releaseCopy,
+      env_, function, (void*)finalizer_data,
       [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {
-        auto toRelease = (DotNetHandle*)finalize_data;
-        toRelease->Release();
-        delete toRelease;
+        auto data = (FunctionFinalizerData*)finalize_data;
+        std::lock_guard<std::mutex> lock(*data->mutex_);
+
+        if (data->context_) {
+          data->context_->function_finalizers_.erase(data);
+          data->handle_->Release();
+        }
+
+        data->handle_.reset(nullptr);
+        delete data;
       },
       nullptr, nullptr);
 

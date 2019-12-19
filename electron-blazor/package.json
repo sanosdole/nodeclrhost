@@ -13,13 +13,12 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "dependencies": {
-    "@dotnet/jsinterop": "^3.0.0",
     "coreclr-hosting": "file:../coreclr-hosting",
     "electron-blazor-glue": "file:../electron-blazor-glue",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.3"
   },
   "devDependencies": {
-    "@types/node": "^12.12.12",
-    "electron": "^7.1.2"
+    "@types/node": "^12.12.17",
+    "electron": "^7.1.4"
   }
 }

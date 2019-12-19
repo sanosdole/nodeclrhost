@@ -1,5 +1,5 @@
 language: node_js
-node_js: 10.15.3
+node_js: 12.13.1
 
 jobs:
   include:
@@ -13,7 +13,7 @@ jobs:
        - sudo apt-get update
        - sudo apt-get install apt-transport-https
        - sudo apt-get update
-       - sudo apt-get install dotnet-sdk-3.0
+       - sudo apt-get install dotnet-sdk-3.1
       install: 
        - npm install -g npm@'>=6.9.0'
        - "cd coreclr-hosting"       
@@ -21,8 +21,8 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 10.15.3;
-           prebuild -t 7.1.2 -r electron;
+           prebuild -t 12.13.1;
+           prebuild -t 7.1.4 -r electron;
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
@@ -62,8 +62,8 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 10.15.3;
-           prebuild -t 7.1.2 -r electron;
+           prebuild -t 12.13.1;
+           prebuild -t 7.1.4 -r electron;
          fi
       script:
        - npm run build-testapp
@@ -90,8 +90,8 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 10.15.3;
-           prebuild -t 7.1.2 -r electron;
+           prebuild -t 12.13.1;
+           prebuild -t 7.1.4 -r electron;
          fi
       script:
        - npm run build-testapp
@@ -110,7 +110,7 @@ jobs:
       name: C# nuget packages      
       language: csharp
       mono: none
-      dotnet: 3.0.100
+      dotnet: 3.1.100
       script:
        - echo "Creating package version ""${TRAVIS_TAG:1}"
        - cd NodeHostEnvironment
