@@ -4,11 +4,12 @@
   "description": "Test for hosting blazor",
   "main": "index.js",
   "scripts": {
-    "test": "mocha tests",
+    "test": "npm run build && mocha tests",
     "test-watch": "mocha tests --watch",
     "build-service": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js LocalService/LocalService.csproj bin",
     "build-blazorapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BlazorApp/BlazorApp.csproj bin",
-    "start": "npm run build-service && npm run build-blazorapp && electron .",
+    "build": "npm run build-service && npm run build-blazorapp",
+    "start": "npm run build && electron .",
     "electron": "electron ."
   },
   "author": "Daniel Martin",
