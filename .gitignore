@@ -67,3 +67,4 @@ typings/
 obj/
 bin/
 clr-api-generator/dist
+electron-blazor/chromedriverlog.txt

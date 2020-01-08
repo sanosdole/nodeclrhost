@@ -4,7 +4,8 @@
   "description": "Test for hosting blazor",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha tests",
+    "test-watch": "mocha tests --watch",
     "build-service": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js LocalService/LocalService.csproj bin",
     "build-blazorapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BlazorApp/BlazorApp.csproj bin",
     "start": "npm run build-service && npm run build-blazorapp && electron .",
@@ -15,10 +16,16 @@
   "dependencies": {
     "coreclr-hosting": "file:../coreclr-hosting",
     "electron-blazor-glue": "file:../electron-blazor-glue",
-    "typescript": "^3.7.3"
+    "typescript": "^3.7.4"
   },
   "devDependencies": {
-    "@types/node": "^12.12.17",
-    "electron": "^7.1.4"
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^13.1.4",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "electron": "^7.1.7",
+    "electron-chromedriver": "^7.0.0",
+    "mocha": "^7.0.0",
+    "spectron": "^9.0.0"
   }
 }
