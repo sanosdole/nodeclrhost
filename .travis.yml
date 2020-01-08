@@ -31,8 +31,8 @@ jobs:
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
        - npm i
-       - cd ../electron-blazor       
-       - npm i
+       - cd ../electron-blazor
+       - npm i --build-from-source
       script:
        - cd ../coreclr-hosting
        - npm run prepare             
