@@ -31,6 +31,8 @@ jobs:
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
        - npm i
+       - cd ../electron-blazor       
+       - npm i
       script:
        - cd ../coreclr-hosting
        - npm run prepare             
@@ -41,7 +43,6 @@ jobs:
        - cd ../electron-blazor
        - export DISPLAY=:99.0
        - sleep 3
-       - npm i
        - npm run test    
       after_success:
        - echo $TRAVIS_TAG
