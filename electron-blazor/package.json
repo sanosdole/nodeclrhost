@@ -2,6 +2,9 @@
   "name": "electron-blazor",
   "version": "1.0.0",
   "description": "Test for hosting blazor",
+  "engines": {
+    "node": ">=12"
+  },
   "main": "index.js",
   "scripts": {
     "test": "npm run build && mocha tests",
