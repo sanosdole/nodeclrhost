@@ -32,7 +32,8 @@ jobs:
        - "cd ../electron-blazor-glue"
        - npm i
       script:
-       - cd ../coreclr-hosting             
+       - cd ../coreclr-hosting
+       - npm run prepare             
        - npm run build-testapp
        - npm run mocha
        - cd ../electron-blazor-glue
