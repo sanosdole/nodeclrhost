@@ -4,7 +4,11 @@ node_js: 12.13.1
 jobs:
   include:
     - name: node packages linux
-      os: linux      
+      os: linux 
+      services:
+       - xvfb
+      addons:
+       chrome: stable     
       before_install:
        - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
        - export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -15,9 +19,8 @@ jobs:
        - sudo apt-get update
        - sudo apt-get install dotnet-sdk-3.1
       install: 
-       - npm install -g npm@'>=6.9.0'
+       - npm install -g npm@'>=6.13.3'
        - "cd coreclr-hosting"       
-       - npm i -g prebuild
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
@@ -26,13 +29,21 @@ jobs:
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
-       - npm i
+       - npm i       
       script:
-       - cd ../coreclr-hosting             
+       - cd ../coreclr-hosting
+       - npm run prepare             
        - npm run build-testapp
        - npm run mocha
        - cd ../electron-blazor-glue
-       - npm run prepare       
+       - npm run prepare   
+       - cd ../electron-blazor       
+       - rm -rf node_modules
+       - rm -f package-lock.json
+       - npm i
+       - export DISPLAY=:99.0
+       - sleep 3
+       - npm run test    
       after_success:
        - echo $TRAVIS_TAG
        - cd ..
@@ -56,7 +67,7 @@ jobs:
            - dotnet-sdk
       install: 
        - "cd coreclr-hosting"
-       - npm install -g npm@'>=6.9.0'
+       - npm install -g npm@'>=6.13.3'
        - dotnet --version
        - npm i -g prebuild
        - npm i --build-from-source
