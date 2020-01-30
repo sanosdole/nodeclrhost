@@ -38,6 +38,9 @@ jobs:
        - cd ../electron-blazor-glue
        - npm run prepare   
        - cd ../electron-blazor
+       - npm cache clean — force
+       - rm -rf node_modules
+       - rm -f package-lock.json
        - npm i
        - export DISPLAY=:99.0
        - sleep 3
