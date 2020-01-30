@@ -1,7 +1,5 @@
 language: node_js
 node_js: 12.13.1
-cache:
-  npm: false
 
 jobs:
   include:
@@ -31,9 +29,7 @@ jobs:
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
-       - npm i
-       - cd ../electron-blazor
-       - npm i
+       - npm i       
       script:
        - cd ../coreclr-hosting
        - npm run prepare             
@@ -42,6 +38,7 @@ jobs:
        - cd ../electron-blazor-glue
        - npm run prepare   
        - cd ../electron-blazor
+       - npm i
        - export DISPLAY=:99.0
        - sleep 3
        - npm run test    
