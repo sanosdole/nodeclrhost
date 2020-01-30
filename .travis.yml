@@ -37,8 +37,7 @@ jobs:
        - npm run mocha
        - cd ../electron-blazor-glue
        - npm run prepare   
-       - cd ../electron-blazor
-       - npm cache clean — force
+       - cd ../electron-blazor       
        - rm -rf node_modules
        - rm -f package-lock.json
        - npm i
