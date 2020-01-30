@@ -20,11 +20,7 @@ jobs:
        - sudo apt-get install dotnet-sdk-3.1
       install: 
        - npm install -g npm@'>=6.13.3'
-       - "cd coreclr-hosting"
-       - npm i -g node-gyp
-       - npm i -g node-addon-api
-       - npm i -g prebuild
-       - npm i -g electron
+       - "cd coreclr-hosting"       
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
@@ -35,7 +31,7 @@ jobs:
        - "cd ../electron-blazor-glue"
        - npm i
        - cd ../electron-blazor
-       - npm i --build-from-source
+       - npm i
       script:
        - cd ../coreclr-hosting
        - npm run prepare             
