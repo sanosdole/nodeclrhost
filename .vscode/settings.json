@@ -74,6 +74,20 @@
         "future": "cpp",
         "iostream": "cpp",
         "map": "cpp",
-        "xtree": "cpp"
+        "xtree": "cpp",
+        "cstdarg": "cpp",
+        "fstream": "cpp",
+        "set": "cpp",
+        "sstream": "cpp",
+        "codecvt": "cpp",
+        "ctime": "cpp",
+        "filesystem": "cpp",
+        "iomanip": "cpp",
+        "locale": "cpp",
+        "string_view": "cpp",
+        "xlocbuf": "cpp",
+        "xlocmes": "cpp",
+        "xlocmon": "cpp",
+        "xloctime": "cpp"
     }
 }

@@ -69,3 +69,5 @@ test/bin
 test/TestApp/bin
 test/TestApp/obj
 prebuilds
+hostfxr/bin
+hostfxr/obj

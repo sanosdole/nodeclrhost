@@ -10,7 +10,10 @@
             "cppsrc/dotnetexports.cc"
         ],
         'include_dirs': [
-            "<!@(node -p \"require('node-addon-api').include\")"
+            "<!@(node -p \"require('node-addon-api').include\")",
+            "cppsrc",
+            "cppsrc/inc",
+            "./hostfxr/bin"
         ],
         #'libraries': [],
         'dependencies': [
@@ -21,21 +24,74 @@
 
         'conditions': [
           ['OS=="linux"', {
+            'cflags_cc': [
+                '-std=c++1z'
+            ],
             'defines': [
               'NON_WINDOWS_DEFINE', 
               'LINUX'
             ],
-          }],
-          ['OS=="win"', {
-            'defines': [
-              'WINDOWS',
+            'link_settings': {
+              'libraries': [
+                "-lnethost"
+              ],
+              'library_dirs': [
+                './hostfxr/bin',
+              ]
+            },
+            'copies': [
+              {
+                'destination': '<(PRODUCT_DIR)',
+                'files': ['./hostfxr/bin/libnethost.so'],
+              }
             ]
           }],
+          ['OS=="win"', {
+            'msvs_settings': {
+              'VCCLCompilerTool': {
+                'AdditionalOptions': [ '-std:c++17', ],
+              },
+            },
+            'defines': [
+              'WINDOWS',
+            ],
+            'link_settings': {
+              'libraries': [
+                "-lnethost.lib"
+              ],
+              'library_dirs': [
+                './hostfxr/bin',
+              ],
+            'copies': [
+              {
+                'destination': '<(PRODUCT_DIR)',
+                'files': ['./hostfxr/bin/nethost.dll'],
+              }
+            ]
+            }
+          }],
           ['OS=="mac"', {
+            'cflags_cc': [
+                '-std=c++1z'
+            ],
             'defines': [
               'NON_WINDOWS_DEFINE', 
               'OSX'             
             ],
+            'link_settings': {
+              'libraries': [
+                "-lnethost"
+              ],
+              'library_dirs': [
+                './hostfxr/bin',
+              ],
+            'copies': [
+              {
+                'destination': '<(PRODUCT_DIR)',
+                'files': ['./hostfxr/bin/libnethost.dylib'],
+              }
+            ]
+            }
           }]
         ]
     }]

@@ -2,6 +2,8 @@
 
 #include <map>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace {
 
@@ -104,27 +106,42 @@ void Context::Release() {
 Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
 
-  if (info.Length() != 2 || !info[0].IsString() ||
-      !info[1].IsString() /*|| !info[2].IsFunction()*/) {
+  if (info.Length() < 1 || !info[0].IsString()) {
     Napi::Error::New(env,
-                     "Expected path and assembly name in call to runCoreApp.")
+                     "Expected path to assembly as first argument")
         .ThrowAsJavaScriptException();
     return Napi::Value();
   }
 
+  std::vector<std::string> arguments(info.Length());
+  for (auto i = 0; i < info.Length(); i++) {
+    if (!info[i].IsString()) {
+      Napi::Error::New(env, "Expected only string arguments")
+          .ThrowAsJavaScriptException();
+      return Napi::Value();
+    }    
+    arguments[i] = info[i].ToString();
+    //printf("Argument %d:%s\n", i, arguments[i].c_str());
+  }
+
   std::unique_ptr<DotNetHost> host;
 
-  auto result = DotNetHost::Create(info[0].ToString(), host);
+  auto result = DotNetHost::Create(arguments, host);  
   switch (result) {
     case DotNetHostCreationResult::kOK:
-      break;
-    case DotNetHostCreationResult::kCoreClrNotFound: {
+      break;    
+    case DotNetHostCreationResult::kAssemblyNotFound: {
       std::ostringstream stringStream;
-      stringStream << "Could not find coreclr at given base path: "
+      stringStream << "Could not find the assembly at: "
                    << (std::string)info[0].ToString();
       Napi::Error::New(env, stringStream.str()).ThrowAsJavaScriptException();
       return Napi::Value();
     }
+    case DotNetHostCreationResult::kCoreClrNotFound:
+      Napi::Error::New(env,
+                       "The coreclr could not be found")
+          .ThrowAsJavaScriptException();
+      return Napi::Value();
     case DotNetHostCreationResult::kInvalidCoreClr:
       Napi::Error::New(env,
                        "The coreclr found at base path is invalid. Probably "
@@ -145,24 +162,8 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   auto context = new Context(std::move(host), env);
   ThreadInstance _(context);
 
-  unsigned int exit_code = -1;
-  const char* argv[1] = {"Name"};
-  auto execute_result =
-      context->host_->ExecuteAssembly(info[1].ToString(), 1, argv, exit_code);
-  switch (execute_result) {
-    case coreclrhosting::DotNetHostExecuteAssemblyResult::kOK:
-      return Napi::Number::New(env, exit_code);
-    case coreclrhosting::DotNetHostExecuteAssemblyResult::kAssemblyNotFound:
-      context->Release();
-      Napi::Error::New(env, "Could not find assembly to execute.")
-          .ThrowAsJavaScriptException();
-      return Napi::Value();
-    default:
-      context->Release();
-      Napi::Error::New(env, "Unexpected error while executing assembly.")
-          .ThrowAsJavaScriptException();
-      return Napi::Value();
-  }
+  auto exit_code = context->host_->ExecuteAssembly();
+  return Napi::Number::New(env, exit_code);  
 }
 
 JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {

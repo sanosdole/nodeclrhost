@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+  </PropertyGroup>
+
+<PropertyGroup>      
+      <NetHostDir>$(NetCoreTargetingPackRoot)/Microsoft.NETCore.App.Host.$(NETCoreSdkRuntimeIdentifier)/$(BundledNETCoreAppPackageVersion)/runtimes/$(NETCoreSdkRuntimeIdentifier)/native</NetHostDir>
+
+      <NetHostName Condition="$([MSBuild]::IsOsPlatform('Windows'))">nethost.dll</NetHostName>
+      <NetHostName Condition="$([MSBuild]::IsOsPlatform('Linux'))">libnethost.so</NetHostName>
+      <NetHostName Condition="$([MSBuild]::IsOsPlatform('OSX'))">libnethost.dylib</NetHostName>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <NativeHostFiles Include="$(NetHostDir)\**\*"/>
+    </ItemGroup>
+
+  <!-- Target to build the native project -->
+  <Target Name="DownloadHostFxr"
+          AfterTargets="Build">
+    
+
+    <!-- Copy the nethost library to the demo directory -->
+    <Copy SourceFiles="@(NativeHostFiles)"
+          DestinationFolder="./bin"
+          SkipUnchangedFiles="True" />
+  </Target>
+</Project>
