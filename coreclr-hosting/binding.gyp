@@ -32,7 +32,7 @@
             ],
             'link_settings': {
               'libraries': [
-                "-Lhostfxr/bin -lnethost"
+                "-L../hostfxr/bin -lnethost"
               ]
             },
             'copies': [
