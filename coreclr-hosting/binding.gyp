@@ -33,7 +33,7 @@
             'link_settings': {
               'libraries': [
                 "-L../hostfxr/bin -lnethost",
-                "-Wl,-R,'$ORIGIN'"
+                "-rpath=$ORIGIN"
               ]
             },
             'copies': [
