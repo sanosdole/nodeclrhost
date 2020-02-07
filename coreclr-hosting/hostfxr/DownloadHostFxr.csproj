@@ -14,13 +14,12 @@
 
     <ItemGroup>
         <NativeHostFiles Include="$(NetHostDir)\**\*"/>
-    </ItemGroup>
-
+    </ItemGroup>    
   <!-- Target to build the native project -->
   <Target Name="DownloadHostFxr"
           AfterTargets="Build">
     
-
+    <Message Text="Copying host libraries: @(NativeHostFiles)"/>
     <!-- Copy the nethost library to the demo directory -->
     <Copy SourceFiles="@(NativeHostFiles)"
           DestinationFolder="./bin"

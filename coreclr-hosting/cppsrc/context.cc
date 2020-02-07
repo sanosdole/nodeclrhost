@@ -35,8 +35,8 @@ thread_local Context* Context::ThreadInstance::thread_instance_;
 
 Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
     : env_(env),
-      release_called_(false),      
       finalizer_mutex_(std::make_shared<std::mutex>()),
+      release_called_(false),
       host_(std::move(dotnet_host)),
       function_factory_(
           std::bind(&Context::CreateFunction, this, std::placeholders::_1)) {

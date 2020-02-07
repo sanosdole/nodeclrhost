@@ -19,7 +19,7 @@
     "access": "public"
   },
   "scripts": {
-    "download-hostfxr": "dotnet build hostfxr/DownloadHostFxr.csproj",
+    "download-hostfxr": "dotnet build hostfxr/DownloadHostFxr.csproj -v:n",
     "configure": "node-gyp configure",
     "build": "npm run download-hostfxr && npm run configure && npm run build:debug && npm run build:release",
     "rebuild": "npm run clean && npm run build",
