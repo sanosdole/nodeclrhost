@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-browserapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js BrowserApp/BrowserApp.csproj bin/published",
-    "build-rendererapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js RendererApp/RendererApp.csproj bin/published",
-    "start": "electron ."
+    "build-browserapp": "dotnet build BrowserApp/BrowserApp.csproj",
+    "build-rendererapp": "dotnet build RendererApp/RendererApp.csproj",
+    "start": "npm run build-browserapp && npm run build-rendererapp && electron ."
   },
   "author": "",
   "license": "MIT",

@@ -10,7 +10,10 @@
             "cppsrc/dotnetexports.cc"
         ],
         'include_dirs': [
-            "<!@(node -p \"require('node-addon-api').include\")"
+            "<!@(node -p \"require('node-addon-api').include\")",
+            "cppsrc",
+            "cppsrc/inc",
+            "./hostfxr/bin"
         ],
         #'libraries': [],
         'dependencies': [
@@ -21,21 +24,73 @@
 
         'conditions': [
           ['OS=="linux"', {
+            #'cflags_cc!': ['-std=gnu++1y'],    
+            #'cflags_cc+': ['-std=c++17'],
             'defines': [
               'NON_WINDOWS_DEFINE', 
               'LINUX'
             ],
-          }],
-          ['OS=="win"', {
-            'defines': [
-              'WINDOWS',
+            'link_settings': {
+              'libraries': [
+                "-L../hostfxr/bin -lnethost",
+                "-Wl,-rpath,'$$ORIGIN'"
+              ]
+            },
+            'copies': [
+              {
+                'destination': '<(PRODUCT_DIR)',
+                'files': ['hostfxr/bin/libnethost.so'],
+              }
             ]
           }],
+          ['OS=="win"', {
+            #'msvs_settings': {
+            #  'VCCLCompilerTool': {
+            #    'AdditionalOptions': [ '-std:c++17', ],
+            #  },
+            #},
+            'defines': [
+              'WINDOWS',
+            ],
+            'link_settings': {
+              'libraries': [
+                "-lnethost.lib"
+              ],
+              'library_dirs': [
+                './hostfxr/bin',
+              ],
+            'copies': [
+              {
+                'destination': '<(PRODUCT_DIR)',
+                'files': ['hostfxr/bin/nethost.dll'],
+              }
+            ]
+            }
+          }],
           ['OS=="mac"', {
+            #'cflags_cc!': ['-std=gnu++1y'],    
+            #'cflags_cc+': ['-std=c++17'],
+            #"xcode_settings": {
+            #  "OTHER_CFLAGS": [ "-std=c++17"],
+            #},
             'defines': [
               'NON_WINDOWS_DEFINE', 
               'OSX'             
             ],
+            'link_settings': {
+              'libraries': [
+                "-lnethost",
+                "-Wl,-rpath,@loader_path"
+              ],
+              'library_dirs': [
+                '../hostfxr/bin',
+              ]},
+            'copies': [
+              {
+                'destination': '<(PRODUCT_DIR)',
+                'files': ['./hostfxr/bin/libnethost.dylib'],
+              }
+            ]            
           }]
         ]
     }]

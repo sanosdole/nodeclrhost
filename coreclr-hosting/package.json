@@ -19,17 +19,19 @@
     "access": "public"
   },
   "scripts": {
+    "download-hostfxr": "dotnet build hostfxr/DownloadHostFxr.csproj",
     "configure": "node-gyp configure",
-    "build": "npm run configure && npm run build:debug && npm run build:release",
+    "build": "npm run download-hostfxr && npm run configure && npm run build:debug && npm run build:release",
+    "rebuild": "npm run clean && npm run build",
     "build:debug": "node-gyp build --debug",
     "build:release": "node-gyp build",
     "clean": "node-gyp clean",
-    "build-testapp": "node build-scripts/dotnet-publish.js test/TestApp/TestApp.csproj test/bin/published",
+    "build-testapp": "dotnet build test/TestApp/TestApp.csproj",
     "test": "npm run build && npm run build-testapp && mocha",
     "test-only": "npm run build-testapp && mocha",
     "mocha": "mocha",
     "prepare": "npm run build",
-    "install": "prebuild-install || node-gyp rebuild"
+    "install": "prebuild-install || npm run rebuild"
   },
   "author": "Daniel Martin",
   "license": "MIT",

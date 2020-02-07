@@ -15,7 +15,7 @@ import { setEventDispatcher } from './Rendering/RendererEventDispatcher';
 import coreclrhosting = require('coreclr-hosting');
 
 let started = false;
-export async function runBlazorApp(basePath: string, appFile: string): Promise<void> {
+export async function runBlazorApp(assemblyPath: string, ...args: string[]): Promise<void> {
 
   if (started) {
     throw new Error('Blazor has already started.');
@@ -56,8 +56,8 @@ export async function runBlazorApp(basePath: string, appFile: string): Promise<v
 
   // DM 21.08.2019: Start the blazor app
   console.info("Running in process " + process.pid);
-  console.info("Starting " + appFile + " from " + basePath);
-  var result = coreclrhosting.runCoreApp(basePath, appFile);
+  console.info("Starting " + assemblyPath);
+  var result = coreclrhosting.runCoreApp(assemblyPath, ...args);
   console.info("Main returned: " + result);
 
   // TODO DM 29.11.2019: Do we need any of this for RCLs to work?

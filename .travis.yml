@@ -8,7 +8,7 @@ jobs:
       services:
        - xvfb
       addons:
-       chrome: stable     
+       chrome: stable
       before_install:
        - export DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
        - export DOTNET_CLI_TELEMETRY_OPTOUT=1
@@ -22,10 +22,15 @@ jobs:
        - npm install -g npm@'>=6.13.3'
        - "cd coreclr-hosting"       
        - npm i --build-from-source
+       - ls build
+       - ls build/Debug
+       - ls build/Release
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 12.13.1;
-           prebuild -t 7.1.4 -r electron;
+           prebuild -t 12.13.1 --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 12.15.0 --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 7.1.4 -r electron --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 8.0.0 -r electron --include-regex "\nethost.(dll|so|dylib)$";
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
@@ -73,8 +78,10 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 12.13.1;
-           prebuild -t 7.1.4 -r electron;
+           prebuild -t 12.13.1 --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 12.15.0 --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 7.1.4 -r electron --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 8.0.0 -r electron --include-regex "\nethost.(dll|so|dylib)$";
          fi
       script:
        - npm run build-testapp
@@ -101,8 +108,10 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 12.13.1;
-           prebuild -t 7.1.4 -r electron;
+           prebuild -t 12.13.1 --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 12.15.0 --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 7.1.4 -r electron --include-regex "\nethost.(dll|so|dylib)$";
+           prebuild -t 8.0.0 -r electron --include-regex "\nethost.(dll|so|dylib)$";
          fi
       script:
        - npm run build-testapp

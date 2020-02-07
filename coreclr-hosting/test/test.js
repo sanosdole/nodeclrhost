@@ -55,7 +55,7 @@ global.setupTestObject = function () {
   };
 };
 
-var result = coreclrhosting.runCoreApp(__dirname + '/bin/published', 'TestApp.dll');
+var result = coreclrhosting.runCoreApp(__dirname + '/TestApp/bin/Debug/netcoreapp3.0/TestApp.dll');
 
 describe('coreclrhosting', function () {
   it('should return 0', function () {

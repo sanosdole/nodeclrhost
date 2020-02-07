@@ -3,15 +3,18 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace coreclrhosting {
 
 namespace DotNetHostCreationResult {
-enum Enum { kOK, kCoreClrNotFound, kInvalidCoreClr, kInitializeFailed };
-}
-
-namespace DotNetHostExecuteAssemblyResult {
-enum Enum { kOK, kAssemblyNotFound };
+enum Enum {
+  kOK,
+  kAssemblyNotFound,
+  kCoreClrNotFound,
+  kInvalidCoreClr,
+  kInitializeFailed
+};
 }
 
 class DotNetHost {
@@ -27,47 +30,12 @@ class DotNetHost {
   ~DotNetHost();
 
   static DotNetHostCreationResult::Enum Create(
-      std::string base_path, std::unique_ptr<DotNetHost>& host);
+      const std::vector<std::string>& arguments,
+      std::unique_ptr<DotNetHost>& host);
 
   // name must be located in path
-  DotNetHostExecuteAssemblyResult::Enum ExecuteAssembly(
-      std::string name, int argc, const char** argv, unsigned int& resultCode);
+  int32_t ExecuteAssembly();
 };
-/*
-class coreclr_not_found : public std::exception {
-    std::string path_;
-    
-
-    coreclr_not_found(const std::string& path) : path_(std::move(path)) { }
-
-    const char* what() const noexcept override {
-        return "No coreclr runtime found at path '" + path_ + "'!";
-    }
-};
-
-class invalid_coreclr : public std::exception {
-    std::string path_;
-    
-
-    invalid_coreclr(const std::string& path) : path_(std::move(path)) { }
-
-    const char* what() const noexcept override {
-        return "The coreclr runtime at path '" + path_ + "' is not valid!";
-    }
-};
-
-class assembly_not_found : public std::exception {
-    std::string path_;
-    std::string name_;
-    
-
-    assembly_not_found(std::string path, std::string name) :
-path_(std::move(path)), name_(std::move(name) { }
-
-    const char* what() const noexcept override {
-        return "The coreclr runtime at path '" + path_ + "' is not valid";
-    }
-};*/
 
 }  // namespace coreclrhosting
 

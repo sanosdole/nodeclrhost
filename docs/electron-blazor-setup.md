@@ -30,7 +30,7 @@ Setup new node project using:
 mkdir RenderApp
 cd RenderApp
 dotnet new blazorserver
-dotnet add package ElectronHostedBlazor -v 0.1.0-alpha.13
+dotnet add package ElectronHostedBlazor -v 0.3.0-alpha.1
 ```
 
 Replace the `CreateHostBuilder` method in `~/RenderApp/Program.cs` with:
@@ -87,7 +87,7 @@ Add the `~/RenderApp/wwwroot/index.html` file with content like this:
       </app>
       <script>
         const glue = require('electron-blazor-glue');
-        glue.runBlazorApp(__dirname + "/..", "RenderApp.dll");
+        glue.runBlazorApp(__dirname + "/../RenderApp.dll");
       </script>
   </body>
 </html>

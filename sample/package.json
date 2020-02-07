@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build-sampleapp": "node node_modules/coreclr-hosting/build-scripts/dotnet-publish.js SampleApp/SampleApp.csproj bin/published",
-    "start": "node --expose-gc ./index.js"
+    "build-sampleapp": "dotnet build SampleApp/SampleApp.csproj",
+    "start": "npm run build-sampleapp && node --expose-gc ./index.js"
   },
   "author": "Daniel Martin",
   "license": "MIT",
