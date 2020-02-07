@@ -35,9 +35,9 @@ thread_local Context* Context::ThreadInstance::thread_instance_;
 
 Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
     : env_(env),
-      release_called_(false),
-      host_(std::move(dotnet_host)),
+      release_called_(false),      
       finalizer_mutex_(std::make_shared<std::mutex>()),
+      host_(std::move(dotnet_host)),
       function_factory_(
           std::bind(&Context::CreateFunction, this, std::placeholders::_1)) {
   auto async_data = new AsyncHandleData();
@@ -114,7 +114,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   }
 
   std::vector<std::string> arguments(info.Length());
-  for (auto i = 0; i < info.Length(); i++) {
+  for (auto i = 0u; i < info.Length(); i++) {
     if (!info[i].IsString()) {
       Napi::Error::New(env, "Expected only string arguments")
           .ThrowAsJavaScriptException();

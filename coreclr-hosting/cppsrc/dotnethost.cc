@@ -239,7 +239,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   std::vector<string_t> final_arguments(in_size);
   std::vector<const char_t *> final_arguments_char(in_size);
   // Is there a LINQ equivalent for this?
-  for (int i = 0; i < in_size; i++) {
+  for (auto i = 0u; i < in_size; i++) {
     final_arguments[i] = StringTFromUtf8(arguments[i]);
     final_arguments_char[i] = final_arguments[i].c_str();
     // wprintf(L"Argument %d %s\n", i, final_arguments_char[i]);
