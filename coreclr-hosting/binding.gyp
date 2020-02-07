@@ -25,7 +25,7 @@
         'conditions': [
           ['OS=="linux"', {
             'cflags_cc': [
-                '-std=c++1z'
+                '-std=c++17'
             ],
             'defines': [
               'NON_WINDOWS_DEFINE', 
@@ -72,7 +72,7 @@
           }],
           ['OS=="mac"', {
             'cflags_cc': [
-                '-std=c++1z'
+                '-std=c++17'
             ],
             'defines': [
               'NON_WINDOWS_DEFINE', 
