@@ -36,6 +36,7 @@ jobs:
        - cd ../coreclr-hosting
        - npm run prepare             
        - npm run build-testapp
+       - LD_DEBUG=libs
        - npm run mocha
        - cd ../electron-blazor-glue
        - npm run prepare   
@@ -45,7 +46,7 @@ jobs:
        - npm i
        - export DISPLAY=:99.0
        - sleep 3
-       - npm run test    
+       #- npm run test    
       after_success:
        - echo $TRAVIS_TAG
        - cd ..
@@ -82,6 +83,7 @@ jobs:
          fi
       script:
        - npm run build-testapp
+       - export DYLD_PRINT_LIBRARIES=1
        - npm run mocha
        - cd ..
       deploy:
