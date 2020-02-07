@@ -24,9 +24,8 @@
 
         'conditions': [
           ['OS=="linux"', {
-            'cflags_cc': [
-                '-std=c++17'
-            ],
+            'cflags_cc!': ['-std=gnu++1y'],    
+            'cflags_cc+': ['-std=c++17'],
             'defines': [
               'NON_WINDOWS_DEFINE', 
               'LINUX'
@@ -71,9 +70,8 @@
             }
           }],
           ['OS=="mac"', {
-            'cflags_cc': [
-                '-std=c++17'
-            ],
+            'cflags_cc!': ['-std=gnu++1y'],    
+            'cflags_cc+': ['-std=c++17'],
             "xcode_settings": {
               "OTHER_CFLAGS": [ "-std=c++17"],
             },
