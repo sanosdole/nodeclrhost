@@ -10,7 +10,6 @@
 #include <iostream>
 #include <limits>
 #include <vector>
-#include <filesystem>
 
 // Provided by the AppHost NuGet package and installed as an SDK pack
 #include <nethost.h>
@@ -158,12 +157,11 @@ inline bool FileExists(const std::string &name) {
 LibraryHandle LoadHostfxr(const std::string &assembly) {
   // TODO: Does not work for self hosted :(
   //       => System.BadImageFormatException: Could not load file or assembly 'XXX\coreclr.dll'. 
-  //                                          The module was expected to contain an assembly manifest.
-  std::filesystem::path path_to_assembly = assembly;
-  auto base_path = path_to_assembly.parent_path();
+  //                                          The module was expected to contain an assembly manifest.  
+  /*auto base_path =  GetDirectoryFromFilePath(assembly);
   std::string hostfxr_library_name = u8"hostfxr.dll";
   auto probe = base_path.append(hostfxr_library_name);
-  /*if (FileExists(probe.u8string())) {
+  if (FileExists(probe.u8string())) {
     return load_library(probe.c_str());
   }*/
 
@@ -179,10 +177,9 @@ LibraryHandle LoadHostfxr(const std::string &assembly) {
 
   // TODO: Also does not work for self hosted :(
   //       => get_hostfxr_path does not return a path
-  /*
-  auto base_path_t = StringTFromUtf8(base_path.u8string());
+  /*  
   if (FileExists(probe.u8string())) {    
-    params.dotnet_root = base_path_t.c_str();
+    params.dotnet_root = base_path.c_str();
   }*/
 
   auto rcPath = get_hostfxr_path(buffer, &buffer_size, &params);
