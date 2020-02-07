@@ -35,7 +35,7 @@
                 "-lnethost"
               ],
               'library_dirs': [
-                './hostfxr/bin',
+                'hostfxr/bin',
               ]
             },
             'copies': [
