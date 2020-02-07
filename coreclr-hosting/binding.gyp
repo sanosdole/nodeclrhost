@@ -80,7 +80,7 @@
             'link_settings': {
               'libraries': [
                 "-lnethost",
-                "-rpath,."
+                "-Wl,-rpath,@loaderpath"
               ],
               'library_dirs': [
                 './hostfxr/bin',
