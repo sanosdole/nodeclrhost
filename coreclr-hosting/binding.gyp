@@ -74,6 +74,9 @@
             'cflags_cc': [
                 '-std=c++17'
             ],
+            "xcode_settings": {
+              "OTHER_CFLAGS": [ "-std=c++17"],
+            },
             'defines': [
               'NON_WINDOWS_DEFINE', 
               'OSX'             
