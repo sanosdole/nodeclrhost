@@ -32,7 +32,8 @@
             ],
             'link_settings': {
               'libraries': [
-                "-L../hostfxr/bin -lnethost"
+                "-L../hostfxr/bin -lnethost",
+                "-Wl,-rpath,$ORIGIN"
               ]
             },
             'copies': [
@@ -79,7 +80,7 @@
             'link_settings': {
               'libraries': [
                 "-lnethost",
-                "-Wl,-rpath,@loaderpath"
+                "-Wl,-rpath,."
               ],
               'library_dirs': [
                 '../hostfxr/bin',
