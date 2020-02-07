@@ -39,7 +39,7 @@
             'copies': [
               {
                 'destination': '<(PRODUCT_DIR)',
-                'files': ['./hostfxr/bin/libnethost.so'],
+                'files': ['hostfxr/bin/libnethost.so'],
               }
             ]
           }],
@@ -62,7 +62,7 @@
             'copies': [
               {
                 'destination': '<(PRODUCT_DIR)',
-                'files': ['./hostfxr/bin/nethost.dll'],
+                'files': ['hostfxr/bin/nethost.dll'],
               }
             ]
             }
@@ -84,14 +84,13 @@
               ],
               'library_dirs': [
                 '../hostfxr/bin',
-              ],
+              ]},
             'copies': [
               {
                 'destination': '<(PRODUCT_DIR)',
                 'files': ['./hostfxr/bin/libnethost.dylib'],
               }
-            ]
-            }
+            ]            
           }]
         ]
     }]

@@ -22,6 +22,9 @@ jobs:
        - npm install -g npm@'>=6.13.3'
        - "cd coreclr-hosting"       
        - npm i --build-from-source
+       - ls build
+       - ls build/Debug
+       - ls build/Release
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
            prebuild -t 12.13.1 --include-regex "\nethost.(dll|so|dylib)$";
@@ -36,7 +39,6 @@ jobs:
        - cd ../coreclr-hosting
        - npm run prepare             
        - npm run build-testapp
-       - LD_DEBUG=libs
        - npm run mocha
        - cd ../electron-blazor-glue
        - npm run prepare   
@@ -83,7 +85,6 @@ jobs:
          fi
       script:
        - npm run build-testapp
-       - export DYLD_PRINT_LIBRARIES=1
        - npm run mocha
        - cd ..
       deploy:
