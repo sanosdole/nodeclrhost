@@ -78,8 +78,8 @@
             ],
             'link_settings': {
               'libraries': [
-                "-lnethost"
-                #"-Wl,-rpath,@loaderpath"
+                "-lnethost",
+                "-Wl,-rpath,@loaderpath"
               ],
               'library_dirs': [
                 '../hostfxr/bin',
