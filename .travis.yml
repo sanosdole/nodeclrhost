@@ -48,7 +48,7 @@ jobs:
        - npm i
        - export DISPLAY=:99.0
        - sleep 3
-       #- npm run test    
+       - npm run test    
       after_success:
        - echo $TRAVIS_TAG
        - cd ..
