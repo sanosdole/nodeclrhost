@@ -41,10 +41,6 @@ using string_t = std::basic_string<char_t>;
 #ifdef WINDOWS
 
 string_t StringTFromUtf8(const std::string &utf8) {
-  /*std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> convert;
-  std::u16string dest = convert.from_bytes(source);
-  return dest;*/
-
   string_t utf16;
 
   if (utf8.empty()) {
@@ -55,10 +51,10 @@ string_t StringTFromUtf8(const std::string &utf8) {
   // is encountered in the input string
   constexpr DWORD kFlags = MB_ERR_INVALID_CHARS;
 
-  if (utf8.length() > static_cast<size_t>((std::numeric_limits<int>::max)())) {
-    throw std::overflow_error(
-        "Input string too long: size_t-length doesn't fit into int.");
-  }
+  /*if (utf8.length() > static_cast<size_t>((std::numeric_limits<int>::max)()))
+  { throw std::overflow_error( "Input string too long: size_t-length doesn't fit
+  into int.");
+  }*/
 
   // Safely convert from size_t (STL string's length)
   // to int (for Win32 APIs)
@@ -73,13 +69,13 @@ string_t StringTFromUtf8(const std::string &utf8) {
       0             // Request size of destination buffer, in wchar_ts
   );
 
-  if (utf16Length == 0) {
+  /*if (utf16Length == 0) {
     // Conversion error: capture error code and throw
     // const DWORD error = ::GetLastError();
     throw std::runtime_error(
         "Cannot get result string length when converting "
         "from UTF-8 to UTF-16 (MultiByteToWideChar failed).");
-  }
+  }*/
 
   utf16.resize(utf16Length);
 
@@ -93,13 +89,13 @@ string_t StringTFromUtf8(const std::string &utf8) {
       utf16Length   // Size of destination buffer, in wchar_ts
   );
 
-  if (result == 0) {
+  /*if (result == 0) {
     // Conversion error: capture error code and throw
     // const DWORD error = ::GetLastError();
     throw std::runtime_error(
         "Cannot get result string length when converting "
         "from UTF-8 to UTF-16 (MultiByteToWideChar failed).");
-  }
+  }*/
 
   return utf16;
 }
@@ -156,8 +152,10 @@ inline bool FileExists(const std::string &name) {
 
 LibraryHandle LoadHostfxr(const std::string &assembly) {
   // TODO: Does not work for self hosted :(
-  //       => System.BadImageFormatException: Could not load file or assembly 'XXX\coreclr.dll'. 
-  //                                          The module was expected to contain an assembly manifest.  
+  //       => System.BadImageFormatException: Could not load file or assembly
+  //       'XXX\coreclr.dll'.
+  //                                          The module was expected to contain
+  //                                          an assembly manifest.
   /*auto base_path =  GetDirectoryFromFilePath(assembly);
   std::string hostfxr_library_name = u8"hostfxr.dll";
   auto probe = base_path.append(hostfxr_library_name);
@@ -177,17 +175,17 @@ LibraryHandle LoadHostfxr(const std::string &assembly) {
 
   // TODO: Also does not work for self hosted :(
   //       => get_hostfxr_path does not return a path
-  /*  
-  if (FileExists(probe.u8string())) {    
+  /*
+  if (FileExists(probe.u8string())) {
     params.dotnet_root = base_path.c_str();
   }*/
 
   auto rcPath = get_hostfxr_path(buffer, &buffer_size, &params);
   if (rcPath != 0) {
-    //printf("get_hostfxr_path returned %d\n", rcPath);
+    // printf("get_hostfxr_path returned %d\n", rcPath);
     return nullptr;
   }
-  //wprintf(L"Hostfxr found at %s\n", buffer);
+  // wprintf(L"Hostfxr found at %s\n", buffer);
 
   // Load hostfxr and get desired exports
   return load_library(buffer);
@@ -215,9 +213,9 @@ DotNetHost::~DotNetHost() {}
 DotNetHostCreationResult::Enum DotNetHost::Create(
     const std::vector<std::string> &arguments,
     std::unique_ptr<DotNetHost> &host) {
-  if (arguments.size() < 1)
+  /*if (arguments.size() < 1)
     throw std::invalid_argument(
-        "At least the path to an assembly is required!");
+        "At least the path to an assembly is required!");*/
 
   // printf("Checking for %s\n", arguments[0].c_str());
   if (!FileExists(arguments[0]))
@@ -239,18 +237,18 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   // Create proper arguments array
   auto in_size = arguments.size();
   std::vector<string_t> final_arguments(in_size);
-  std::vector<const char_t*> final_arguments_char(in_size);
+  std::vector<const char_t *> final_arguments_char(in_size);
   // Is there a LINQ equivalent for this?
-  for (int i = 0; i < in_size; i++) {    
+  for (int i = 0; i < in_size; i++) {
     final_arguments[i] = StringTFromUtf8(arguments[i]);
     final_arguments_char[i] = final_arguments[i].c_str();
-    //wprintf(L"Argument %d %s\n", i, final_arguments_char[i]);
+    // wprintf(L"Argument %d %s\n", i, final_arguments_char[i]);
   }
 
   // Load runtime and assembly
-  hostfxr_handle cxt = nullptr;  
-  auto rc =
-      init_fptr(final_arguments.size(), final_arguments_char.data(), nullptr, &cxt);
+  hostfxr_handle cxt = nullptr;
+  auto rc = init_fptr(final_arguments.size(), final_arguments_char.data(),
+                      nullptr, &cxt);
   if (rc != 0 || cxt == nullptr) {
     std::cerr << "Init failed: " << std::hex << std::showbase << rc
               << std::endl;
