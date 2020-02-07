@@ -32,10 +32,8 @@
             ],
             'link_settings': {
               'libraries': [
-                "-lnethost.so"
-              ],
-              'library_dirs': [
-                'hostfxr/bin',
+                "-Lhostfxr/bin"
+                "-lnethost"
               ]
             },
             'copies': [
@@ -81,7 +79,8 @@
             ],
             'link_settings': {
               'libraries': [
-                "-lnethost"
+                "-lnethost",
+                "-rpath,@loader_path"
               ],
               'library_dirs': [
                 './hostfxr/bin',
