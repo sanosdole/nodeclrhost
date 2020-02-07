@@ -20,7 +20,8 @@ jobs:
        - sudo apt-get install dotnet-sdk-3.1
       install: 
        - npm install -g npm@'>=6.13.3'
-       - "cd coreclr-hosting"       
+       - "cd coreclr-hosting"
+       - npm i -g prebuild
        - npm i --build-from-source
        - ls build
        - ls build/Debug
