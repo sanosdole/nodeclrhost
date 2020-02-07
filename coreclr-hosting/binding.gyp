@@ -32,7 +32,7 @@
             ],
             'link_settings': {
               'libraries': [
-                "-lnethost"
+                "-lnethost.so"
               ],
               'library_dirs': [
                 'hostfxr/bin',
