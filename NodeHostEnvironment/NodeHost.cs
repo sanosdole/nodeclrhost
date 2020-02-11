@@ -27,7 +27,10 @@ namespace NodeHostEnvironment
         /// <returns></returns>
         public static NodeHost InProcess(string pathToCoreClrHostingModule = null)
         {
-            var nativeMethods = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>(pathToCoreClrHostingModule ?? "./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node");
+            pathToCoreClrHostingModule = pathToCoreClrHostingModule ??
+                Environment.GetEnvironmentVariable("CORECLR_HOSTING_MODULE_PATH") ??
+                "./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node";
+            var nativeMethods = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>(pathToCoreClrHostingModule);
             return new NodeHost(new NodeBridge(new NativeNodeHost(nativeMethods)));
         }
 
