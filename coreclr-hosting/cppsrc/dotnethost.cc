@@ -202,26 +202,16 @@ inline bool FileExists(const std::string &name) {
 std::string GetDirectoryFromFilePath(const std::string &assembly) {
   auto found = assembly.find_last_of("/\\");
   return assembly.substr(0, found);
-  // cout << " file: " << str.substr(found+1) << endl;
 }
 
 string_t GetDirectoryFromFilePath(const string_t &assembly) {
   auto found = assembly.find_last_of(STR("/\\"));
   return assembly.substr(0, found);
-  // cout << " file: " << str.substr(found+1) << endl;
 }
 
 LibraryHandle LoadHostfxr(const std::string &assembly,
                           string_t &hostfxr_path_out) {
   auto base_path = GetDirectoryFromFilePath(assembly);
-  /*auto base_path_t = StringTFromUtf8(base_path);
-  std::string hostfxr_library_name = u8"/hostfxr.dll";
-  auto probe = base_path + hostfxr_library_name;
-  std::cerr << "LOADING '" << probe << "'" << std::endl;
-  if (FileExists(probe)) {
-    auto hostfxr_path = StringTFromUtf8(probe);
-    return load_library(hostfxr_path.c_str());
-  }*/
 
   // Pre-allocate a large buffer for the path to hostfxr
   char_t buffer[MAX_PATH];
@@ -230,6 +220,8 @@ LibraryHandle LoadHostfxr(const std::string &assembly,
   get_hostfxr_parameters params;
   params.size = sizeof(get_hostfxr_parameters);
   params.dotnet_root = nullptr;
+  // ATTENTION: This needs proper path seperators or it will fail for self
+  // contained
   auto assembly_t = StringTFromUtf8(assembly);
   params.assembly_path = assembly_t.c_str();
 
@@ -285,7 +277,6 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   std::replace(assembly_path.begin(), assembly_path.end(), u8'\\', u8'/');
 #endif
 
-  // printf("Checking for %s\n", assembly_path.c_str());
   if (!FileExists(assembly_path))
     return DotNetHostCreationResult::kAssemblyNotFound;
 
@@ -321,25 +312,12 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
     final_arguments[i] =
         StringTFromUtf8(i == 0u ? assembly_path : arguments[i]);
     final_arguments_char[i] = final_arguments[i].c_str();
-    /*auto size = final_arguments[i].size() + 1;
-    auto buffer = new char_t[size];
-    memset(static_cast<void*>(buffer), 0, size * sizeof(char_t));
-    memcpy_s(buffer, size * sizeof(char_t), final_arguments[i].c_str(),
-    (size-1)*sizeof(char_t)); final_arguments_char[i] = buffer;*/
-    // wprintf(L"Argument %d %s\n", i, final_arguments_char[i]);
   }
 
-  // Load runtime and assembly
-  /*auto base_path = GetDirectoryFromFilePath(assembly_path);
-  auto assembly_path_t = StringTFromUtf8(base_path);
-  auto init_params = hostfxr_initialize_parameters();
-  init_params.size = sizeof(hostfxr_initialize_parameters);
-  init_params.dotnet_root = nullptr;//hostfxr_path.c_str();
-  init_params.host_path = assembly_path_t.c_str();
-  */
+  // Load context for running
   hostfxr_handle cxt = nullptr;
   auto rc = init_fptr(final_arguments.size(), final_arguments_char.data(),
-                      nullptr /*&init_params*/, &cxt);
+                      nullptr, &cxt);
   if (rc != 0 || cxt == nullptr) {
     std::cerr << "Init '" << assembly_path << "' failed: " << std::hex
               << std::showbase << rc << std::endl;
@@ -361,15 +339,10 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
     return DotNetHostCreationResult::kInvalidCoreClr;
   }
 
-  /*for (auto i2 = 0u;i2<prop_count;i2++) {
-    wprintf(STR("%s = %s\n"), prop_keys[i2], prop_values[i2]);
-  }*/
-
   // Due to hostpolicy.cpp:255 shutting down the coreclr after running we load
   // coreclr manually
   const char_t *jit_path_buffer;
   rc = get_prop_fptr(cxt, STR("JIT_PATH"), &jit_path_buffer);
-  wprintf(STR("JIT_PATH = %s\n"), jit_path_buffer);
   if (0 != rc) {
     std::cerr << "hostfxr did not set up JIT_PATH, which is required for "
                  "locating coreclr"
@@ -381,9 +354,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   string_t jit_path = jit_path_buffer;
 
   auto coreclr_base_path = GetDirectoryFromFilePath(jit_path);
-  wprintf(STR("coreclr_base_path = %s\n"), coreclr_base_path.c_str());
   auto coreclr_path = coreclr_base_path + DIR_SEPARATOR + CORECLR_FILE_NAME;
-  wprintf(STR("coreclr_path = %s\n"), coreclr_path.c_str());
   auto coreclr_lib = load_library(coreclr_path.c_str());
   if (nullptr == coreclr_lib) {
     std::cerr << "No coreclr found at: "
@@ -456,7 +427,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
 }
 
 int32_t DotNetHost::ExecuteAssembly() {
-  // TODO: Due to hostpolicy.cpp:255 this will shutdown the coreclr once
+  // Due to hostpolicy.cpp:255 this will shutdown the coreclr once
   // finished. Instead load/initialize coreclr and execute it manually (using
   // props from context)
   // return impl_->run_fptr_(impl_->context_);
