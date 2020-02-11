@@ -30,7 +30,7 @@ Setup new node project using:
 mkdir RenderApp
 cd RenderApp
 dotnet new blazorserver
-dotnet add package ElectronHostedBlazor -v 0.3.0-alpha.4
+dotnet add package ElectronHostedBlazor -v 0.3.0-alpha.5
 ```
 
 Replace the `CreateHostBuilder` method in `~/RenderApp/Program.cs` with:

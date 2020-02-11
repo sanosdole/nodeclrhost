@@ -2,7 +2,7 @@
 
 [![Build status master](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=master)](https://travis-ci.com/sanosdole/nodeclrhost) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-_Latest release_ __v0.3.0-alpha.4__: [![Build status release](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=v0.3.0-alpha.4)](https://travis-ci.com/sanosdole/nodeclrhost)
+_Latest release_ __v0.3.0-alpha.5__: [![Build status release](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=v0.3.0-alpha.5)](https://travis-ci.com/sanosdole/nodeclrhost)
 
 _Prebuilt versions:_
 
