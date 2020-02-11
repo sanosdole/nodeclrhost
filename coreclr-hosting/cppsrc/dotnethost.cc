@@ -204,10 +204,12 @@ std::string GetDirectoryFromFilePath(const std::string &assembly) {
   return assembly.substr(0, found);
 }
 
+#ifdef WINDOWS
 string_t GetDirectoryFromFilePath(const string_t &assembly) {
   auto found = assembly.find_last_of(STR("/\\"));
   return assembly.substr(0, found);
 }
+#endif
 
 LibraryHandle LoadHostfxr(const std::string &assembly,
                           string_t &hostfxr_path_out) {
@@ -274,7 +276,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
 #ifdef WINDOWS
   std::replace(assembly_path.begin(), assembly_path.end(), u8'/', u8'\\');
 #else
-  std::replace(assembly_path.begin(), assembly_path.end(), u8'\\', u8'/');
+  std::replace(assembly_path.begin(), assembly_path.end(), '\\', '/');
 #endif
 
   if (!FileExists(assembly_path))
@@ -433,7 +435,7 @@ int32_t DotNetHost::ExecuteAssembly() {
   // return impl_->run_fptr_(impl_->context_);
 
   std::vector<const char *> arguments(impl_->arguments_.size() - 1);
-  for (auto i = 0; i < arguments.size(); i++) {
+  for (auto i = 0u; i < arguments.size(); i++) {
     arguments[i] = impl_->arguments_[i + 1].c_str();
   }
 
