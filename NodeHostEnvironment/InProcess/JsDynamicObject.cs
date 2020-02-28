@@ -32,7 +32,7 @@ namespace NodeHostEnvironment.InProcess
         public dynamic CreateNewInstance(params object[] arguments)
         {
             var result = _host.CreateObject(Handle, arguments.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
-            if (!result.TryGetObject(_host, out object newInstance))
+            if (!result.TryGetObject(_host, typeof(object), out object newInstance))
                 throw new InvalidOperationException("Could not create new instance");
             return newInstance;
         }
@@ -40,7 +40,7 @@ namespace NodeHostEnvironment.InProcess
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
             var jsHandle = _host.GetMember(Handle, binder.Name);
-            return jsHandle.TryGetObject(_host, out result);
+            return jsHandle.TryGetObject(_host, binder.ReturnType, out result);
         }
 
         public override bool TryInvokeMember(InvokeMemberBinder binder,
@@ -57,7 +57,7 @@ namespace NodeHostEnvironment.InProcess
                 }
 
                 var resultHandle = _host.Invoke(member, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
-                resultHandle.TryGetObject(_host, out result);
+                resultHandle.TryGetObject(_host, binder.ReturnType, out result);
                 ConvertDynamic(binder.ReturnType, ref result);
                 return true;
             }
@@ -73,7 +73,7 @@ namespace NodeHostEnvironment.InProcess
                 Handle,
                 args.Length,
                 args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
-            resultHandle.TryGetObject(_host, out result);
+            resultHandle.TryGetObject(_host, binder.ReturnType, out result);
             ConvertDynamic(binder.ReturnType, ref result);
             return true;
         }
@@ -111,7 +111,7 @@ namespace NodeHostEnvironment.InProcess
         internal bool TryConvertIntern(Type type, out object result)
         {
             // Converting to string.
-            if (type == typeof(object))
+            if (type == typeof(object) || type.IsAssignableFrom(GetType()))
             {
                 result = this;
                 return true;
@@ -126,7 +126,7 @@ namespace NodeHostEnvironment.InProcess
                     {
                         DotNetValue.FromJsValue(Handle)
                     });
-                var gotString = jsResult.TryGetObject(_host, out result);
+                var gotString = jsResult.TryGetObject(_host, typeof(string), out result);
                 if (!gotString)
                     return false;
                 return result is string;

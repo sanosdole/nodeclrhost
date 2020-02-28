@@ -228,11 +228,10 @@ LibraryHandle LoadHostfxr(const std::string &assembly,
   params.assembly_path = assembly_t.c_str();
 
   auto rcPath = get_hostfxr_path(buffer, &buffer_size, &params);
-  if (rcPath != 0) {
-    // printf("get_hostfxr_path returned %d\n", rcPath);
+  if (rcPath != 0) {    
     return nullptr;
   }
-  wprintf(L"Hostfxr found at %s\n", buffer);
+  
   hostfxr_path_out = GetDirectoryFromFilePath(buffer);
 
   // Load hostfxr and get desired exports

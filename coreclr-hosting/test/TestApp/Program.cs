@@ -70,6 +70,11 @@
                         global.testObject.invokeCallback("Ping", new Action<string>(arg => arg.Should().Be("PingPong")));
                     }));
 
+                    global.it("should invoke callback with int argument", new Action(() =>
+                    {
+                        global.testObject.invokeIntCallback(42, new Action<long>(arg => arg.Should().Be(84)));
+                    }));
+
                     global.it("should invoke passed callback when invoked as dynamic object", new Action(() =>
                     {
                         var invokeCallback = global.testObject.invokeCallback;

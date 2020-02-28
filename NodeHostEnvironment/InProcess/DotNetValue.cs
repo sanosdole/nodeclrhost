@@ -62,16 +62,8 @@ namespace NodeHostEnvironment.InProcess
                 var mappedArgs = new object[requiredParameters.Length];
                 for (int c = 0; c < requiredParameters.Length; c++)
                 {
-                    if (!argv[c].TryGetObject(host, out object parameter))
-                        throw new InvalidOperationException("Cannot get object from JsHandle");
-
-                    var asDynamic = parameter as JsDynamicObject;
-                    if (asDynamic != null)
-                    {
-                        var wasConverted = asDynamic.TryConvertIntern(requiredParameters[c].ParameterType, out object converted);
-                        if (wasConverted)
-                            parameter = converted;
-                    }
+                    if (!argv[c].TryGetObject(host, requiredParameters[c].ParameterType, out object parameter))
+                        throw new InvalidOperationException("Cannot get object from JsHandle");                    
 
                     mappedArgs[c] = parameter;
                 }

@@ -15,7 +15,7 @@ namespace NodeHostEnvironment.InProcess
             Value = IntPtr.Zero
         };
 
-        public bool TryGetObject(IHostInProcess host, out object result)
+        public bool TryGetObject(IHostInProcess host, Type targetType, out object result)
         {
             var releaseHandle = true;
             try
@@ -27,15 +27,25 @@ namespace NodeHostEnvironment.InProcess
                         return true;
                     case JsType.Object:
                     case JsType.Function:
-                        releaseHandle = false;
-                        result = new JsDynamicObject(this, host);
+                        releaseHandle = false;                        
+                        var asDynamic = new JsDynamicObject(this, host);
+                        var wasConverted = asDynamic.TryConvertIntern(targetType, out result);
+                        if (wasConverted)
+                            return true;
+                        result = asDynamic;
                         return true;
                     case JsType.String:
                         result = host.StringFromNativeUtf8(Value);
                         return true;
                     case JsType.Number:
                         // TODO: This will break on 32 bit systems!
-                        result = BitConverter.Int64BitsToDouble((long) Value);
+                        var numberValue = BitConverter.Int64BitsToDouble((long) Value);
+                        if (targetType == typeof(int))                        
+                            result = (int)numberValue;
+                        else if (targetType == typeof(long))                        
+                            result = (long)numberValue;
+                        else
+                            result = numberValue;
                         return true;
                     case JsType.Boolean:
                         result = Value != IntPtr.Zero;

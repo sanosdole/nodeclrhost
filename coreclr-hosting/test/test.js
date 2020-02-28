@@ -32,6 +32,9 @@ global.setupTestObject = function () {
     invokeCallback: function (arg, cb) {
       cb(arg + 'Pong');
     },
+    invokeIntCallback:  function (arg, cb) {
+      cb(arg + 42);
+    },
     isPromise: function (promise) {
       var isPromise = promise && typeof promise.then === 'function';
       if (isPromise) {
