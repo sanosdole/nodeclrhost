@@ -25,22 +25,21 @@ namespace BlazorApp.Rendering
 
         private static Task DispatchEvent(dynamic eventDescriptor, string eventArgsJson)
         {
-            // TODO DM 26.08.2019: This fails due to errors on string marshalling (missing NULL terminator?)
             EventFieldInfo fieldInfo = null;
             var sourceFieldInfo = eventDescriptor.eventFieldInfo;
             if (sourceFieldInfo != null)
             {
                 fieldInfo = new EventFieldInfo
                 {
-                ComponentId = eventDescriptor.eventFieldInfo.componentId,
+                ComponentId = (int) eventDescriptor.eventFieldInfo.componentId,
                 FieldValue = eventDescriptor.eventFieldInfo.fieldValue
                 };
             }
             return DispatchEventOriginal(new WebEventDescriptor
                 {
                     // TODO DM 26.08.2019: Replace those casts once we support proper number handling
-                    BrowserRendererId = (int) (double) eventDescriptor.browserRendererId,
-                        EventHandlerId = (ulong) (double) eventDescriptor.eventHandlerId,
+                    BrowserRendererId = (int) eventDescriptor.browserRendererId,
+                        EventHandlerId = (ulong) eventDescriptor.eventHandlerId,
                         EventArgsType = eventDescriptor.eventArgsType,
                         EventFieldInfo = fieldInfo
                 },

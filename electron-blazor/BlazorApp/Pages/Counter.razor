@@ -7,11 +7,31 @@
 <button class="btn btn-primary" @onclick="IncrementCount" disabled="@(!canIncrementCount)">Click me</button>
 <br/>
 <p>@text</p>
+<br/>
+<fieldset>
+      <p>
+         <input type="radio"
+                name="import"
+                value="on"
+                checked="@(_import)"
+                @onchange="ImportChanged" />
+         Integration of DBSWIN data and settings         
+      </p>
+      <p>
+         <input type="radio"
+                name="noImport"
+                value="off"
+                checked="@(!_import)"
+                @onchange="ImportChanged" />
+         No Integration
+      </p>
+   </fieldset>
 
 @code {
     string text = "Initial";
     int currentCount = 0;
     bool canIncrementCount;
+    bool _import;
 
     protected override async Task OnInitializedAsync()
     {
@@ -26,5 +46,10 @@
     void IncrementCount()
     {
         currentCount++;
+    }
+ 
+    void ImportChanged(ChangeEventArgs args)
+    {
+        _import = args.Value.ToString() == "on";
     }
 }
