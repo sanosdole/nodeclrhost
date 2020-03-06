@@ -251,9 +251,9 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
 
   Napi::HandleScope handleScope(env_);
 
-  auto function = handle.AsObject(env_).As<Napi::Function>();
+  auto value = handle.AsObject(env_);
 
-  return InvokeIntern(function, receiver_handle.AsObject(env_), argc, argv);
+  return InvokeIntern(value, receiver_handle.AsObject(env_), argc, argv);
 }
 
 JsHandle Context::Invoke(const char* name, JsHandle& receiver_handle, int argc,
@@ -267,16 +267,20 @@ JsHandle Context::Invoke(const char* name, JsHandle& receiver_handle, int argc,
 
   auto receiver_object = receiver_handle.AsObject(env_).ToObject();
   auto handle = receiver_object.Get(name);
+
+  return InvokeIntern(handle, receiver_object, argc, argv);
+}
+
+JsHandle Context::InvokeIntern(Napi::Value handle, Napi::Value receiver,
+                               int argc, DotNetHandle* argv) {
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }
+  if (!handle.IsFunction())
+    return JsHandle::Error("JS object is not an invocable function");
 
   auto function = handle.As<Napi::Function>();
-  return InvokeIntern(function, receiver_object, argc, argv);
-}
 
-JsHandle Context::InvokeIntern(Napi::Function function, Napi::Value receiver,
-                               int argc, DotNetHandle* argv) {
   std::vector<napi_value> arguments(argc);
   for (int c = 0; c < argc; c++) {
     arguments[c] = argv[c].ToValue(env_, function_factory_);
@@ -349,14 +353,17 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
       env_, function, (void*)finalizer_data,
       [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {
         auto data = (FunctionFinalizerData*)finalize_data;
-        std::lock_guard<std::mutex> lock(*data->mutex_);
+        {
+          std::lock_guard<std::mutex> lock(*data->mutex_);
 
-        if (data->context_) {
-          data->context_->function_finalizers_.erase(data);
-          data->handle_->Release();
+          if (data->context_) {
+            data->context_->function_finalizers_.erase(data);
+            data->handle_->Release();
+            data->context_ = nullptr;
+          }
+
+          data->handle_.reset(nullptr);
         }
-
-        data->handle_.reset(nullptr);
         delete data;
       },
       nullptr, nullptr);

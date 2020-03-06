@@ -54,7 +54,7 @@ class Context {
   bool IsActiveContext() { return ThreadInstance::Current() == this; }
 
   Napi::Function CreateFunction(DotNetHandle* handle);
-  JsHandle InvokeIntern(Napi::Function function, Napi::Value receiver, int argc,
+  JsHandle InvokeIntern(Napi::Value handle, Napi::Value receiver, int argc,
                         DotNetHandle* argv);
 
  public:

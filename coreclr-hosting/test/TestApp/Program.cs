@@ -212,7 +212,13 @@
                     {
                         var result = global.testObject.TestClass.staticFunc(42);
                         ((int)result).Should().Be(42 + 42);                        
-                    }));
+                    }));                    
+
+                    global.it("should support require", new Action(() =>
+                    {
+                        string sep = global.require("path").sep;
+                        sep.Should().Be(System.IO.Path.DirectorySeparatorChar.ToString());                        
+                    }));  
 
                 }));
 
