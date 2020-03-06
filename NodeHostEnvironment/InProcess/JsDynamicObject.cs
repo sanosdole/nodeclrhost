@@ -1,5 +1,6 @@
 namespace NodeHostEnvironment.InProcess
 {
+    using System.Collections.Generic;
     using System.Dynamic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -43,28 +44,34 @@ namespace NodeHostEnvironment.InProcess
             return jsHandle.TryGetObject(_host, binder.ReturnType, out result);
         }
 
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
+        {
+            if (indexes.Length != 1)
+                throw new InvalidOperationException("We only support single parameter indexer");
+            var index = indexes[0];
+            if (index == null)
+                throw new ArgumentNullException(nameof(index));
+            if (index is string stringIndex)
+            {
+                var jsHandle = _host.GetMember(Handle, stringIndex);
+                return jsHandle.TryGetObject(_host, binder.ReturnType, out result);
+            }
+            if (index is int intIndex)
+            {
+                var jsHandle = _host.GetMemberByIndex(Handle, intIndex);
+                return jsHandle.TryGetObject(_host, binder.ReturnType, out result);
+            }
+
+            return base.TryGetIndex(binder, indexes, out result);
+        }
+
         public override bool TryInvokeMember(InvokeMemberBinder binder,
             object[] args,
             out object result)
         {
-            var member = _host.GetMember(Handle, binder.Name);
-            try
-            {
-                if (member.Type != JsType.Function)
-                {
-                    result = null;
-                    return false;
-                }
-
-                var resultHandle = _host.Invoke(member, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
-                resultHandle.TryGetObject(_host, binder.ReturnType, out result);
-                ConvertDynamic(binder.ReturnType, ref result);
-                return true;
-            }
-            finally
-            {
-                _host.Release(member);
-            }
+            var resultHandle = _host.InvokeByName(binder.Name, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
+            resultHandle.TryGetObject(_host, binder.ReturnType, out result);
+            return true;
         }
 
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
@@ -74,18 +81,7 @@ namespace NodeHostEnvironment.InProcess
                 args.Length,
                 args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
             resultHandle.TryGetObject(_host, binder.ReturnType, out result);
-            ConvertDynamic(binder.ReturnType, ref result);
             return true;
-        }
-
-        private void ConvertDynamic(Type type, ref object result)
-        {
-            if (result is JsDynamicObject dynamic)
-            {
-                if (!dynamic.TryConvertIntern(type, out object temp))
-                    throw new InvalidOperationException($"Could not convert js object to {type.FullName}");
-                result = temp;
-            }
         }
 
         // Converting an object to a specified type.
@@ -119,7 +115,7 @@ namespace NodeHostEnvironment.InProcess
             //Console.WriteLine($"Converting to {type.Name}");
             if (type == typeof(string))
             {
-                var jsResult = _host.Invoke(_host.GetMember(JsValue.Global, "String"),
+                var jsResult = _host.InvokeByName("String",
                     JsValue.Global,
                     1,
                     new DotNetValue[]
@@ -131,11 +127,13 @@ namespace NodeHostEnvironment.InProcess
                     return false;
                 return result is string;
             }
+
             if (typeof(Task).IsAssignableFrom(type))
             {
                 var thenHandle = _host.GetMember(Handle, "then");
                 try
                 {
+                    // Ensure that Handle is a thenable/promise like object
                     if (thenHandle.Type == JsType.Function)
                     {
                         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>))
@@ -148,22 +146,22 @@ namespace NodeHostEnvironment.InProcess
                             var thenResult = _host.Invoke(thenHandle, Handle, 2, new DotNetValue[]
                             {
                                 DotNetValue.FromDelegate(new Action<object>((value) =>
-                                {
-                                    if (value is JsDynamicObject dyna)
                                     {
-                                        if (dyna.TryConvertIntern(resultType, out object temp))
-                                            value = temp;
-                                    }
-                                    completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetResult))
-                                        .Invoke(tcs, new object[] { value });
-                                }), _host),
-                                DotNetValue.FromDelegate(new Action<object>((error) =>
-                                {
-                                    completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetException))
-                                        .Invoke(tcs, new object[] { GetExceptionFromPromiseRejection(error) });
-                                }), _host)
+                                        if (value is JsDynamicObject dyna)
+                                        {
+                                            if (dyna.TryConvertIntern(resultType, out object temp))
+                                                value = temp;
+                                        }
+                                        completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetResult))
+                                            .Invoke(tcs, new object[] { value });
+                                    }), _host),
+                                    DotNetValue.FromDelegate(new Action<object>((error) =>
+                                    {
+                                        completionSourceType.GetMethod(nameof(TaskCompletionSource<object>.SetException))
+                                            .Invoke(tcs, new object[] { GetExceptionFromPromiseRejection(error) });
+                                    }), _host)
                             });
-                            // DM 29.11.2019: thenResult is always another promise                            
+                            // DM 29.11.2019: thenResult is always another promise
                             _host.Release(thenResult);
                             result = completionSourceType.GetProperty(nameof(TaskCompletionSource<object>.Task))
                                 .GetValue(tcs);
@@ -176,10 +174,10 @@ namespace NodeHostEnvironment.InProcess
                             var thenResult = _host.Invoke(thenHandle, Handle, 2, new DotNetValue[]
                             {
                                 DotNetValue.FromDelegate(new Action(() => tcs.SetResult(null)), _host),
-                                DotNetValue.FromDelegate(new Action<object>((error) =>
-                                {
-                                    tcs.SetException(GetExceptionFromPromiseRejection(error));
-                                }), _host)
+                                    DotNetValue.FromDelegate(new Action<object>((error) =>
+                                    {
+                                        tcs.SetException(GetExceptionFromPromiseRejection(error));
+                                    }), _host)
                             });
                             // DM 29.11.2019: thenResult is always another promise
                             _host.Release(thenResult);
@@ -193,6 +191,9 @@ namespace NodeHostEnvironment.InProcess
                     _host.Release(thenHandle);
                 }
 
+                result = null;
+                return false;
+
             }
 
             if (typeof(Exception).IsAssignableFrom(type))
@@ -204,8 +205,57 @@ namespace NodeHostEnvironment.InProcess
                     result = new InvalidOperationException($"JS Error:\n{stack}");
                     return true;
                 }
+
+                result = null;
+                return false;
             }
 
+            if (type.IsArray)
+            {
+                var innerType = type.GetElementType();
+                if (TryConvertToArray(innerType, out result))
+                    return true;
+
+                result = null;
+                return false;
+            }
+
+            if (type.IsGenericType && type.IsInterface)
+            {
+                var unclosed = type.GetGenericTypeDefinition();
+                if (unclosed == typeof(IEnumerable<>) || unclosed == typeof(IReadOnlyCollection<>))
+                {
+                    var innerType = type.GetGenericArguments() [0];
+                    if (TryConvertToArray(innerType, out result))
+                        return true;
+                }
+
+                result = null;
+                return false;
+            }
+
+            result = null;
+            return false;
+        }
+
+        private bool TryConvertToArray(Type innerType, out object result)
+        {
+            JsValue[] values = _host.GetArrayValues(Handle);
+            if (null != values)
+            {
+                var array = Array.CreateInstance(innerType, values.Length);
+                var i = 0;
+                foreach (var value in values)
+                {
+                    // TODO DM 05.03.2020: Should we throw or return false?
+                    if (!value.TryGetObject(_host, innerType, out object clrValue))
+                        throw new InvalidOperationException($"Could not convert element {i} in js array to a {innerType.FullName}");
+                    array.SetValue(clrValue, i);
+                    i++;
+                }
+                result = array;
+                return true;
+            }
             result = null;
             return false;
         }

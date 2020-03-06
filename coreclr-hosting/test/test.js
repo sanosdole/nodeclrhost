@@ -20,12 +20,17 @@ global.setupTestObject = function () {
     integerValue: 42,
     doubleValue: 3.1415,
     stringValue: "Hello world",
+    stringArray: [ "A", "B" ],
+    mixedArray: [ "A", 42, { iValue: 42, strValue: "strValue"} ],
     objectValue: {
       nestedStringValue: "Nested hello"
     },
     nullValue: null,
     trueValue: true,
     falseValue: false,
+    addIntegerValue: function(value) {
+      return value + this.integerValue;
+    },
     funcThatThrows: function () {
       throw new Error("Test error message");
     },
@@ -54,10 +59,18 @@ global.setupTestObject = function () {
     },
     awaitPromise: function (promise) {
       return promise;
+    },
+    TestClass: function (arg) {
+      this.value = arg;
     }
   };
+
+  global.testObject.TestClass.staticFunc = function (arg) {
+    return arg + 42;
+  }
 };
 
+console.log("PID: " + process.pid);
 var result = coreclrhosting.runCoreApp(__dirname + '/TestApp/bin/Debug/netcoreapp3.0/TestApp.dll');
 
 describe('coreclrhosting', function () {

@@ -25,7 +25,7 @@ void asyncReleaseCallback(uv_handle_t* handle) {
 
 namespace coreclrhosting {
 
-struct  Context::FunctionFinalizerData {
+struct Context::FunctionFinalizerData {
   std::unique_ptr<DotNetHandle> handle_;
   Context* context_;
   std::shared_ptr<std::mutex> mutex_;
@@ -107,8 +107,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
 
   if (info.Length() < 1 || !info[0].IsString()) {
-    Napi::Error::New(env,
-                     "Expected path to assembly as first argument")
+    Napi::Error::New(env, "Expected path to assembly as first argument")
         .ThrowAsJavaScriptException();
     return Napi::Value();
   }
@@ -119,17 +118,17 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
       Napi::Error::New(env, "Expected only string arguments")
           .ThrowAsJavaScriptException();
       return Napi::Value();
-    }    
+    }
     arguments[i] = info[i].ToString();
-    //printf("Argument %d:%s\n", i, arguments[i].c_str());
+    // printf("Argument %d:%s\n", i, arguments[i].c_str());
   }
 
   std::unique_ptr<DotNetHost> host;
 
-  auto result = DotNetHost::Create(arguments, host);  
+  auto result = DotNetHost::Create(arguments, host);
   switch (result) {
     case DotNetHostCreationResult::kOK:
-      break;    
+      break;
     case DotNetHostCreationResult::kAssemblyNotFound: {
       std::ostringstream stringStream;
       stringStream << "Could not find the assembly at: "
@@ -138,8 +137,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
       return Napi::Value();
     }
     case DotNetHostCreationResult::kCoreClrNotFound:
-      Napi::Error::New(env,
-                       "The coreclr could not be found")
+      Napi::Error::New(env, "The coreclr could not be found")
           .ThrowAsJavaScriptException();
       return Napi::Value();
     case DotNetHostCreationResult::kInvalidCoreClr:
@@ -163,12 +161,12 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   ThreadInstance _(context);
 
   auto exit_code = context->host_->ExecuteAssembly();
-  return Napi::Number::New(env, exit_code);  
+  return Napi::Number::New(env, exit_code);
 }
 
 JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
-  if (!owner_handle.IsObject())
-    return JsHandle::Error("Only objects support GetMember");
+  if (!owner_handle.SupportsMembers())
+    return JsHandle::Error("JsHandle does not support member-access");
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
@@ -183,10 +181,29 @@ JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
 
   return JsHandle::FromValue(result);
 }
+
+JsHandle Context::GetMemberByIndex(JsHandle& owner_handle, int index) {
+  if (!owner_handle.SupportsMembers())
+    return JsHandle::Error("JsHandle does not support member-access");
+  if (!IsActiveContext())
+    return JsHandle::Error("Must be called on node thread");
+
+  Napi::HandleScope handleScope(env_);
+
+  auto owner = owner_handle.AsObject(env_);
+  auto owner_object = owner.ToObject();
+  auto result = owner_object[index];
+  if (env_.IsExceptionPending()) {
+    return JsHandle::Error(env_.GetAndClearPendingException().Message());
+  }
+
+  return JsHandle::FromValue(result);
+}
+
 JsHandle Context::SetMember(JsHandle& owner_handle, const char* name,
                             DotNetHandle& dotnet_handle) {
-  if (!owner_handle.IsObject())
-    return JsHandle::Error("Only objects support SetMember");
+  if (!owner_handle.SupportsMembers())
+    return JsHandle::Error("JsHandle does not support member-access");
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
@@ -197,7 +214,7 @@ JsHandle Context::SetMember(JsHandle& owner_handle, const char* name,
   auto value = dotnet_handle.ToValue(env_, function_factory_);
   dotnet_handle.Release();
   owner_object.Set(name, value);
-  return JsHandle::FromValue(value);
+  return JsHandle::Undefined();
 }
 JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
                                DotNetHandle* argv) {
@@ -226,6 +243,7 @@ JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
 
   return JsHandle(newObj);
 }
+
 JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
                          DotNetHandle* argv) {
   if (!IsActiveContext())
@@ -234,16 +252,38 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
   Napi::HandleScope handleScope(env_);
 
   auto function = handle.AsObject(env_).As<Napi::Function>();
+
+  return InvokeIntern(function, receiver_handle.AsObject(env_), argc, argv);
+}
+
+JsHandle Context::Invoke(const char* name, JsHandle& receiver_handle, int argc,
+                         DotNetHandle* argv) {
+  if (!receiver_handle.SupportsMembers())
+    return JsHandle::Error("JsHandle does not support member-access");
+  if (!IsActiveContext())
+    return JsHandle::Error("Must be called on node thread");
+
+  Napi::HandleScope handleScope(env_);
+
+  auto receiver_object = receiver_handle.AsObject(env_).ToObject();
+  auto handle = receiver_object.Get(name);
+  if (env_.IsExceptionPending()) {
+    return JsHandle::Error(env_.GetAndClearPendingException().Message());
+  }
+
+  auto function = handle.As<Napi::Function>();
+  return InvokeIntern(function, receiver_object, argc, argv);
+}
+
+JsHandle Context::InvokeIntern(Napi::Function function, Napi::Value receiver,
+                               int argc, DotNetHandle* argv) {
   std::vector<napi_value> arguments(argc);
   for (int c = 0; c < argc; c++) {
     arguments[c] = argv[c].ToValue(env_, function_factory_);
-    // printf("Releasing ptr %p \n",
-    // reinterpret_cast<u_int64_t>(argv[c].value_));
     argv[c].Release();
   }
 
-  auto result =
-      function.MakeCallback(receiver_handle.AsObject(env_), arguments);
+  auto result = function.MakeCallback(receiver, arguments);
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }

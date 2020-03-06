@@ -1,12 +1,12 @@
 #ifndef __CORECLR_HOSTING_CONTEXT_H__
 #define __CORECLR_HOSTING_CONTEXT_H__
 
-#include <mutex>
-#include <string>
-#include <vector>
-#include <set>
 #include <future>
 #include <iostream>
+#include <mutex>
+#include <set>
+#include <string>
+#include <vector>
 
 #include <napi.h>
 #include <uv.h>
@@ -21,7 +21,7 @@ class Context {
   struct FunctionFinalizerData;
   typedef std::function<void(void*)> netCallback_t;
   typedef std::vector<std::pair<netCallback_t, void*>> netCallbacks_t;
-  
+
   Napi::Env env_;
   uv_async_t async_handle_;
   netCallbacks_t dotnet_callbacks_;
@@ -54,6 +54,8 @@ class Context {
   bool IsActiveContext() { return ThreadInstance::Current() == this; }
 
   Napi::Function CreateFunction(DotNetHandle* handle);
+  JsHandle InvokeIntern(Napi::Function function, Napi::Value receiver, int argc,
+                        DotNetHandle* argv);
 
  public:
   static Napi::Value RunCoreApp(const Napi::CallbackInfo& info);
@@ -70,11 +72,14 @@ class Context {
   // Get/SetMember , CreateObject, Invoke(Member) can only be called on node
   // thread
   JsHandle GetMember(JsHandle& owner_handle, const char* name);
+  JsHandle GetMemberByIndex(JsHandle& owner_handle, int index);
   JsHandle SetMember(JsHandle& owner_handle, const char* name,
                      DotNetHandle& dotnet_handle);
   JsHandle CreateObject(JsHandle& prototype_function, int argc,
                         DotNetHandle* argv);
   JsHandle Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
+                  DotNetHandle* argv);
+  JsHandle Invoke(const char* name, JsHandle& receiver_handle, int argc,
                   DotNetHandle* argv);
   void CompletePromise(napi_deferred deferred, DotNetHandle& handle);
 };

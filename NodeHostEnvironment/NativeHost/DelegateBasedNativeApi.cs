@@ -13,8 +13,10 @@ namespace NodeHostEnvironment.NativeHost
             ReleaseContext releaseContext,
             PostCallback postCallback,
             GetMember getMember,
+            GetMemberByIndex getMemberByIndex,
             SetMember setMember,
             Invoke invoke,
+            InvokeByName invokeByName,
             CreateObject createObject,
             CompletePromise completePromise,
             Release release)
@@ -23,8 +25,10 @@ namespace NodeHostEnvironment.NativeHost
             ReleaseContext = releaseContext;
             PostCallback = postCallback;
             GetMember = getMember;
+            GetMemberByIndex = getMemberByIndex;
             SetMember = setMember;
             Invoke = invoke;
+            InvokeByName = invokeByName;
             CreateObject = createObject;
             CompletePromise = completePromise;
             Release = release;
@@ -34,12 +38,13 @@ namespace NodeHostEnvironment.NativeHost
         public ReleaseContext ReleaseContext { get; }
         public PostCallback PostCallback { get; }
         public GetMember GetMember { get; }
+        public GetMemberByIndex GetMemberByIndex { get; }
         public SetMember SetMember { get; }
         public Invoke Invoke { get; }
+        public InvokeByName InvokeByName { get; }
         public CreateObject CreateObject { get; }
         public CompletePromise CompletePromise { get; }
         public Release Release { get; }
-
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -55,6 +60,8 @@ namespace NodeHostEnvironment.NativeHost
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate JsValue GetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name); // A zero handle uses the global object.
 
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate JsValue GetMemberByIndex(IntPtr context, JsValue ownerHandle, int index); // A zero handle uses the global object.
     // Convert handles to primitives can be done in managed code based on JsType
     // ATTENTION: 32bit node exists :(
 
@@ -65,6 +72,9 @@ namespace NodeHostEnvironment.NativeHost
     // Invoke handles that represent functions
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate JsValue Invoke(IntPtr context, JsValue handle, JsValue receiverHandle, int argc, DotNetValue[] argv);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    internal delegate JsValue InvokeByName(IntPtr context, [MarshalAs(UnmanagedType.LPStr)] string name, JsValue receiverHandle, int argc, DotNetValue[] argv);
     /*
             // Create a JSON object
             [DllImport("coreclr-hosting.node", CallingConvention = CallingConvention.Cdecl)]

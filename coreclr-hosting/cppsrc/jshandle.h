@@ -119,13 +119,11 @@ struct JsHandle {
     if (value.IsObject()) {
       return JsHandle(value.ToObject());
     }
-
-    // TODO: Marshal arrays
-
+    
     return Undefined();
   }
 
-  bool IsObject() { return type_ == JsType::Object; }
+  bool SupportsMembers() { return type_ == JsType::Object || type_ == JsType::Function; }
 
   bool IsNotNullFunction() {
     return type_ == JsType::Function && function_value_ != nullptr;
@@ -135,15 +133,18 @@ struct JsHandle {
     // printf("Releasing %d \n", Type);
     if (type_ == JsType::Object) {
       delete object_value_;
+      object_value_ = nullptr;
       return;
     }
     if (type_ == JsType::Function) {
       delete function_value_;
+      function_value_ = nullptr;
       return;
     }
 
     if (type_ == JsType::String || type_ == JsType::Error) {
       delete[] string_value_;
+      string_value_ = nullptr;
     }
   }
 };

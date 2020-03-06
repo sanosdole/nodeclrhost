@@ -200,6 +200,13 @@ namespace NodeHostEnvironment.NativeHost
             return NativeMethods.GetMember(_context, ownerHandle, name);
         }
 
+        public JsValue GetMemberByIndex(JsValue ownerHandle, int index)
+        {
+            CheckInContext();
+            return NativeMethods.GetMemberByIndex(_context, ownerHandle, index);
+        }
+
+
         // Convert handles to primitives can be done in managed code based on JsType
         // ATTENTION: 32bit node exists :(
 
@@ -218,16 +225,44 @@ namespace NodeHostEnvironment.NativeHost
             return NativeMethods.Invoke(_context, handle, receiverHandle, argc, argv);
         }
 
+        public JsValue InvokeByName(string name, JsValue receiverHandle, int argc, DotNetValue[] argv) 
+        {
+            CheckInContext();
+            return NativeMethods.InvokeByName(_context, name, receiverHandle, argc, argv);
+        }
+
         public JsValue CreateObject(JsValue constructor, DotNetValue[] arguments)
         {
             CheckInContext();
             return NativeMethods.CreateObject(_context, constructor, arguments?.Length ?? 0, arguments);
         }
 
+        public JsValue[] GetArrayValues(JsValue handle)
+        {
+            CheckInContext();
+
+            var lengthHandle = NativeMethods.GetMember(_context, handle, "length");
+            lengthHandle.ThrowError(this); // Maybe inner exception?
+            if (lengthHandle.Type != JsType.Number)
+                throw new InvalidOperationException("JsValue is not an array, as it has no 'length' member");
+            
+            // TODO: This will break on 32 bit systems!
+            var length = (int)BitConverter.Int64BitsToDouble((long) lengthHandle.Value);
+            
+            // Allocating the array in managed code spares us releasing native array allocation
+            var result = new JsValue[length];
+            for (int i = 0; i < length; i++)
+            {
+                // DM 05.03.2020: Move loop to native code filling result could spare n pinvokes.
+                result[i] = NativeMethods.GetMemberByIndex(_context, handle, i);
+            }
+            return result;
+        }
+
         public void Release(JsValue handle)
         {
             // This should be callable from any thread
-            NativeMethods.Release(handle);
+            NativeMethods.Release(handle);            
         }
 
         public string StringFromNativeUtf8(IntPtr nativeUtf8)

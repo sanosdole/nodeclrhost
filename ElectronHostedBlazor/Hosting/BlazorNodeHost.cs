@@ -4,16 +4,13 @@
 
 namespace BlazorApp.Hosting
 {
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
-    
+
     public static class BlazorNodeHost
     {
         /// <summary>
-        /// Creates an instance of <see cref="IWebAssemblyHostBuilder"/>.
+        /// Creates an instance of <see cref="INodeHostBuilder"/>.
         /// </summary>
-        /// <returns>The <see cref="IWebAssemblyHostBuilder"/>.</returns>
+        /// <returns>The <see cref="INodeHostBuilder"/>.</returns>
         public static INodeHostBuilder CreateDefaultBuilder()
         {
             return new NodeHostBuilder();

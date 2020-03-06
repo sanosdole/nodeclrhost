@@ -89,8 +89,7 @@ namespace BlazorApp.Hosting
             services.AddSingleton<IJSRuntime>(NodeJSRuntime.Instance);
             services.AddSingleton<NavigationManager>(NodeNavigationManager.Instance);
             services.AddSingleton<INavigationInterception>(NodeNavigationInterception.Instance);
-            services.AddSingleton<ILoggerFactory, NodeLoggerFactory>();
-
+            
             // DM 19.08.2019: We do not need an HttpClient like WebAssembly does
             /*services.AddSingleton<HttpClient>(s =>
             {
@@ -106,6 +105,9 @@ namespace BlazorApp.Hosting
             // However, since authorization isn't on by default, we could consider removing these and
             // having a separate services.AddBlazorAuthorization() call that brings in the required services.
             services.AddOptions();
+
+            // Logging
+            services.AddSingleton<ILoggerFactory, NodeLoggerFactory>();
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(NodeConsoleLogger<>)));
 
             foreach (var configureServicesAction in _configureServicesActions)

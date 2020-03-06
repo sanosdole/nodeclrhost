@@ -1,6 +1,7 @@
 ﻿namespace TestApp
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using FluentAssertions;
     using NodeHostEnvironment;
@@ -12,8 +13,11 @@
 
             try
             {
-                var host = NodeHost.InProcess("./build/Release/coreclr-hosting.node");
+                var host = NodeHost.InProcess(/*"./build/Release/coreclr-hosting.node"*/);
                 var global = host.Global;
+
+                /*Console.WriteLine("Waiting for debugger!");
+                while(!System.Diagnostics.Debugger.IsAttached) System.Threading.Thread.Sleep(50);*/
 
                 global.registerAsyncTest(new Func<Task>(() => Task.Delay(5)));
 
@@ -31,6 +35,10 @@
                     global.it("should have integerValue 42", new Action(() =>
                     {
                         ((int) global.testObject.integerValue).Should().Be(42);
+
+                        // TODO DM 05.03.2020: This does not work as DLR binds an `object`, which will be a double for number types :(
+                        /*int i = global.testObject.integerValue;
+                        i.Should().Be(42);*/
                     }));
 
                     global.it("should have doubleValue 3.1415", new Action(() =>
@@ -57,6 +65,52 @@
                     {
                         ((bool) global.testObject.trueValue).Should().Be(true);
                         ((bool) global.testObject.falseValue).Should().Be(false);
+                    }));
+
+                    global.it("should have string array values", new Action(() =>
+                    {
+                        ((string[]) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+                        ((IReadOnlyCollection<string>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+                        ((IEnumerable<string>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+
+                        ((object[]) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+                        ((IReadOnlyCollection<object>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+                        ((IEnumerable<object>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+
+                    }));
+
+                    global.it("should have mixed array values", new Action(() =>
+                    {
+                        var mixedObjArray = (object[]) global.testObject.mixedArray;
+                        mixedObjArray.Length.Should().Be(3);
+                        ((string)mixedObjArray[0]).Should().Be("A");
+                        ((double)mixedObjArray[1]).Should().Be(42); // TODO DM 05.03.2020: Casting to (int) should be supported
+                        ((int)((dynamic)mixedObjArray[2]).iValue).Should().Be(42);
+                        ((string)((dynamic)mixedObjArray[2]).strValue).Should().Be("strValue");
+
+                         var mixedDynArray = (IReadOnlyCollection<dynamic>) global.testObject.mixedArray;
+                        mixedDynArray.Count.Should().Be(3);
+                        /*((string)mixedDynArray[0]).Should().Be("A");
+                        ((int)mixedDynArray[1]).Should().Be(42);
+                        ((int)((dynamic)mixedDynArray[2]).iValue).Should().Be(42);
+                        ((string)((dynamic)mixedDynArray[2]).strValue).Should().Be("strValue");*/
+
+                    }));
+
+                    global.it("should support indexer", new Action(() =>
+                    {
+                        dynamic array = global.testObject["stringArray"];
+                        string entry1 = array[0];
+                        string entry2 = array[1];
+
+                        entry1.Should().Be("A");
+                        entry2.Should().Be("B");
+                    }));
+
+                    global.it("should accept dynamic numbers back", new Action(() =>
+                    {
+                        var result = (int)global.testObject.addIntegerValue(global.testObject.integerValue);
+                        result.Should().Be(84);
                     }));
 
                     global.it("should throw on funcThatThrows", new Action(() =>
@@ -146,6 +200,18 @@
                         didThrow.Should().Be(true);
                         
                         
+                    }));
+
+                    global.it("should instantiate TestClass", new Action(() =>
+                    {
+                        var inst = global.testObject.TestClass.CreateNewInstance(42);
+                        ((int)inst.value).Should().Be(42);                        
+                    }));
+
+                    global.it("should call TestClass.staticFunc", new Action(() =>
+                    {
+                        var result = global.testObject.TestClass.staticFunc(42);
+                        ((int)result).Should().Be(42 + 42);                        
                     }));
 
                 }));

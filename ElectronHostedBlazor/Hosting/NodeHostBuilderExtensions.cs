@@ -47,6 +47,7 @@ namespace BlazorApp.Hosting
             // really have a need for it.
             builder.Properties.Add(BlazorStartupKey, bool.TrueString);
 
+            // TODO: Use a passed instance here, or even better: Check if this design should be simplified!
             var startup = new ConventionBasedStartup(Activator.CreateInstance(startupType));
 
             builder.ConfigureServices(startup.ConfigureServices);

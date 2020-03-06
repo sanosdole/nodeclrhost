@@ -23,6 +23,7 @@ namespace NodeHostEnvironment.InProcess
                 switch (Type)
                 {
                     case JsType.Null:
+                        releaseHandle = false;
                         result = null;
                         return true;
                     case JsType.Object:
@@ -31,7 +32,12 @@ namespace NodeHostEnvironment.InProcess
                         var asDynamic = new JsDynamicObject(this, host);
                         var wasConverted = asDynamic.TryConvertIntern(targetType, out result);
                         if (wasConverted)
-                            return true;
+                        {
+                            // Prevent GC release of `asDynamic` by disposing it now
+                            if (!ReferenceEquals(asDynamic, result))
+                                asDynamic.Dispose();
+                            return true; 
+                        }
                         result = asDynamic;
                         return true;
                     case JsType.String:
@@ -39,6 +45,7 @@ namespace NodeHostEnvironment.InProcess
                         return true;
                     case JsType.Number:
                         // TODO: This will break on 32 bit systems!
+                        releaseHandle = false;
                         var numberValue = BitConverter.Int64BitsToDouble((long) Value);
                         if (targetType == typeof(int))                        
                             result = (int)numberValue;
@@ -48,6 +55,7 @@ namespace NodeHostEnvironment.InProcess
                             result = numberValue;
                         return true;
                     case JsType.Boolean:
+                        releaseHandle = false;
                         result = Value != IntPtr.Zero;
                         return true;
                     case JsType.Error:
@@ -55,9 +63,11 @@ namespace NodeHostEnvironment.InProcess
                         throw new InvalidOperationException(host.StringFromNativeUtf8(Value));
 
                     case JsType.Undefined:
-                    default:
+                        releaseHandle = false;
                         result = null;
                         return false;
+                    default:
+                        throw new InvalidOperationException($"Unsupported JsType '{Type}'");
 
                 }
             }

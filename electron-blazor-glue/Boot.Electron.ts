@@ -22,6 +22,8 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
   }
   started = true;
 
+  window['electron'] = require('electron');
+
   setEventDispatcher((eventDescriptor, eventArgs) => window['Blazor']._internal.HandleRendererEvent(eventDescriptor, JSON.stringify(eventArgs)));
   //DotNet.invokeMethodAsync('Microsoft.AspNetCore.Blazor', 'DispatchEvent', eventDescriptor, JSON.stringify(eventArgs)));
 
@@ -52,7 +54,7 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
     } catch (error) {
       console.error(error);
     }
-  }
+  }  
 
   // DM 21.08.2019: Start the blazor app
   console.info("Running in process " + process.pid);

@@ -29,6 +29,8 @@ namespace NodeHostEnvironment.InProcess
                 return FromBool((bool)obj);
             if (obj is int)
                 return FromInt((int)obj);
+            if (obj is double)
+                return FromDouble((double)obj);
             if (obj is Delegate)
                 return FromDelegate((Delegate)obj, host);
             if (obj is JsValue)
@@ -119,6 +121,17 @@ namespace NodeHostEnvironment.InProcess
             {
                 Type = DotNetType.Int32,
                 Value = new IntPtr(value),
+                ReleaseFunc = null
+            };
+        }
+
+        public static DotNetValue FromDouble(double value)
+        {
+            return new DotNetValue
+            {
+                Type = DotNetType.Double,
+                // TODO: Breaks on 32bit node :(
+                Value = new IntPtr(BitConverter.DoubleToInt64Bits(value)),
                 ReleaseFunc = null
             };
         }

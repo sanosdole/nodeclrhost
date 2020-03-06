@@ -31,6 +31,8 @@ namespace BlazorApp.Hosting
                 {
                     Console.WriteLine(task.Exception);
                 }
+                //host.StopAsync();
+                //host.Dispose();
             });
         }
     }

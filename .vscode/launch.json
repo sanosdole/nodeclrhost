@@ -4,6 +4,17 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    {
+        "name": "(Windows) Starten Mocha coreclr-hosting",
+        "type": "cppvsdbg",
+        "request": "launch",
+        "program": "node",
+        "args": [ "${workspaceFolder}\\coreclr-hosting\\node_modules\\mocha\\bin\\mocha" ],
+        "stopAtEntry": false,
+        "cwd": "${workspaceFolder}\\coreclr-hosting",
+        "environment": [ { "name": "DEBUG", "value": "1"}],
+        "externalConsole": false
+    },
         {
             "name": "(Windows) Attach",
             "type": "cppvsdbg",
