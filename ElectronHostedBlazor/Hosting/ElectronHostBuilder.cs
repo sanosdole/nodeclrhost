@@ -13,14 +13,15 @@ namespace ElectronHostedBlazor.Hosting
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.JSInterop;
-    using NodeHostEnvironment.BridgeApi;
+    using NodeHostEnvironment.NativeHost;
+    using NodeHostEnvironment;
 
-    internal sealed class NodeHostBuilder : INodeHostBuilder
+    internal sealed class ElectronHostBuilder : IElectronHostBuilder
     {
-        private List<Action<NodeHostBuilderContext, IServiceCollection>> _configureServicesActions = new List<Action<NodeHostBuilderContext, IServiceCollection>>();
+        private List<Action<ElectronHostBuilderContext, IServiceCollection>> _configureServicesActions = new List<Action<ElectronHostBuilderContext, IServiceCollection>>();
         private bool _hostBuilt;
-        private NodeHostBuilderContext _BrowserHostBuilderContext;
-        private INodeServiceFactoryAdapter _serviceProviderFactory = new NodeServiceFactoryAdapter<IServiceCollection>(new DefaultServiceProviderFactory());
+        private ElectronHostBuilderContext _BrowserHostBuilderContext;
+        private IElectronServiceFactoryAdapter _serviceProviderFactory = new ElectronServiceFactoryAdapter<IServiceCollection>(new DefaultServiceProviderFactory());
         private IServiceProvider _appServices;
 
         /// <summary>
@@ -32,8 +33,8 @@ namespace ElectronHostedBlazor.Hosting
         /// Adds services to the container. This can be called multiple times and the results will be additive.
         /// </summary>
         /// <param name="configureDelegate"></param>
-        /// <returns>The same instance of the <see cref="INodeHostBuilder"/> for chaining.</returns>
-        public INodeHostBuilder ConfigureServices(Action<NodeHostBuilderContext, IServiceCollection> configureDelegate)
+        /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
+        public IElectronHostBuilder ConfigureServices(Action<ElectronHostBuilderContext, IServiceCollection> configureDelegate)
         {
             _configureServicesActions.Add(configureDelegate ??
                 throw new ArgumentNullException(nameof(configureDelegate)));
@@ -43,10 +44,10 @@ namespace ElectronHostedBlazor.Hosting
         /// <summary>
         /// Overrides the factory used to create the service provider.
         /// </summary>
-        /// <returns>The same instance of the <see cref="INodeHostBuilder"/> for chaining.</returns>
-        public INodeHostBuilder UseServiceProviderFactory<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory)
+        /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
+        public IElectronHostBuilder UseServiceProviderFactory<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory)
         {
-            _serviceProviderFactory = new NodeServiceFactoryAdapter<TContainerBuilder>(factory ??
+            _serviceProviderFactory = new ElectronServiceFactoryAdapter<TContainerBuilder>(factory ??
                 throw new ArgumentNullException(nameof(factory)));
             return this;
         }
@@ -54,10 +55,10 @@ namespace ElectronHostedBlazor.Hosting
         /// <summary>
         /// Overrides the factory used to create the service provider.
         /// </summary>
-        /// <returns>The same instance of the <see cref="INodeHostBuilder"/> for chaining.</returns>
-        public INodeHostBuilder UseServiceProviderFactory<TContainerBuilder>(Func<NodeHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
+        /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
+        public IElectronHostBuilder UseServiceProviderFactory<TContainerBuilder>(Func<ElectronHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
         {
-            _serviceProviderFactory = new NodeServiceFactoryAdapter<TContainerBuilder>(() => _BrowserHostBuilderContext, factory ??
+            _serviceProviderFactory = new ElectronServiceFactoryAdapter<TContainerBuilder>(() => _BrowserHostBuilderContext, factory ??
                 throw new ArgumentNullException(nameof(factory)));
             return this;
         }
@@ -65,8 +66,8 @@ namespace ElectronHostedBlazor.Hosting
         /// <summary>
         /// Run the given actions to initialize the host. This can only be called once.
         /// </summary>
-        /// <returns>An initialized <see cref="INodeHost"/></returns>
-        public INodeHost Build()
+        /// <returns>An initialized <see cref="IElectronHost"/></returns>
+        public IElectronHost Build()
         {
             if (_hostBuilt)
             {
@@ -77,12 +78,12 @@ namespace ElectronHostedBlazor.Hosting
             CreateBrowserHostBuilderContext();
             CreateServiceProvider();
 
-            return _appServices.GetRequiredService<INodeHost>();
+            return _appServices.GetRequiredService<IElectronHost>();
         }
 
         private void CreateBrowserHostBuilderContext()
         {
-            _BrowserHostBuilderContext = new NodeHostBuilderContext(Properties);
+            _BrowserHostBuilderContext = new ElectronHostBuilderContext(Properties);
         }
 
         private void CreateServiceProvider()
@@ -91,19 +92,19 @@ namespace ElectronHostedBlazor.Hosting
             services.AddSingleton(_BrowserHostBuilderContext);
 
             // Could use `Properties` to configure path
-            var nodeHost = NodeHostEnvironment.NodeHost.InProcess();
+            var nodeHost = NativeHost.Initialize();
             nodeHost.Global.window.addEventListener("unload",
                 new Action<dynamic>(e => nodeHost.Dispose()));
             services.AddSingleton<IBridgeToNode>(nodeHost);
 
-            var jsRuntime = new NodeJSRuntime(nodeHost);
+            var jsRuntime = new ElectronJSRuntime(nodeHost);
             services.AddSingleton<IJSRuntime>(jsRuntime);
             services.AddSingleton<IJSInProcessRuntime>(jsRuntime);
 
-            services.AddSingleton<INodeHost, NodeHost>();
+            services.AddSingleton<IElectronHost, ElectronHost>();
 
-            services.AddSingleton<NavigationManager>(new NodeNavigationManager(nodeHost));
-            services.AddSingleton<INavigationInterception>(new NodeNavigationInterception(nodeHost));
+            services.AddSingleton<NavigationManager>(new ElectronNavigationManager(nodeHost));
+            services.AddSingleton<INavigationInterception>(new ElectronNavigationInterception(nodeHost));
 
             // DM 19.08.2019: We do not need an HttpClient like WebAssembly does as we have the full framework
             /*services.AddSingleton<HttpClient>(s =>
@@ -122,8 +123,8 @@ namespace ElectronHostedBlazor.Hosting
             services.AddOptions();
 
             // Logging
-            services.AddSingleton<ILoggerFactory, NodeLoggerFactory>();
-            services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(NodeConsoleLogger<>)));
+            services.AddSingleton<ILoggerFactory, ElectronLoggerFactory>();
+            services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(ElectronConsoleLogger<>)));
 
             // Apply user customization
             foreach (var configureServicesAction in _configureServicesActions)

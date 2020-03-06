@@ -8,7 +8,7 @@ namespace ElectronHostedBlazor.Hosting
     using System.Threading;
     using System.Threading.Tasks;
 
-    public interface INodeHost : IDisposable
+    public interface IElectronHost : IDisposable
     {
         /// <summary>
         /// The programs configured services.

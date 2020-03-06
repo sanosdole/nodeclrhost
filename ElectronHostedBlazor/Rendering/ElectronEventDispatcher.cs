@@ -14,11 +14,11 @@ namespace ElectronHostedBlazor.Rendering
     /// <summary>
     /// Provides mechanisms for dispatching events to components in a <see cref="Renderer"/>.
     /// </summary>
-    internal sealed class RendererRegistryEventDispatcher
+    internal sealed class ElectronEventDispatcher
     {
-        private readonly NodeRenderer _renderer;
+        private readonly ElectronRenderer _renderer;
 
-        public RendererRegistryEventDispatcher(NodeRenderer renderer)
+        public ElectronEventDispatcher(ElectronRenderer renderer)
         {
             _renderer = renderer;
         }

@@ -3,13 +3,14 @@
     using System.Threading.Tasks;
     using System;
     using NodeHostEnvironment;
+    using NodeHostEnvironment.NativeHost;
     using System.Diagnostics;
 
     class Program
     {
         static int Main(string[] args)
         {
-            var host = NodeHost.InProcess();
+            var host = NativeHost.Initialize();
 
             try
             {

@@ -11,11 +11,11 @@ namespace ElectronHostedBlazor.Hosting
     using ElectronHostedBlazor.Rendering;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
-    using NodeHostEnvironment.BridgeApi;
+    using NodeHostEnvironment;
 
-    internal class NodeBlazorApplicationBuilder : IComponentsApplicationBuilder
+    internal class ElectronBlazorApplicationBuilder : IComponentsApplicationBuilder
     {
-        public NodeBlazorApplicationBuilder(IServiceProvider services)
+        public ElectronBlazorApplicationBuilder(IServiceProvider services)
         {
             Entries = new List<(Type componentType, string domElementSelector)>();
             Services = services;
@@ -40,10 +40,10 @@ namespace ElectronHostedBlazor.Hosting
             Entries.Add((componentType, domElementSelector));
         }
 
-        public async Task<NodeRenderer> CreateRendererAsync()
+        public async Task<ElectronRenderer> CreateRendererAsync()
         {
             var loggerFactory = (ILoggerFactory)Services.GetService(typeof(ILoggerFactory));
-            var renderer = new NodeRenderer(Services, loggerFactory, Services.GetRequiredService<IBridgeToNode>());
+            var renderer = new ElectronRenderer(Services, loggerFactory, Services.GetRequiredService<IBridgeToNode>());
             for (var i = 0; i < Entries.Count; i++)
             {
                 var (componentType, domElementSelector) = Entries[i];

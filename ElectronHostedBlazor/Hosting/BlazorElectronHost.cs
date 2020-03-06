@@ -5,15 +5,15 @@
 namespace ElectronHostedBlazor.Hosting
 {
 
-    public static class BlazorNodeHost
+    public static class BlazorElectronHost
     {
         /// <summary>
-        /// Creates an instance of <see cref="INodeHostBuilder"/>.
+        /// Creates an instance of <see cref="IElectronHostBuilder"/>.
         /// </summary>
-        /// <returns>The <see cref="INodeHostBuilder"/>.</returns>
-        public static INodeHostBuilder CreateDefaultBuilder()
+        /// <returns>The <see cref="IElectronHostBuilder"/>.</returns>
+        public static IElectronHostBuilder CreateDefaultBuilder()
         {
-            return new NodeHostBuilder();
+            return new ElectronHostBuilder();
         }
     }
 }

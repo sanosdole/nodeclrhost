@@ -5,18 +5,20 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using NodeHostEnvironment;
 
 namespace ElectronHostedBlazor.Rendering
 {
-    internal class NullDispatcher : Dispatcher
+    internal sealed class ElectronDispatcher : Dispatcher
     {
-        public static readonly Dispatcher Instance = new NullDispatcher();
+        private readonly IBridgeToNode _node;
 
-        private NullDispatcher()
+        public ElectronDispatcher(IBridgeToNode node)
         {
+            _node = node;
         }
 
-        public override bool CheckAccess() => true;
+        public override bool CheckAccess() => _node.CheckAccess();
 
         public override Task InvokeAsync(Action workItem)
         {
@@ -25,8 +27,13 @@ namespace ElectronHostedBlazor.Rendering
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            workItem();
-            return Task.CompletedTask;
+            if (_node.CheckAccess())
+            {
+                workItem();
+                return Task.CompletedTask;
+            }
+
+            return _node.Run(workItem);
         }
 
         public override Task InvokeAsync(Func<Task> workItem)
@@ -36,7 +43,13 @@ namespace ElectronHostedBlazor.Rendering
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            return workItem();
+            if (_node.CheckAccess())
+            {
+                workItem();
+                return Task.CompletedTask;
+            }
+
+            return _node.RunAsync(workItem);
         }
 
         public override Task<TResult> InvokeAsync<TResult>(Func<TResult> workItem)
@@ -46,7 +59,10 @@ namespace ElectronHostedBlazor.Rendering
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            return Task.FromResult(workItem());
+            if (_node.CheckAccess())
+                return Task.FromResult(workItem());
+
+            return _node.Run(workItem);
         }
 
         public override Task<TResult> InvokeAsync<TResult>(Func<Task<TResult>> workItem)
@@ -56,7 +72,10 @@ namespace ElectronHostedBlazor.Rendering
                 throw new ArgumentNullException(nameof(workItem));
             }
 
-            return workItem();
+            if (_node.CheckAccess())
+                return workItem();
+
+            return _node.RunAsync(workItem);
         }
     }
 }

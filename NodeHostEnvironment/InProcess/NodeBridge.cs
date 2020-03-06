@@ -2,7 +2,6 @@ namespace NodeHostEnvironment.InProcess
 {
     using System.Threading.Tasks;
     using System;
-    using BridgeApi;
 
     internal sealed class NodeBridge : IBridgeToNode
     {
@@ -31,6 +30,11 @@ namespace NodeHostEnvironment.InProcess
         public void Dispose()
         {
             _host.ReleaseHost();
+        }
+
+        public bool CheckAccess()
+        {
+            return _host.CheckAccess();
         }
     }
 }

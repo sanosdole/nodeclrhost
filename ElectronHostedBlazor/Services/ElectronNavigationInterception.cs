@@ -4,15 +4,15 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Routing;
-using NodeHostEnvironment.BridgeApi;
+using NodeHostEnvironment;
 
 namespace ElectronHostedBlazor.Services
 {
-    internal sealed class NodeNavigationInterception : INavigationInterception
+    internal sealed class ElectronNavigationInterception : INavigationInterception
     {
         private readonly dynamic _navigationManager;
 
-        public NodeNavigationInterception(IBridgeToNode node)
+        public ElectronNavigationInterception(IBridgeToNode node)
         {
             _navigationManager = node.Global.window.Blazor._internal.navigationManager;
         }        

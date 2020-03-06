@@ -2,13 +2,14 @@
 {
     using System;
     using NodeHostEnvironment;
+    using NodeHostEnvironment.NativeHost;
 
     class Program
     {
         static dynamic browserWindow;
         static int Main(string[] args)
         {
-            var host = NodeHost.InProcess();
+            var host = NativeHost.Initialize();
             try
             {
                 var console = host.Global.console;

@@ -6,13 +6,13 @@ namespace ElectronHostedBlazor.Services
 {
     using System;
     using Microsoft.Extensions.Logging;
-    using NodeHostEnvironment.BridgeApi;
+    using NodeHostEnvironment;
 
-    internal class NodeConsoleLogger<T> : ILogger<T>, ILogger
+    internal class ElectronConsoleLogger<T> : ILogger<T>, ILogger
     {
         private readonly dynamic _console;
 
-        public NodeConsoleLogger(IBridgeToNode node)
+        public ElectronConsoleLogger(IBridgeToNode node)
         {
             _console = node.Global.console;
         }

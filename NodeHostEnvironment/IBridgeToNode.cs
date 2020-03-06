@@ -1,4 +1,4 @@
-namespace NodeHostEnvironment.BridgeApi
+namespace NodeHostEnvironment
 {
     using System.Threading.Tasks;
     using System;
@@ -11,6 +11,7 @@ namespace NodeHostEnvironment.BridgeApi
         dynamic Global { get; }
         dynamic New();
 
+        bool CheckAccess();
         Task<T> Run<T>(Func<T> func);
 
         /* TODO: Default interface implementation requires dotnet 3.0 Preview 9+ 

@@ -12,6 +12,7 @@ namespace NodeHostEnvironment.InProcess
     /// </summary>
     internal interface IHostInProcess
     {
+        bool CheckAccess();
         TaskFactory Factory { get; }
         void ReleaseHost();
 

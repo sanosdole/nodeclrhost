@@ -40,7 +40,7 @@ class Program
 {
     static int Main(string[] args)
     {
-        var host = NodeHost.InProcess(); // This will initialize the bridge
+        var host = NativeHost.Initialize(); // This will initialize the bridge
         var console = host.Global.console;
         console.log("Starting timeout");
         host.Global.setTimeout(new Action(() =>

@@ -274,5 +274,9 @@ namespace NodeHostEnvironment.NativeHost
             return Encoding.UTF8.GetString(buffer);
         }
 
+        public bool CheckAccess()
+        {
+            return _scheduler.ContextIsActive;
+        }
     }
 }

@@ -3,15 +3,15 @@
 // Modified by Daniel Martin for nodeclrhost
 
 using Microsoft.Extensions.Logging;
-using NodeHostEnvironment.BridgeApi;
+using NodeHostEnvironment;
 
 namespace ElectronHostedBlazor.Services
 {
-    internal class NodeLoggerFactory : ILoggerFactory
+    internal class ElectronLoggerFactory : ILoggerFactory
     {
         private readonly IBridgeToNode _node;
 
-        public NodeLoggerFactory(IBridgeToNode node)
+        public ElectronLoggerFactory(IBridgeToNode node)
         {
             _node = node;
         }
@@ -21,7 +21,7 @@ namespace ElectronHostedBlazor.Services
         }
 
         public ILogger CreateLogger(string categoryName)
-            => new NodeConsoleLogger<object>(_node);
+            => new ElectronConsoleLogger<object>(_node);
 
         public void Dispose()
         {

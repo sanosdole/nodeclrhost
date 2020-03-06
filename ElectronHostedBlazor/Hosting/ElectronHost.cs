@@ -11,14 +11,14 @@ namespace ElectronHostedBlazor.Hosting
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.JSInterop;
 
-    internal class NodeHost : INodeHost
+    internal class ElectronHost : IElectronHost
     {
         private readonly IJSRuntime _runtime;
 
         private IServiceScope _scope;
-        private NodeRenderer _renderer;
+        private ElectronRenderer _renderer;
 
-        public NodeHost(IServiceProvider services, IJSRuntime runtime)
+        public ElectronHost(IServiceProvider services, IJSRuntime runtime)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
@@ -54,13 +54,13 @@ namespace ElectronHostedBlazor.Hosting
                 {
                     var message =
                         $"Could not find a registered Blazor Startup class. " +
-                        $"Using {nameof(INodeHost)} requires a call to {nameof(INodeHostBuilder)}.UseBlazorStartup.";
+                        $"Using {nameof(IElectronHost)} requires a call to {nameof(IElectronHostBuilder)}.UseBlazorStartup.";
                     throw new InvalidOperationException(message);
                 }
 
                 // Note that we differ from the WebHost startup path here by using a 'scope' for the app builder
                 // as well as the Configure method.
-                var builder = new NodeBlazorApplicationBuilder(_scope.ServiceProvider);
+                var builder = new ElectronBlazorApplicationBuilder(_scope.ServiceProvider);
                 startup.Configure(builder, _scope.ServiceProvider);
 
                 _renderer = await builder.CreateRendererAsync();

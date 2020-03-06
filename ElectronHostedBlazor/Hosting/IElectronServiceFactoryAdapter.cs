@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ElectronHostedBlazor.Hosting
 {
-    internal interface INodeServiceFactoryAdapter
+    internal interface IElectronServiceFactoryAdapter
     {
         object CreateBuilder(IServiceCollection services);
 

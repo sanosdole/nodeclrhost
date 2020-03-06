@@ -1,15 +1,15 @@
 ﻿namespace SampleApp
 {
     using System.Threading.Tasks;
-    using System;
+    using System;    
     using NodeHostEnvironment;
-    using NodeHostEnvironment.BridgeApi;
+    using NodeHostEnvironment.NativeHost;
 
     class Program
     {
         static int Main(string[] args)
         {
-            var host = NodeHost.InProcess();
+            var host = NativeHost.Initialize();
             var console = host.Global.console;
             console.log("Starting timeout"); // TODO: Release of string crashes
             

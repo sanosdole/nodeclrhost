@@ -6,13 +6,13 @@ using System.Collections.Generic;
 
 namespace ElectronHostedBlazor.Hosting
 {
-    public sealed class NodeHostBuilderContext
+    public sealed class ElectronHostBuilderContext
     {
         /// <summary>
-        /// Creates a new <see cref="NodeHostBuilderContext" />.
+        /// Creates a new <see cref="ElectronHostBuilderContext" />.
         /// </summary>
         /// <param name="properties">The property collection.</param>
-        public NodeHostBuilderContext(IDictionary<object, object> properties)
+        public ElectronHostBuilderContext(IDictionary<object, object> properties)
         {
             Properties = properties ?? throw new System.ArgumentNullException(nameof(properties));
         }

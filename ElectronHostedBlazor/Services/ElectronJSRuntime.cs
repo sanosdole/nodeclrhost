@@ -6,17 +6,16 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ElectronHostedBlazor.Rendering;
 using Microsoft.JSInterop;
-using NodeHostEnvironment.BridgeApi;
+using NodeHostEnvironment;
 
 namespace ElectronHostedBlazor.Services
 {
-    internal sealed class NodeJSRuntime : IJSRuntime, IJSInProcessRuntime
+    internal sealed class ElectronJSRuntime : IJSRuntime, IJSInProcessRuntime
     {
         private readonly dynamic _window;
 
-        public NodeJSRuntime(IBridgeToNode node)
+        public ElectronJSRuntime(IBridgeToNode node)
         {
             _window = node.Global.window;
         }

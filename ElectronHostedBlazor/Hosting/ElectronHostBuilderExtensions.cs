@@ -8,30 +8,30 @@ namespace ElectronHostedBlazor.Hosting
     using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
-    /// Provides Blazor-specific support for <see cref="INodeHost"/>.
+    /// Provides Blazor-specific support for <see cref="IElectronHost"/>.
     /// </summary>
-    public static class NodeHostBuilderExtensions
+    public static class ElectronHostBuilderExtensions
     {
         private const string BlazorStartupKey = "Blazor.Startup";
 
         /// <summary>
         /// Adds services to the container. This can be called multiple times and the results will be additive.
         /// </summary>
-        /// <param name="hostBuilder">The <see cref="INodeHostBuilder" /> to configure.</param>
+        /// <param name="hostBuilder">The <see cref="IElectronHostBuilder" /> to configure.</param>
         /// <param name="configureDelegate"></param>
-        /// <returns>The same instance of the <see cref="INodeHostBuilder"/> for chaining.</returns>
-        public static INodeHostBuilder ConfigureServices(this INodeHostBuilder hostBuilder, Action<IServiceCollection> configureDelegate)
+        /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
+        public static IElectronHostBuilder ConfigureServices(this IElectronHostBuilder hostBuilder, Action<IServiceCollection> configureDelegate)
         {
             return hostBuilder.ConfigureServices((context, collection) => configureDelegate(collection));
         }
 
         /// <summary>
-        /// Configures the <see cref="INodeHostBuilder"/> to use the provided startup class.
+        /// Configures the <see cref="IElectronHostBuilder"/> to use the provided startup class.
         /// </summary>
-        /// <param name="builder">The <see cref="INodeHostBuilder"/>.</param>
+        /// <param name="builder">The <see cref="IElectronHostBuilder"/>.</param>
         /// <param name="startupType">A type that configures a Blazor application.</param>
-        /// <returns>The <see cref="INodeHostBuilder"/>.</returns>
-        public static INodeHostBuilder UseBlazorStartup(this INodeHostBuilder builder, Type startupType)
+        /// <returns>The <see cref="IElectronHostBuilder"/>.</returns>
+        public static IElectronHostBuilder UseBlazorStartup(this IElectronHostBuilder builder, Type startupType)
         {
             if (builder == null)
             {
@@ -57,12 +57,12 @@ namespace ElectronHostedBlazor.Hosting
         }
 
         /// <summary>
-        /// Configures the <see cref="INodeHostBuilder"/> to use the provided startup class.
+        /// Configures the <see cref="IElectronHostBuilder"/> to use the provided startup class.
         /// </summary>
         /// <typeparam name="TStartup">A type that configures a Blazor application.</typeparam>
-        /// <param name="builder">The <see cref="INodeHostBuilder"/>.</param>
-        /// <returns>The <see cref="INodeHostBuilder"/>.</returns>
-        public static INodeHostBuilder UseBlazorStartup<TStartup>(this INodeHostBuilder builder)
+        /// <param name="builder">The <see cref="IElectronHostBuilder"/>.</param>
+        /// <returns>The <see cref="IElectronHostBuilder"/>.</returns>
+        public static IElectronHostBuilder UseBlazorStartup<TStartup>(this IElectronHostBuilder builder)
         {
             if (builder == null)
             {

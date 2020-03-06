@@ -36,8 +36,8 @@ dotnet add package ElectronHostedBlazor -v 0.3.2-alpha.1
 Replace the `CreateHostBuilder` method in `~/RenderApp/Program.cs` with:
 
 ```cs
-public static INodeHostBuilder CreateHostBuilder(string[] args) =>
-            BlazorNodeHost.CreateDefaultBuilder()
+public static IElectronHostBuilder CreateHostBuilder(string[] args) =>
+            BlazorElectronHost.CreateDefaultBuilder()
                 .UseBlazorStartup<Startup>();
 ```
 

@@ -9,18 +9,18 @@ namespace ElectronHostedBlazor.Hosting
 
     // Equivalent to https://github.com/aspnet/Extensions/blob/master/src/Hosting/Hosting/src/Internal/ServiceFactoryAdapter.cs
 
-    internal class NodeServiceFactoryAdapter<TContainerBuilder> : INodeServiceFactoryAdapter
+    internal class ElectronServiceFactoryAdapter<TContainerBuilder> : IElectronServiceFactoryAdapter
     {
         private IServiceProviderFactory<TContainerBuilder> _serviceProviderFactory;
-        private readonly Func<NodeHostBuilderContext> _contextResolver;
-        private Func<NodeHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> _factoryResolver;
+        private readonly Func<ElectronHostBuilderContext> _contextResolver;
+        private Func<ElectronHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> _factoryResolver;
 
-        public NodeServiceFactoryAdapter(IServiceProviderFactory<TContainerBuilder> serviceProviderFactory)
+        public ElectronServiceFactoryAdapter(IServiceProviderFactory<TContainerBuilder> serviceProviderFactory)
         {
             _serviceProviderFactory = serviceProviderFactory ?? throw new ArgumentNullException(nameof(serviceProviderFactory));
         }
 
-        public NodeServiceFactoryAdapter(Func<NodeHostBuilderContext> contextResolver, Func<NodeHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factoryResolver)
+        public ElectronServiceFactoryAdapter(Func<ElectronHostBuilderContext> contextResolver, Func<ElectronHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factoryResolver)
         {
             _contextResolver = contextResolver ?? throw new ArgumentNullException(nameof(contextResolver));
             _factoryResolver = factoryResolver ?? throw new ArgumentNullException(nameof(factoryResolver));

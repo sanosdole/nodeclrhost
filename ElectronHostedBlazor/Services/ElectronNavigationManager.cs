@@ -6,14 +6,14 @@ namespace ElectronHostedBlazor.Services
 {
     using System;
     using Microsoft.AspNetCore.Components;
-    using NodeHostEnvironment.BridgeApi;
+    using NodeHostEnvironment;
 
-    public sealed class NodeNavigationManager : NavigationManager
+    public sealed class ElectronNavigationManager : NavigationManager
     {
         private readonly dynamic _blazorInternal;
         private readonly dynamic _navigationManager;
 
-        public NodeNavigationManager(IBridgeToNode node)
+        public ElectronNavigationManager(IBridgeToNode node)
         {
             _blazorInternal = node.Global.window.Blazor._internal;
             _navigationManager = _blazorInternal.navigationManager;

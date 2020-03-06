@@ -10,8 +10,8 @@ namespace BlazorApp
             CreateHostBuilder(args).Build().Run();
         }
 
-        public static INodeHostBuilder CreateHostBuilder(string[] args) =>
-            BlazorNodeHost.CreateDefaultBuilder()
+        public static IElectronHostBuilder CreateHostBuilder(string[] args) =>
+            BlazorElectronHost.CreateDefaultBuilder()
             .UseBlazorStartup<Startup>();
     }
 }

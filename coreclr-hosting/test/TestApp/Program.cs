@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using NodeHostEnvironment;
+    using NodeHostEnvironment.NativeHost;
 
     public class Program
     {
@@ -13,7 +14,7 @@
 
             try
             {
-                var host = NodeHost.InProcess(/*"./build/Release/coreclr-hosting.node"*/);
+                var host = NativeHost.Initialize(/*"./build/Release/coreclr-hosting.node"*/);
                 var global = host.Global;
 
                 /*Console.WriteLine("Waiting for debugger!");

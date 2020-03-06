@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.Extensions.Logging;
-using NodeHostEnvironment.BridgeApi;
+using NodeHostEnvironment;
 
 namespace ElectronHostedBlazor.Rendering
 {
@@ -17,26 +17,28 @@ namespace ElectronHostedBlazor.Rendering
     /// Provides mechanisms for rendering <see cref="IComponent"/> instances in a
     /// web browser, dispatching events to them, and refreshing the UI as required.
     /// </summary>
-    internal class NodeRenderer : Renderer
+    internal class ElectronRenderer : Renderer
     {
         private bool isDispatchingEvent;
         private readonly Queue<IncomingEventInfo> deferredIncomingEvents = new Queue<IncomingEventInfo>();
         private readonly dynamic _blazorInternal;
+        private readonly ElectronDispatcher _dispatcher;
 
         /// <summary>
-        /// Constructs an instance of <see cref="NodeRenderer"/>.
+        /// Constructs an instance of <see cref="ElectronRenderer"/>.
         /// </summary>
         /// <param name="serviceProvider">The <see cref="IServiceProvider"/> to use when initializing components.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        public NodeRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBridgeToNode node)
+        public ElectronRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBridgeToNode node)
             : base(serviceProvider, loggerFactory)
         {
             _blazorInternal = node.Global.window.Blazor._internal;
-            var dispatcher = new RendererRegistryEventDispatcher(this);
-            _blazorInternal.HandleRendererEvent = new Func<dynamic, string, Task>(dispatcher.DispatchEvent);
+            _dispatcher = new ElectronDispatcher(node);
+            var eventDispatcher = new ElectronEventDispatcher(this);
+            _blazorInternal.HandleRendererEvent = new Func<dynamic, string, Task>(eventDispatcher.DispatchEvent);
         }
 
-        public override Dispatcher Dispatcher => NullDispatcher.Instance;
+        public override Dispatcher Dispatcher => _dispatcher;
 
         /// <summary>
         /// Attaches a new root component to the renderer,
@@ -53,7 +55,7 @@ namespace ElectronHostedBlazor.Rendering
             => AddComponentAsync(typeof(TComponent), domElementSelector);
 
         /// <summary>
-        /// Associates the <see cref="IComponent"/> with the <see cref="NodeRenderer"/>,
+        /// Associates the <see cref="IComponent"/> with the <see cref="ElectronRenderer"/>,
         /// causing it to be displayed in the specified DOM element.
         /// </summary>
         /// <param name="componentType">The type of the component.</param>
