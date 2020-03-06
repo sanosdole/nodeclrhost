@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace BlazorApp.Rendering
+namespace ElectronHostedBlazor.Rendering
 {
     /// <summary>
     /// Writeable memory stream backed by a an <see cref="ArrayBuilder{T}"/>.

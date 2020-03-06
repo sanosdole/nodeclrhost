@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-namespace BlazorApp.Hosting
+namespace ElectronHostedBlazor.Hosting
 {
     using System;
     using System.Diagnostics;
     using System.Linq;
     using System.Reflection;
     using System.Runtime.ExceptionServices;
-    using BlazorApp.Builder;
+    using ElectronHostedBlazor.Builder;
     using Microsoft.Extensions.DependencyInjection;
 
     // Keeping this simple for now to focus on predictable and reasonable behaviors.

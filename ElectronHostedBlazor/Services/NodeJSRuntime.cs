@@ -6,39 +6,40 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using BlazorApp.Rendering;
+using ElectronHostedBlazor.Rendering;
 using Microsoft.JSInterop;
-using NodeHostEnvironment;
+using NodeHostEnvironment.BridgeApi;
 
-namespace BlazorApp.Services
+namespace ElectronHostedBlazor.Services
 {
-    internal sealed class NodeJSRuntime : IJSRuntime
+    internal sealed class NodeJSRuntime : IJSRuntime, IJSInProcessRuntime
     {
-        public NodeHost Host { get; }
-        public static readonly NodeJSRuntime Instance = new NodeJSRuntime();
+        private readonly dynamic _window;
 
-        public NodeJSRuntime()
+        public NodeJSRuntime(IBridgeToNode node)
         {
-            Host = NodeHost.InProcess();
-            Host.Global.window.addEventListener("unload", new Action<dynamic>(e =>
-                {
-                    Host.Dispose();
-                }));
-            RendererRegistryEventDispatcher.Register(this);
+            _window = node.Global.window;
+        }
+
+        public T Invoke<T>(string identifier, params object[] args)
+        {
+            if (!_window.TryInvokeMember(identifier, args, out object result))
+                throw new InvalidOperationException($"Could not invoke {identifier} from global!");
+            return (T)result;
         }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, params object[] args)
         {
-            Host.Global.console.info($"Invoking {identifier}");
-            if (!Host.Global.window.TryInvokeMember(identifier, args, out object result))
+            //_logger.LogDebug("Invoking '{0}'", identifier);
+            if (!_window.TryInvokeMember(identifier, args, out object result))
                 throw new InvalidOperationException($"Could not invoke {identifier} from global!");
             return new ValueTask<TValue>((TValue)result);
         }
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken = default, params object[] args)
         {
-            Host.Global.console.info($"Invoking {identifier}");
-            if (!Host.Global.window.TryInvokeMember(identifier, args.ToArray(), out object result))
+            //_logger.LogDebug("Invoking '{0}'", identifier);            
+            if (!_window.TryInvokeMember(identifier, args.ToArray(), out object result))
                 throw new InvalidOperationException($"Could not invoke {identifier} from global!");
             return new ValueTask<TValue>((TValue)result);
         }

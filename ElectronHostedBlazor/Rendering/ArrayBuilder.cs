@@ -7,7 +7,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace BlazorApp.Rendering
+namespace ElectronHostedBlazor.Rendering
 {
         /// <summary>
     /// Implements a list that uses an array of objects to store the elements.

@@ -2,17 +2,22 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-using System;
-using Microsoft.AspNetCore.Components;
-
-namespace BlazorApp.Services
+namespace ElectronHostedBlazor.Services
 {
+    using System;
+    using Microsoft.AspNetCore.Components;
+    using NodeHostEnvironment.BridgeApi;
+
     public sealed class NodeNavigationManager : NavigationManager
     {
-        /// <summary>
-        /// Gets the instance of <see cref="WebAssemblyUriHelper"/>.
-        /// </summary>
-        public static readonly NodeNavigationManager Instance = new NodeNavigationManager();
+        private readonly dynamic _blazorInternal;
+        private readonly dynamic _navigationManager;
+
+        public NodeNavigationManager(IBridgeToNode node)
+        {
+            _blazorInternal = node.Global.window.Blazor._internal;
+            _navigationManager = _blazorInternal.navigationManager;
+        }
 
         protected override void EnsureInitialized()
         {
@@ -28,19 +33,11 @@ namespace BlazorApp.Services
             var uri = WebAssemblyJSRuntime.Instance.Invoke<string>(Interop.GetLocationHref);
             */
 
-            var window = NodeJSRuntime.Instance.Host.Global.window;
-            var blazor = window.Blazor._internal;
-
-            // TODO DM 26.08.2019: Use boolean once callbacks can convert Number to Boolean
-            blazor.navigationManager.listenForNavigationEvents(new Action<string, bool>(NotifyLocationChangedFromJs));
-            var baseUri = (string)blazor.navigationManager.getBaseURI();
-            var uri = (string)blazor.navigationManager.getLocationHref();
+            _navigationManager.listenForNavigationEvents(new Action<string, bool>(NotifyLocationChangedFromJs));
+            var baseUri = (string) _navigationManager.getBaseURI();
+            var uri = (string) _navigationManager.getLocationHref();
             /*string uri = window.location.href;
             string baseUri = window.location.origin;*/
-            NodeJSRuntime.Instance.Host.Global.console.info("Uri: " + uri);
-            NodeJSRuntime.Instance.Host.Global.console.info("baseUri: " + baseUri);
-
-
 
             Initialize(uri, baseUri);
         }
@@ -51,11 +48,7 @@ namespace BlazorApp.Services
             {
                 throw new ArgumentNullException(nameof(uri));
             }
-
-            var window = NodeJSRuntime.Instance.Host.Global.window;
-            var blazor = window.Blazor._internal;
-
-            blazor.navigateTo(uri, forceLoad);
+            _blazorInternal.navigateTo(uri, forceLoad);
             //WebAssemblyJSRuntime.Instance.Invoke<object>(Interop.NavigateTo, uri, forceLoad);
         }
 
@@ -63,9 +56,9 @@ namespace BlazorApp.Services
         /// For framework use only.
         /// </summary>
         //[JSInvokable(nameof(NotifyLocationChanged))]
-        private static void NotifyLocationChangedFromJs(string newAbsoluteUri, bool isInterceptedLink)
+        private void NotifyLocationChangedFromJs(string newAbsoluteUri, bool isInterceptedLink)
         {
-            Instance.SetLocation(newAbsoluteUri, isInterceptedLink);
+            SetLocation(newAbsoluteUri, isInterceptedLink);
         }
 
         public void SetLocation(string uri, bool isInterceptedLink)
@@ -76,11 +69,10 @@ namespace BlazorApp.Services
         private static string StringUntilAny(string str, char[] chars)
         {
             var firstIndex = str.IndexOfAny(chars);
-            return firstIndex < 0
-                ? str
-                : str.Substring(0, firstIndex);
+            return firstIndex < 0 ?
+                str :
+                str.Substring(0, firstIndex);
         }
-
 
     }
 }

@@ -6,12 +6,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using BlazorApp.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.Extensions.Logging;
+using NodeHostEnvironment.BridgeApi;
 
-namespace BlazorApp.Rendering
+namespace ElectronHostedBlazor.Rendering
 {
     /// <summary>
     /// Provides mechanisms for rendering <see cref="IComponent"/> instances in a
@@ -19,21 +19,21 @@ namespace BlazorApp.Rendering
     /// </summary>
     internal class NodeRenderer : Renderer
     {
-        private readonly int _NodeRendererId;
-
         private bool isDispatchingEvent;
-        private Queue<IncomingEventInfo> deferredIncomingEvents = new Queue<IncomingEventInfo>();
+        private readonly Queue<IncomingEventInfo> deferredIncomingEvents = new Queue<IncomingEventInfo>();
+        private readonly dynamic _blazorInternal;
 
         /// <summary>
         /// Constructs an instance of <see cref="NodeRenderer"/>.
         /// </summary>
         /// <param name="serviceProvider">The <see cref="IServiceProvider"/> to use when initializing components.</param>
         /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        public NodeRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory)
+        public NodeRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBridgeToNode node)
             : base(serviceProvider, loggerFactory)
         {
-            // The Node renderer registers and unregisters itself with the static registry
-            _NodeRendererId = RendererRegistry.Add(this);
+            _blazorInternal = node.Global.window.Blazor._internal;
+            var dispatcher = new RendererRegistryEventDispatcher(this);
+            _blazorInternal.HandleRendererEvent = new Func<dynamic, string, Task>(dispatcher.DispatchEvent);
         }
 
         public override Dispatcher Dispatcher => NullDispatcher.Instance;
@@ -79,8 +79,7 @@ namespace BlazorApp.Rendering
                 domElementSelector,
                 componentId,
                 _NodeRendererId); */
-            var global = NodeJSRuntime.Instance.Host.Global;
-            global.window.Blazor._internal.attachRootComponentToElement(domElementSelector, componentId, _NodeRendererId);
+            _blazorInternal.attachRootComponentToElement(domElementSelector, componentId, /*_NodeRendererId*/1);
 
 
             return RenderRootComponentAsync(componentId);
@@ -90,7 +89,7 @@ namespace BlazorApp.Rendering
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            RendererRegistry.TryRemove(_NodeRendererId);
+            _blazorInternal.HandleRendererEvent = null;
         }
 
         /// <inheritdoc />
@@ -100,10 +99,6 @@ namespace BlazorApp.Rendering
                 "Blazor._internal.renderBatch",
                 _NodeRendererId,
                 batch);*/
-
-            var host = NodeJSRuntime.Instance.Host;
-
-            var global = host.Global;
 
             // TODO DM 22.08.2019: Using out of process render batch is inefficient
             //var arrayBuilder = new ArrayBuilder<byte>(2048);
@@ -119,7 +114,7 @@ namespace BlazorApp.Rendering
                 var bytes = segment.Array;*/
                 //global.console.info($"Rendering with {batch.UpdatedComponents.Count} updates in {bytes.Length} bytes. First byte: {bytes[0]}");
 
-                global.window.Blazor._internal.renderBatch(_NodeRendererId, bytes);
+                _blazorInternal.renderBatch(/*_NodeRendererId*/1, bytes);
             }
 
             return Task.CompletedTask;

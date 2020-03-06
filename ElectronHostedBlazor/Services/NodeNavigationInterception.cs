@@ -4,19 +4,23 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components.Routing;
+using NodeHostEnvironment.BridgeApi;
 
-namespace BlazorApp.Services
+namespace ElectronHostedBlazor.Services
 {
     internal sealed class NodeNavigationInterception : INavigationInterception
     {
-        public static readonly NodeNavigationInterception Instance = new NodeNavigationInterception();
+        private readonly dynamic _navigationManager;
+
+        public NodeNavigationInterception(IBridgeToNode node)
+        {
+            _navigationManager = node.Global.window.Blazor._internal.navigationManager;
+        }        
 
         public Task EnableNavigationInterceptionAsync()
         {
             //NodeJSRuntime.Instance.Invoke<object>(Interop.EnableNavigationInterception);
-            var window = NodeJSRuntime.Instance.Host.Global.window;
-            var blazor = window.Blazor._internal;
-            blazor.navigationManager.enableNavigationInterception();
+            _navigationManager.enableNavigationInterception();
             return Task.CompletedTask;
         }
     }

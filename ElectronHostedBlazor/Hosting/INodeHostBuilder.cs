@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-namespace BlazorApp.Hosting
+namespace ElectronHostedBlazor.Hosting
 {
     using System;
     using System.Collections.Generic;

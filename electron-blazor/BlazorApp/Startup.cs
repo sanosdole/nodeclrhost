@@ -1,6 +1,6 @@
 namespace BlazorApp
 {
-    using BlazorApp.Builder;
+    using ElectronHostedBlazor.Builder;
     using Microsoft.Extensions.DependencyInjection;
     
     public class Startup

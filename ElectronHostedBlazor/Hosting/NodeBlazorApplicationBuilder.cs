@@ -2,14 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-namespace BlazorApp.Hosting
+namespace ElectronHostedBlazor.Hosting
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using BlazorApp.Builder;
-    using BlazorApp.Rendering;
+    using ElectronHostedBlazor.Builder;
+    using ElectronHostedBlazor.Rendering;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using NodeHostEnvironment.BridgeApi;
 
     internal class NodeBlazorApplicationBuilder : IComponentsApplicationBuilder
     {
@@ -41,7 +43,7 @@ namespace BlazorApp.Hosting
         public async Task<NodeRenderer> CreateRendererAsync()
         {
             var loggerFactory = (ILoggerFactory)Services.GetService(typeof(ILoggerFactory));
-            var renderer = new NodeRenderer(Services, loggerFactory);
+            var renderer = new NodeRenderer(Services, loggerFactory, Services.GetRequiredService<IBridgeToNode>());
             for (var i = 0; i < Entries.Count; i++)
             {
                 var (componentType, domElementSelector) = Entries[i];

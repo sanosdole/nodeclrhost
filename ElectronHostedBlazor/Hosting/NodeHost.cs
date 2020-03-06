@@ -2,12 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-namespace BlazorApp.Hosting
+namespace ElectronHostedBlazor.Hosting
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using BlazorApp.Rendering;
+    using ElectronHostedBlazor.Rendering;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.JSInterop;
 
@@ -101,37 +101,6 @@ namespace BlazorApp.Hosting
         {
             (Services as IDisposable)?.Dispose();
         }
-/*
-        private static void SetBrowserHttpMessageHandlerAsDefault()
-        {
-            // Within the Mono Node BCL, this is a special private static field
-            // that can be assigned to override the default handler
-            const string getHttpMessageHandlerFieldName = "GetHttpMessageHandler";
-            var getHttpMessageHandlerField = typeof(HttpClient).GetField(
-                getHttpMessageHandlerFieldName,
-                BindingFlags.Static | BindingFlags.NonPublic);
-
-            // getHttpMessageHandlerField will be null in tests, but nonnull when actually
-            // running under Mono Node
-            if (getHttpMessageHandlerField != null)
-            {
-                // Just in case you're not actually using HttpClient, defer the construction
-                // of the NodeHttpMessageHandler
-                var handlerSingleton = new Lazy<HttpMessageHandler>(
-                    () => new NodeHttpMessageHandler());
-                Func<HttpMessageHandler> handlerFactory = () => handlerSingleton.Value;
-                getHttpMessageHandlerField.SetValue(null, handlerFactory);
-            }
-            else
-            {
-                // We log a warning in case this ever happens at runtime (even though there's
-                // no obvious way it could be possible), but don't actually throw because that
-                // would break unit tests
-                Console.WriteLine("WARNING: Could not set default HttpMessageHandler because " +
-                    $"'{getHttpMessageHandlerFieldName}' was not found on '{typeof(HttpClient).FullName}'.");
-            }
-        }
-        */
     }
 
 }

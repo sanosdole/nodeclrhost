@@ -5,25 +5,25 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using BlazorApp.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.RenderTree;
 using Microsoft.AspNetCore.Components.Web;
 
-namespace BlazorApp.Rendering
+namespace ElectronHostedBlazor.Rendering
 {
     /// <summary>
     /// Provides mechanisms for dispatching events to components in a <see cref="Renderer"/>.
     /// </summary>
-    internal static class RendererRegistryEventDispatcher
+    internal sealed class RendererRegistryEventDispatcher
     {
-        internal static void Register(NodeJSRuntime runtime)
+        private readonly NodeRenderer _renderer;
+
+        public RendererRegistryEventDispatcher(NodeRenderer renderer)
         {
-            // TODO DM 26.08.2019: Return task once they are marshalled as promises
-            runtime.Host.Global.window.Blazor._internal.HandleRendererEvent = new Func<dynamic, string, Task>(DispatchEvent);
+            _renderer = renderer;
         }
 
-        private static Task DispatchEvent(dynamic eventDescriptor, string eventArgsJson)
+        public Task DispatchEvent(dynamic eventDescriptor, string eventArgsJson)
         {
             EventFieldInfo fieldInfo = null;
             var sourceFieldInfo = eventDescriptor.eventFieldInfo;
@@ -50,11 +50,10 @@ namespace BlazorApp.Rendering
         /// For framework use only.
         /// </summary>
         //[JSInvokable(nameof(DispatchEvent))]
-        public static Task DispatchEventOriginal(WebEventDescriptor eventDescriptor, string eventArgsJson)
+        private Task DispatchEventOriginal(WebEventDescriptor eventDescriptor, string eventArgsJson)
         {
-            var webEvent = WebEventData.Parse(eventDescriptor, eventArgsJson);
-            var renderer = RendererRegistry.Find(eventDescriptor.BrowserRendererId);
-            return renderer.DispatchEventAsync(
+            var webEvent = WebEventData.Parse(eventDescriptor, eventArgsJson);            
+            return _renderer.DispatchEventAsync(
                 webEvent.EventHandlerId,
                 webEvent.EventFieldInfo,
                 webEvent.EventArgs);

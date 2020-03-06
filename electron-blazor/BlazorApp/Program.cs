@@ -1,7 +1,7 @@
-using BlazorApp.Hosting;
-
 namespace BlazorApp
 {
+    using ElectronHostedBlazor.Hosting;
+
     public class Program
     {
         public static void Main(string[] args)
@@ -12,6 +12,6 @@ namespace BlazorApp
 
         public static INodeHostBuilder CreateHostBuilder(string[] args) =>
             BlazorNodeHost.CreateDefaultBuilder()
-                .UseBlazorStartup<Startup>();
+            .UseBlazorStartup<Startup>();
     }
 }

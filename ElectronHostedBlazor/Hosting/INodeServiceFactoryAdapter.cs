@@ -5,7 +5,7 @@
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace BlazorApp.Hosting
+namespace ElectronHostedBlazor.Hosting
 {
     internal interface INodeServiceFactoryAdapter
     {

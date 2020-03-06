@@ -2,17 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-namespace BlazorApp.Hosting
+namespace ElectronHostedBlazor.Hosting
 {
-    using System;
     using System.Collections.Generic;
-    using BlazorApp.Services;
-    using Microsoft.AspNetCore.Components;
+    using System;
+    using ElectronHostedBlazor.Services;
     using Microsoft.AspNetCore.Components.Routing;
-    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.Components;
     using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.JSInterop;
+    using NodeHostEnvironment.BridgeApi;
 
     internal sealed class NodeHostBuilder : INodeHostBuilder
     {
@@ -34,7 +35,8 @@ namespace BlazorApp.Hosting
         /// <returns>The same instance of the <see cref="INodeHostBuilder"/> for chaining.</returns>
         public INodeHostBuilder ConfigureServices(Action<NodeHostBuilderContext, IServiceCollection> configureDelegate)
         {
-            _configureServicesActions.Add(configureDelegate ?? throw new ArgumentNullException(nameof(configureDelegate)));
+            _configureServicesActions.Add(configureDelegate ??
+                throw new ArgumentNullException(nameof(configureDelegate)));
             return this;
         }
 
@@ -44,7 +46,8 @@ namespace BlazorApp.Hosting
         /// <returns>The same instance of the <see cref="INodeHostBuilder"/> for chaining.</returns>
         public INodeHostBuilder UseServiceProviderFactory<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory)
         {
-            _serviceProviderFactory = new NodeServiceFactoryAdapter<TContainerBuilder>(factory ?? throw new ArgumentNullException(nameof(factory)));
+            _serviceProviderFactory = new NodeServiceFactoryAdapter<TContainerBuilder>(factory ??
+                throw new ArgumentNullException(nameof(factory)));
             return this;
         }
 
@@ -54,7 +57,8 @@ namespace BlazorApp.Hosting
         /// <returns>The same instance of the <see cref="INodeHostBuilder"/> for chaining.</returns>
         public INodeHostBuilder UseServiceProviderFactory<TContainerBuilder>(Func<NodeHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
         {
-            _serviceProviderFactory = new NodeServiceFactoryAdapter<TContainerBuilder>(() => _BrowserHostBuilderContext, factory ?? throw new ArgumentNullException(nameof(factory)));
+            _serviceProviderFactory = new NodeServiceFactoryAdapter<TContainerBuilder>(() => _BrowserHostBuilderContext, factory ??
+                throw new ArgumentNullException(nameof(factory)));
             return this;
         }
 
@@ -85,12 +89,23 @@ namespace BlazorApp.Hosting
         {
             var services = new ServiceCollection();
             services.AddSingleton(_BrowserHostBuilderContext);
+
+            // Could use `Properties` to configure path
+            var nodeHost = NodeHostEnvironment.NodeHost.InProcess();
+            nodeHost.Global.window.addEventListener("unload",
+                new Action<dynamic>(e => nodeHost.Dispose()));
+            services.AddSingleton<IBridgeToNode>(nodeHost);
+
+            var jsRuntime = new NodeJSRuntime(nodeHost);
+            services.AddSingleton<IJSRuntime>(jsRuntime);
+            services.AddSingleton<IJSInProcessRuntime>(jsRuntime);
+
             services.AddSingleton<INodeHost, NodeHost>();
-            services.AddSingleton<IJSRuntime>(NodeJSRuntime.Instance);
-            services.AddSingleton<NavigationManager>(NodeNavigationManager.Instance);
-            services.AddSingleton<INavigationInterception>(NodeNavigationInterception.Instance);
-            
-            // DM 19.08.2019: We do not need an HttpClient like WebAssembly does
+
+            services.AddSingleton<NavigationManager>(new NodeNavigationManager(nodeHost));
+            services.AddSingleton<INavigationInterception>(new NodeNavigationInterception(nodeHost));
+
+            // DM 19.08.2019: We do not need an HttpClient like WebAssembly does as we have the full framework
             /*services.AddSingleton<HttpClient>(s =>
             {
                 // Creating the URI helper needs to wait until the JS Runtime is initialized, so defer it.
@@ -110,6 +125,7 @@ namespace BlazorApp.Hosting
             services.AddSingleton<ILoggerFactory, NodeLoggerFactory>();
             services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(NodeConsoleLogger<>)));
 
+            // Apply user customization
             foreach (var configureServicesAction in _configureServicesActions)
             {
                 configureServicesAction(_BrowserHostBuilderContext, services);

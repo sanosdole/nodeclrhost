@@ -6,7 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 
-namespace BlazorApp.Rendering
+namespace ElectronHostedBlazor.Rendering
 {
     internal class NullDispatcher : Dispatcher
     {
