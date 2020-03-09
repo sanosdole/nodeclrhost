@@ -11,6 +11,7 @@ namespace ElectronHostedBlazor.Hosting
     using System.Runtime.ExceptionServices;
     using ElectronHostedBlazor.Builder;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     // Keeping this simple for now to focus on predictable and reasonable behaviors.
     // Startup in WebHost supports lots of things we don't yet support, and some we
@@ -104,6 +105,27 @@ namespace ElectronHostedBlazor.Hosting
             }
         }
 
+        public void ConfigureLogging(ILoggingBuilder loggingBuilder)
+        {
+            try
+            {
+                var method = GetConfigureLoggingMethod();
+                if (method != null)
+                {
+                     method.Invoke(Instance, new object[] { loggingBuilder });
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ex is TargetInvocationException)
+                {
+                    ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+                }
+
+                throw;
+            }
+        }
+
         internal MethodInfo GetConfigureServicesMethod()
         {
             return Instance.GetType()
@@ -112,6 +134,17 @@ namespace ElectronHostedBlazor.Hosting
                     BindingFlags.Public | BindingFlags.Instance,
                     null,
                     new Type[] { typeof(IServiceCollection), },
+                    Array.Empty<ParameterModifier>());
+        }
+
+        internal MethodInfo GetConfigureLoggingMethod()
+        {
+            return Instance.GetType()
+                .GetMethod(
+                    "ConfigureLogging",
+                    BindingFlags.Public | BindingFlags.Instance,
+                    null,
+                    new Type[] { typeof(ILoggingBuilder), },
                     Array.Empty<ParameterModifier>());
         }
     }

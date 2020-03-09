@@ -7,6 +7,7 @@ namespace ElectronHostedBlazor.Hosting
     using System;
     using System.Collections.Generic;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     public interface IElectronHostBuilder
     {
@@ -34,6 +35,14 @@ namespace ElectronHostedBlazor.Hosting
         /// to construct the <see cref="IServiceProvider"/>.</param>
         /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
         IElectronHostBuilder ConfigureServices(Action<ElectronHostBuilderContext, IServiceCollection> configureDelegate);
+
+        /// <summary>
+        /// Configures logging for the electron hosted application.
+        /// </summary>
+        /// <param name="configureDelegate">The delegate for configuring the <see cref="IServiceCollection"/> that will be used
+        /// to construct the <see cref="IServiceProvider"/>.</param>
+        /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
+        IElectronHostBuilder ConfigureLogging(Action<ElectronHostBuilderContext, ILoggingBuilder> configureDelegate);
 
         /// <summary>
         /// Run the given actions to initialize the host. This can only be called once.

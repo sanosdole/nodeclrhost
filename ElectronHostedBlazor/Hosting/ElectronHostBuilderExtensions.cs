@@ -6,6 +6,7 @@ namespace ElectronHostedBlazor.Hosting
 {
     using System;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     /// <summary>
     /// Provides Blazor-specific support for <see cref="IElectronHost"/>.
@@ -23,6 +24,17 @@ namespace ElectronHostedBlazor.Hosting
         public static IElectronHostBuilder ConfigureServices(this IElectronHostBuilder hostBuilder, Action<IServiceCollection> configureDelegate)
         {
             return hostBuilder.ConfigureServices((context, collection) => configureDelegate(collection));
+        }
+
+        /// <summary>
+        /// Configures logging for the electron hosted application.
+        /// </summary>
+        /// <param name="hostBuilder">The <see cref="IElectronHostBuilder" /> to configure.</param>
+        /// <param name="configureDelegate"></param>
+        /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
+        public static IElectronHostBuilder ConfigureLogging(this IElectronHostBuilder hostBuilder, Action<ILoggingBuilder> configureDelegate)
+        {
+            return hostBuilder.ConfigureLogging((context, loggingBuilder) => configureDelegate(loggingBuilder));
         }
 
         /// <summary>
@@ -49,6 +61,7 @@ namespace ElectronHostedBlazor.Hosting
 
             var startup = new ConventionBasedStartup(instance);
             builder.ConfigureServices(startup.ConfigureServices);
+            builder.ConfigureLogging(startup.ConfigureLogging);
             builder.ConfigureServices(s => s.AddSingleton<IBlazorStartup>(startup));
 
             return builder;

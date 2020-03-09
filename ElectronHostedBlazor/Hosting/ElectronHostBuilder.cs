@@ -6,10 +6,10 @@ namespace ElectronHostedBlazor.Hosting
 {
     using System.Collections.Generic;
     using System;
+    using ElectronHostedBlazor.Logging;
     using ElectronHostedBlazor.Services;
     using Microsoft.AspNetCore.Components.Routing;
     using Microsoft.AspNetCore.Components;
-    using Microsoft.Extensions.DependencyInjection.Extensions;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.JSInterop;
@@ -18,7 +18,8 @@ namespace ElectronHostedBlazor.Hosting
 
     internal sealed class ElectronHostBuilder : IElectronHostBuilder
     {
-        private List<Action<ElectronHostBuilderContext, IServiceCollection>> _configureServicesActions = new List<Action<ElectronHostBuilderContext, IServiceCollection>>();
+        private readonly List<Action<ElectronHostBuilderContext, IServiceCollection>> _configureServicesActions = new List<Action<ElectronHostBuilderContext, IServiceCollection>>();
+        private readonly List<Action<ElectronHostBuilderContext, ILoggingBuilder>> _configureLoggingActions = new List<Action<ElectronHostBuilderContext, ILoggingBuilder>>();
         private bool _hostBuilt;
         private ElectronHostBuilderContext _BrowserHostBuilderContext;
         private IElectronServiceFactoryAdapter _serviceProviderFactory = new ElectronServiceFactoryAdapter<IServiceCollection>(new DefaultServiceProviderFactory());
@@ -37,6 +38,13 @@ namespace ElectronHostedBlazor.Hosting
         public IElectronHostBuilder ConfigureServices(Action<ElectronHostBuilderContext, IServiceCollection> configureDelegate)
         {
             _configureServicesActions.Add(configureDelegate ??
+                throw new ArgumentNullException(nameof(configureDelegate)));
+            return this;
+        }
+
+        public IElectronHostBuilder ConfigureLogging(Action<ElectronHostBuilderContext, ILoggingBuilder> configureDelegate)
+        {
+            _configureLoggingActions.Add(configureDelegate ??
                 throw new ArgumentNullException(nameof(configureDelegate)));
             return this;
         }
@@ -122,15 +130,17 @@ namespace ElectronHostedBlazor.Hosting
             // having a separate services.AddBlazorAuthorization() call that brings in the required services.
             services.AddOptions();
 
-            // Logging
-            services.AddSingleton<ILoggerFactory, ElectronLoggerFactory>();
-            services.TryAdd(ServiceDescriptor.Singleton(typeof(ILogger<>), typeof(ElectronConsoleLogger<>)));
+            // Logging            
+            services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddElectronConsole();
+                foreach (var configureLoggingAction in _configureLoggingActions)
+                    configureLoggingAction(_BrowserHostBuilderContext, loggingBuilder);
+            });
 
             // Apply user customization
             foreach (var configureServicesAction in _configureServicesActions)
-            {
                 configureServicesAction(_BrowserHostBuilderContext, services);
-            }
 
             var builder = _serviceProviderFactory.CreateBuilder(services);
             _appServices = _serviceProviderFactory.CreateServiceProvider(builder);
