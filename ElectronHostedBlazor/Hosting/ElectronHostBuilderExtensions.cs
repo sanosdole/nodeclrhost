@@ -29,9 +29,9 @@ namespace ElectronHostedBlazor.Hosting
         /// Configures the <see cref="IElectronHostBuilder"/> to use the provided startup class.
         /// </summary>
         /// <param name="builder">The <see cref="IElectronHostBuilder"/>.</param>
-        /// <param name="startupType">A type that configures a Blazor application.</param>
+        /// <param name="instance">An object that configures a Blazor application.</param>
         /// <returns>The <see cref="IElectronHostBuilder"/>.</returns>
-        public static IElectronHostBuilder UseBlazorStartup(this IElectronHostBuilder builder, Type startupType)
+        public static IElectronHostBuilder UseBlazorStartup(this IElectronHostBuilder builder, object instance)
         {
             if (builder == null)
             {
@@ -47,9 +47,7 @@ namespace ElectronHostedBlazor.Hosting
             // really have a need for it.
             builder.Properties.Add(BlazorStartupKey, bool.TrueString);
 
-            // TODO: Use a passed instance here, or even better: Check if this design should be simplified!
-            var startup = new ConventionBasedStartup(Activator.CreateInstance(startupType));
-
+            var startup = new ConventionBasedStartup(instance);
             builder.ConfigureServices(startup.ConfigureServices);
             builder.ConfigureServices(s => s.AddSingleton<IBlazorStartup>(startup));
 
@@ -69,7 +67,7 @@ namespace ElectronHostedBlazor.Hosting
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return UseBlazorStartup(builder, typeof(TStartup));
+            return UseBlazorStartup(builder, Activator.CreateInstance(typeof(TStartup)));
         }
     }
 }
