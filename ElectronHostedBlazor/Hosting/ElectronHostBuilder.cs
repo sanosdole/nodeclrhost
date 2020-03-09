@@ -130,17 +130,17 @@ namespace ElectronHostedBlazor.Hosting
             // having a separate services.AddBlazorAuthorization() call that brings in the required services.
             services.AddOptions();
 
-            // Logging            
+            // Apply user customization
+            foreach (var configureServicesAction in _configureServicesActions)
+                configureServicesAction(_BrowserHostBuilderContext, services);
+
+            // Add Logging and apply user customizations to it
             services.AddLogging(loggingBuilder =>
             {
                 loggingBuilder.AddElectronConsole();
                 foreach (var configureLoggingAction in _configureLoggingActions)
                     configureLoggingAction(_BrowserHostBuilderContext, loggingBuilder);
             });
-
-            // Apply user customization
-            foreach (var configureServicesAction in _configureServicesActions)
-                configureServicesAction(_BrowserHostBuilderContext, services);
 
             var builder = _serviceProviderFactory.CreateBuilder(services);
             _appServices = _serviceProviderFactory.CreateServiceProvider(builder);
