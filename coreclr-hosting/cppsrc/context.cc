@@ -382,7 +382,7 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
       });
 
   auto finalizer_data = new SynchronizedFinalizerCallback(
-      this, [=]() { release_func(DotNetType::Function, function_value); });
+      this, [=]() { release_func(DotNetType::Function, reinterpret_cast<void*>(function_value)); });
   napi_add_finalizer(env_, function, static_cast<void*>(finalizer_data),
                      SynchronizedFinalizerCallback::Wrapper, nullptr, nullptr);
 
