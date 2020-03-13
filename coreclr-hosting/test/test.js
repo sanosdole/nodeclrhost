@@ -70,7 +70,25 @@ global.setupTestObject = function () {
       assert.strictEqual(2, view[1]);
       assert.strictEqual(3, view[2]);
       assert.strictEqual(4, view[3]);
+    },
+    assertMixedArray: function(array) {      
+      assert.strictEqual(4, array.length);
+      assert.strictEqual("a", array[0]);
+      assert.strictEqual(1, array[1]);
+      assert.strictEqual("b", array[2]);
+      assert.strictEqual(2, array[3]);
+    },
+    assertStringArray: function(array) {      
+      assert.strictEqual(2, array.length);
+      assert.strictEqual("a", array[0]);
+      assert.strictEqual("b", array[1]);      
+    },
+    assertIntArray: function(array) {      
+      assert.strictEqual(2, array.length);
+      assert.strictEqual(1, array[0]);
+      assert.strictEqual(2, array[1]);
     }
+
   };
 
   global.testObject.TestClass.staticFunc = function (arg) {

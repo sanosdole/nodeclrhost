@@ -1,8 +1,8 @@
 ﻿namespace TestApp
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using System;
     using FluentAssertions;
     using NodeHostEnvironment.NativeHost;
 
@@ -13,7 +13,7 @@
 
             try
             {
-                var host = NativeHost.Initialize(/*"./build/Release/coreclr-hosting.node"*/);
+                var host = NativeHost.Initialize( /*"./build/Release/coreclr-hosting.node"*/ );
                 var global = host.Global;
 
                 //Console.WriteLine("Waiting for debugger!");
@@ -69,13 +69,13 @@
 
                     global.it("should have string array values", new Action(() =>
                     {
-                        ((string[]) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
-                        ((IReadOnlyCollection<string>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
-                        ((IEnumerable<string>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+                        ((string[]) global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+                        ((IReadOnlyCollection<string>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+                        ((IEnumerable<string>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
 
-                        ((object[]) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
-                        ((IReadOnlyCollection<object>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
-                        ((IEnumerable<object>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B"});
+                        ((object[]) global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+                        ((IReadOnlyCollection<object>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+                        ((IEnumerable<object>) global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
 
                     }));
 
@@ -83,12 +83,12 @@
                     {
                         var mixedObjArray = (object[]) global.testObject.mixedArray;
                         mixedObjArray.Length.Should().Be(3);
-                        ((string)mixedObjArray[0]).Should().Be("A");
-                        ((double)mixedObjArray[1]).Should().Be(42); // TODO DM 05.03.2020: Casting to (int) should be supported
-                        ((int)((dynamic)mixedObjArray[2]).iValue).Should().Be(42);
-                        ((string)((dynamic)mixedObjArray[2]).strValue).Should().Be("strValue");
+                        ((string) mixedObjArray[0]).Should().Be("A");
+                        ((double) mixedObjArray[1]).Should().Be(42); // TODO DM 05.03.2020: Casting to (int) should be supported
+                        ((int) ((dynamic) mixedObjArray[2]).iValue).Should().Be(42);
+                        ((string) ((dynamic) mixedObjArray[2]).strValue).Should().Be("strValue");
 
-                         var mixedDynArray = (IReadOnlyCollection<dynamic>) global.testObject.mixedArray;
+                        var mixedDynArray = (IReadOnlyCollection<dynamic>) global.testObject.mixedArray;
                         mixedDynArray.Count.Should().Be(3);
                         /*((string)mixedDynArray[0]).Should().Be("A");
                         ((int)mixedDynArray[1]).Should().Be(42);
@@ -109,7 +109,7 @@
 
                     global.it("should accept dynamic numbers back", new Action(() =>
                     {
-                        var result = (int)global.testObject.addIntegerValue(global.testObject.integerValue);
+                        var result = (int) global.testObject.addIntegerValue(global.testObject.integerValue);
                         result.Should().Be(84);
                     }));
 
@@ -137,12 +137,12 @@
 
                     global.it("should pass exceptions from passed callback", new Action(() =>
                     {
-                        var shouldPassException = new Action(() => 
-                        global.testObject.invokeCallback("Ping",
-                            new Action<string>(_ =>
-                            {
-                                throw new InvalidOperationException("Test error message");
-                            })));
+                        var shouldPassException = new Action(() =>
+                            global.testObject.invokeCallback("Ping",
+                                new Action<string>(_ =>
+                                {
+                                    throw new InvalidOperationException("Test error message");
+                                })));
                         shouldPassException.Should().Throw<InvalidOperationException>();
                     }));
 
@@ -151,9 +151,9 @@
                         ((bool) global.testObject.isPromise(Task.FromResult(5))).Should().Be(true);
                     }));
 
-                    global.it("should return Task from createPromise", new Func<Task>(async () => 
+                    global.it("should return Task from createPromise", new Func<Task>(async() =>
                     {
-                        var result = await (Task<string>)global.testObject.createPromise(true);
+                        var result = await (Task<string>) global.testObject.createPromise(true);
                         result.Should().Be("Resolved");
                     }));
 
@@ -164,75 +164,74 @@
                         result.Should().Be("Resolved");
                     }));*/
 
-                    global.it("should return failed Task from createPromise", new Func<Task>(async () => 
+                    global.it("should return failed Task from createPromise", new Func<Task>(async() =>
                     {
                         // DM 27.11.2019: We need the try/catch as FluentAssertions waits on the threadpool :(
                         var didThrow = false;
                         try
                         {
-                            await (Task)global.testObject.createPromise(false);
+                            await (Task) global.testObject.createPromise(false);
                         }
-                        catch(Exception e)
+                        catch (Exception e)
                         {
                             didThrow = true;
                             e.Message.Should().Contain("Error: As requested");
                         }
                         didThrow.Should().Be(true);
-                        
+
                     }));
 
-                    global.it("should marshal Task with unsupported result type as exception", new Func<Task>(async () => 
+                    global.it("should marshal Task with unsupported result type as exception", new Func<Task>(async() =>
                     {
                         var task = Task.FromResult(new UnsupportedType());
-                        ((bool)global.testObject.isPromise(task)).Should().Be(true);
+                        ((bool) global.testObject.isPromise(task)).Should().Be(true);
 
-                       // DM 27.11.2019: We need the try/catch as FluentAssertions waits on the threadpool :(
+                        // DM 27.11.2019: We need the try/catch as FluentAssertions waits on the threadpool :(
                         var didThrow = false;
                         try
                         {
-                            await (Task)global.testObject.awaitPromise(task);
+                            await (Task) global.testObject.awaitPromise(task);
                         }
-                        catch(Exception e)
+                        catch (Exception e)
                         {
                             didThrow = true;
                             e.Message.Should().Contain("Error: InvalidOperationException: Unsupported object type for passing into JS: TestApp.Program+UnsupportedType");
                         }
                         didThrow.Should().Be(true);
-                        
-                        
+
                     }));
 
                     global.it("should instantiate TestClass", new Action(() =>
                     {
                         var inst = global.testObject.TestClass.CreateNewInstance(42);
-                        ((int)inst.value).Should().Be(42);                        
+                        ((int) inst.value).Should().Be(42);
                     }));
 
                     global.it("should call TestClass.staticFunc", new Action(() =>
                     {
                         var result = global.testObject.TestClass.staticFunc(42);
-                        ((int)result).Should().Be(42 + 42);                        
-                    }));                    
+                        ((int) result).Should().Be(42 + 42);
+                    }));
 
                     global.it("should support require", new Action(() =>
                     {
                         string sep = global.require("path").sep;
-                        sep.Should().Be(System.IO.Path.DirectorySeparatorChar.ToString());                        
+                        sep.Should().Be(System.IO.Path.DirectorySeparatorChar.ToString());
                     }));
 
-                    global.it("should implement equals for objects & functions", new Action(() => 
+                    global.it("should implement equals for objects & functions", new Action(() =>
                     {
                         var a = host.New();
                         global.a = a;
 
-                        AssertionExtensions.Should(Equals(a, a)).BeTrue("Ref equal");                        
+                        AssertionExtensions.Should(Equals(a, a)).BeTrue("Ref equal");
                         AssertionExtensions.Should(Equals(a, global.a)).Be(true);
                         AssertionExtensions.Should(Equals(a, global.testObject)).Be(false);
                         AssertionExtensions.Should(Equals(global.testObject, global.testObject)).Be(true);
                         AssertionExtensions.Should(Equals(global.testObject, global.it)).Be(false);
                         AssertionExtensions.Should(Equals(global.it, global.it)).Be(true);
 
-                        AssertionExtensions.Should(a == a).BeTrue("Ref equal");                        
+                        AssertionExtensions.Should(a == a).BeTrue("Ref equal");
                         AssertionExtensions.Should(a == global.a).BeTrue("a == global.a");
                         AssertionExtensions.Should(a == global.testObject).Be(false);
                         AssertionExtensions.Should(global.testObject == global.testObject).Be(true);
@@ -243,13 +242,30 @@
 
                     // TODO: Test hash code
 
-                    global.it("should marshal byte arrays", new Action(() => 
+                    global.it("should marshal byte arrays to JS", new Action(() =>
                     {
-                        var a = new byte[] { 1, 2, 3, 4};
+                        var a = new byte[] { 1, 2, 3, 4 };
                         global.testObject.assertByteArray(a);
-                        
-
                     }));
+
+                    global.it("should marshal mixed collections to js", new Action(() =>
+                    {
+                        global.testObject.assertMixedArray(new object[] { "a", 1, "b", 2 });
+                        global.testObject.assertMixedArray(new List<object> { "a", 1, "b", 2 });
+                    }));
+
+                    global.it("should marshal string collections to js", new Action(() =>
+                    {
+                        global.testObject.assertStringArray(new string[] { "a", "b" });
+                        global.testObject.assertStringArray(new List<string> { "a", "b" });
+                    }));
+
+                    // TODO: support those collections
+                    /*global.it("should marshal primitive collections to js", new Action(() =>
+                    {                        
+                        global.testObject.assertIntArray(new int[] { 1, 2 });
+                        global.testObject.assertIntArray(new List<int> { 1, 2 });                        
+                    }));*/
 
                 }));
 

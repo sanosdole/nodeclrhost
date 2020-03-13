@@ -1,5 +1,6 @@
 namespace NodeHostEnvironment.InProcess
 {
+    using System.Collections.Generic;
     using System.Linq;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
@@ -24,6 +25,10 @@ namespace NodeHostEnvironment.InProcess
                     Value = IntPtr.Zero,
                     ReleaseFunc = null
                 };
+
+            // Basic types
+            if (obj is string @string)
+                return FromString(@string);
             if (obj is bool boolean)
                 return FromBool(boolean);
             if (obj is int @int)
@@ -32,20 +37,26 @@ namespace NodeHostEnvironment.InProcess
                 return FromLong(@long);
             if (obj is double @double)
                 return FromDouble(@double);
+
+            // Objects & Functions
             if (obj is Delegate @delegate)
                 return FromDelegate(@delegate, host);
-            if (obj is JsValue value)
-                return FromJsValue(value);
             if (obj is JsDynamicObject @object)
                 return FromJsValue(@object.Handle);
-            if (obj is string @string)
-                return FromString(@string);
-            if (obj is byte[] v)
-                return FromByteArray(v);
+            if (obj is JsValue value)
+                return FromJsValue(value);
+
+            // Specials
             if (obj is Exception exception)
                 return FromException(exception);
             if (obj is Task task)
                 return FromTask(task, host);
+
+            if (obj is byte[] byteArray)
+                return FromByteArray(byteArray);
+
+            if (obj is IReadOnlyCollection<object> collection)
+                return FromReadOnlyCollection(collection, host);
 
             throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
         }
@@ -165,6 +176,16 @@ namespace NodeHostEnvironment.InProcess
             };
         }
 
+        private static DotNetValue FromReadOnlyCollection(IReadOnlyCollection<object> collection, IHostInProcess host)
+        {
+            return new DotNetValue
+            {
+                Type = DotNetType.Collection,
+                    Value = CollectionPointer(collection, host),
+                    ReleaseFunc = ReleaseHGlobal
+            };
+        }
+
         public static DotNetValue FromException(Exception value)
         {
             return new DotNetValue
@@ -232,6 +253,30 @@ namespace NodeHostEnvironment.InProcess
             Marshal.WriteIntPtr(structPtr, sizeof(int), dataPtr);
             Marshal.WriteIntPtr(structPtr, sizeof(int) + IntPtr.Size, GCHandle.ToIntPtr(gcHandle));
             return structPtr;
+        }
+
+        private static IntPtr CollectionPointer(IReadOnlyCollection<object> collection, IHostInProcess host)
+        {
+            var sizeOfDotnetValue = Marshal.SizeOf(typeof(DotNetValue));
+            var result = Marshal.AllocHGlobal(sizeof(int) + sizeOfDotnetValue * collection.Count);
+            try
+            {
+                Marshal.WriteInt32(result, collection.Count);
+                var writePtr = result + sizeof(int);
+                foreach (var value in collection)
+                {
+                    var wrapped = FromObject(value, host);
+                    Marshal.StructureToPtr(wrapped, writePtr, false);
+                    writePtr += sizeOfDotnetValue;
+                }
+            }
+            catch
+            {
+                Marshal.FreeHGlobal(result);
+                throw;
+            }
+
+            return result;
         }
     }
 }

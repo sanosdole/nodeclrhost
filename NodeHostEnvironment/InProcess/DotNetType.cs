@@ -13,6 +13,7 @@ namespace NodeHostEnvironment.InProcess
         Function,
         ByteArray,
         Task,
-        Exception
+        Exception,
+        Collection
     }
 }

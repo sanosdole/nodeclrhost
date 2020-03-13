@@ -18,7 +18,8 @@ typedef enum {
   Function,
   ByteArray,
   Task,
-  Exception
+  Exception,
+  Collection
 } Enum;
 }
 
@@ -34,6 +35,7 @@ extern "C" struct DotNetHandle {
     double double_value_;
     void (*function_value_)(int, JsHandle *, DotNetHandle &);
     DotNetHandle (*task_value_)(napi_deferred);
+    int32_t *collection_value_;
   };
 
   void (*release_func_)(DotNetType::Enum, void *);
@@ -89,6 +91,16 @@ extern "C" struct DotNetHandle {
     if (type_ == DotNetType::Exception) {      
       Napi::Error::New(env, StringValue(env)).ThrowAsJavaScriptException();
       return Napi::Value();
+    }
+
+    if (type_ == DotNetType::Collection) {
+      auto length = *collection_value_;
+      auto values = reinterpret_cast<DotNetHandle*>(collection_value_ + 1);
+      auto array = Napi::Array::New(env, length);
+      for (uint32_t inx = 0; inx < length; inx++) {
+        array.Set(inx, values[inx].ToValue(env, function_factory, array_buffer_factory));
+      }
+      return array;
     }
 
     // TODO: Support other types
