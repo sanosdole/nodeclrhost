@@ -41,7 +41,7 @@ namespace NodeHostEnvironment.InProcess
                         result = asDynamic;
                         return true;
                     case JsType.String:
-                        result = host.StringFromNativeUtf8(Value);
+                        result = Marshal.PtrToStringUni(Value);                        
                         return true;
                     case JsType.Number:
                         // TODO: This will break on 32 bit systems!

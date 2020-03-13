@@ -62,6 +62,14 @@ global.setupTestObject = function () {
     },
     TestClass: function (arg) {
       this.value = arg;
+    },
+    assertByteArray: function(bytes) {
+      var view = new Uint8Array(bytes);
+      assert.strictEqual(4, bytes.byteLength);
+      assert.strictEqual(1, view[0]);
+      assert.strictEqual(2, view[1]);
+      assert.strictEqual(3, view[2]);
+      assert.strictEqual(4, view[3]);
     }
   };
 

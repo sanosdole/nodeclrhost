@@ -11,7 +11,7 @@
         {
             var host = NativeHost.Initialize();
             var console = host.Global.console;
-            console.log("Starting timeout"); // TODO: Release of string crashes
+            console.log("Starting timeout");
             
             // TODO DM 17.09.2019: This crashes as the host has been disposed!
             /*host.Global.setTimeout(new Action(() =>

@@ -33,9 +33,7 @@
                     
                     browserWindow = electron.BrowserWindow.CreateNewInstance(options);
                     
-                    // TODO: Either the second parameter or the returned promise are a problem here!
                     browserWindow.loadFile("renderer.html");
-
                 }));
 
                 electron.app.on("will-quit", new Action<dynamic>(e =>

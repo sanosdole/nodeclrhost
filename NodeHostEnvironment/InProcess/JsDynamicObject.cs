@@ -277,5 +277,72 @@ namespace NodeHostEnvironment.InProcess
             _host.SetMember(Handle, binder.Name, DotNetValue.FromObject(value, _host));
             return true;
         }
+
+        public static bool operator ==(JsDynamicObject a, JsDynamicObject b)
+        {
+            if (ReferenceEquals(a, b))
+                return true;
+            if (a is null)
+                return false;
+            return a.Equals(b);
+        }
+
+        // this is second one '!='
+        public static bool operator !=(JsDynamicObject a, JsDynamicObject b)
+        {
+            if (ReferenceEquals(a, b))
+                return false;
+            if (a is null)
+                return true;
+            return !a.Equals(b);
+        }
+
+        public bool Equals(JsDynamicObject other)
+        {
+            if (other is null)
+                return false;
+            if (Handle.Type != other.Handle.Type)
+                return false;
+
+            System.Diagnostics.Debug.Assert(Handle.Type == JsType.Object || Handle.Type == JsType.Function,
+                "Only objects are supported by JsDynamicObject atm.");
+
+            // TODO: Do this using a native method, which would be more efficient.
+            var gObj = _host.GetMember(JsValue.Global, "Object");
+            try
+            {
+                var result = _host.InvokeByName("is", gObj, 2, new DotNetValue[]
+                {
+                    DotNetValue.FromJsValue(Handle),
+                        DotNetValue.FromJsValue(other.Handle)
+                });
+                return result.TryGetObject(_host, typeof(bool), out object resultObj) && (bool) resultObj;
+            }
+            finally
+            {
+                _host.Release(gObj);
+
+            }
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(this, obj))
+                return true;
+
+            if (obj is JsDynamicObject other)
+                return Equals(other);
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            // TODO: HashCode needs to be equal for equal objects. 
+            //       The Handle.Value is a pointer to a reference and can not be used.
+            //       So we need to call native code and ask the JS runtime for it.
+            //       But JS has no hashCode function. Maybe there is a stable pointer we can utilize?
+            return (int)Handle.Type;
+        }
     }
 }

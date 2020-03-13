@@ -25,11 +25,46 @@ void asyncReleaseCallback(uv_handle_t* handle) {
 
 namespace coreclrhosting {
 
-struct Context::FunctionFinalizerData {
-  std::unique_ptr<DotNetHandle> handle_;
+class Context::SynchronizedFinalizerCallback {
   Context* context_;
   std::shared_ptr<std::mutex> mutex_;
+  std::function<void()> callback_;
+
+ public:
+  SynchronizedFinalizerCallback(Context* context,
+                                std::function<void()> callback);
+  void Call();
+  void Cancel();
+  static void Wrapper(napi_env env, void* finalize_data, void* finalize_hint);
 };
+
+Context::SynchronizedFinalizerCallback::SynchronizedFinalizerCallback(
+    Context* context, std::function<void()> callback) {
+  context_ = context;
+  mutex_ = context->finalizer_mutex_;
+  callback_ = callback;
+  context->function_finalizers_.insert(this);
+}
+
+void Context::SynchronizedFinalizerCallback::Wrapper(napi_env env,
+                                                     void* finalize_data,
+                                                     void* finalize_hint) {
+  auto data = (SynchronizedFinalizerCallback*)finalize_data;
+  data->Call();
+  delete data;
+}
+
+void Context::SynchronizedFinalizerCallback::Call() {
+  std::lock_guard<std::mutex> lock(*mutex_);
+
+  if (context_) {
+    context_->function_finalizers_.erase(this);
+    context_ = nullptr;
+    callback_();
+  }
+}
+
+void Context::SynchronizedFinalizerCallback::Cancel() { context_ = nullptr; }
 
 thread_local Context* Context::ThreadInstance::thread_instance_;
 
@@ -39,7 +74,9 @@ Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
       release_called_(false),
       host_(std::move(dotnet_host)),
       function_factory_(
-          std::bind(&Context::CreateFunction, this, std::placeholders::_1)) {
+          std::bind(&Context::CreateFunction, this, std::placeholders::_1)),
+      array_buffer_factory_(
+          std::bind(&Context::CreateArrayBuffer, this, std::placeholders::_1)) {
   auto async_data = new AsyncHandleData();
   async_data->callback_ = [this]() { this->UvAsyncCallback(); };
   async_data->release_callback_ = [this]() { delete this; };
@@ -49,7 +86,7 @@ Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
 Context::~Context() {
   std::lock_guard<std::mutex> lock(*finalizer_mutex_);
   for (auto finalizer_data : function_finalizers_) {
-    finalizer_data->context_ = nullptr;
+    finalizer_data->Cancel();
   }
   ThreadInstance _(this);
   host_.reset(nullptr);  // Explicit reset while having thread instance set
@@ -211,7 +248,8 @@ JsHandle Context::SetMember(JsHandle& owner_handle, const char* name,
 
   auto owner = owner_handle.AsObject(env_);
   auto owner_object = owner.ToObject();
-  auto value = dotnet_handle.ToValue(env_, function_factory_);
+  auto value =
+      dotnet_handle.ToValue(env_, function_factory_, array_buffer_factory_);
   dotnet_handle.Release();
   owner_object.Set(name, value);
   return JsHandle::Undefined();
@@ -226,7 +264,8 @@ JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
   if (prototype_function.IsNotNullFunction()) {
     std::vector<napi_value> arguments(argc);
     for (int c = 0; c < argc; c++) {
-      arguments[c] = argv[c].ToValue(env_, function_factory_);
+      arguments[c] =
+          argv[c].ToValue(env_, function_factory_, array_buffer_factory_);
       argv[c].Release();
     }
 
@@ -283,7 +322,8 @@ JsHandle Context::InvokeIntern(Napi::Value handle, Napi::Value receiver,
 
   std::vector<napi_value> arguments(argc);
   for (int c = 0; c < argc; c++) {
-    arguments[c] = argv[c].ToValue(env_, function_factory_);
+    arguments[c] =
+        argv[c].ToValue(env_, function_factory_, array_buffer_factory_);
     argv[c].Release();
   }
 
@@ -296,14 +336,15 @@ JsHandle Context::InvokeIntern(Napi::Value handle, Napi::Value receiver,
 
 void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
   auto completeFunc = [this, handle](void* passed) mutable {
-    // TODO DM 29.11.2019: How to handle errors here?
+    // TODO DM 29.11.2019: How to handle errors from node here?
     auto deferred = reinterpret_cast<napi_deferred>(passed);
     if (handle.type_ == DotNetType::Exception) {
-      auto error = Napi::Error::New(env_, handle.string_value_);
+      auto error = Napi::Error::New(env_, handle.StringValue(env_));
       napi_reject_deferred(env_, deferred, error.Value());
     } else {
-      napi_resolve_deferred(env_, deferred,
-                            handle.ToValue(env_, function_factory_));
+      napi_resolve_deferred(
+          env_, deferred,
+          handle.ToValue(env_, function_factory_, array_buffer_factory_));
     }
     handle.Release();
   };
@@ -321,7 +362,7 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   auto function_value = handle->function_value_;
   handle->release_func_ = nullptr;  // We delay the release
 
-  // TODO: Check if using data instead of capture is better
+  // TODO: Check if using data instead of capture is better performancewise
   auto function = Napi::Function::New(
       env_, [this, function_value](const Napi::CallbackInfo& info) {
         ThreadInstance _(this);
@@ -334,41 +375,37 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         DotNetHandle resultIntern;
         (*function_value)(argc, arguments.data(), resultIntern);
 
-        auto napiResultValue =
-            resultIntern.ToValue(info.Env(), this->function_factory_);
+        auto napiResultValue = resultIntern.ToValue(
+            info.Env(), this->function_factory_, this->array_buffer_factory_);
         resultIntern.Release();
         return napiResultValue;
       });
 
-  auto finalizer_data = new FunctionFinalizerData;
-  finalizer_data->handle_ = std::make_unique<DotNetHandle>();
-  finalizer_data->handle_->type_ = DotNetType::Function;
-  finalizer_data->handle_->function_value_ = function_value;
-  finalizer_data->handle_->release_func_ = release_func;
-  finalizer_data->context_ = this;
-  finalizer_data->mutex_ = finalizer_mutex_;
-  function_finalizers_.insert(finalizer_data);
-
-  napi_add_finalizer(
-      env_, function, (void*)finalizer_data,
-      [](napi_env env, void* finalize_data, void* finalize_hintnapi_env) {
-        auto data = (FunctionFinalizerData*)finalize_data;
-        {
-          std::lock_guard<std::mutex> lock(*data->mutex_);
-
-          if (data->context_) {
-            data->context_->function_finalizers_.erase(data);
-            data->handle_->Release();
-            data->context_ = nullptr;
-          }
-
-          data->handle_.reset(nullptr);
-        }
-        delete data;
-      },
-      nullptr, nullptr);
+  auto finalizer_data = new SynchronizedFinalizerCallback(
+      this, [=]() { release_func(DotNetType::Function, function_value); });
+  napi_add_finalizer(env_, function, static_cast<void*>(finalizer_data),
+                     SynchronizedFinalizerCallback::Wrapper, nullptr, nullptr);
 
   return function;
+}
+
+Napi::ArrayBuffer Context::CreateArrayBuffer(DotNetHandle* handle) {
+  auto value_copy = handle->value_;
+  auto release_array_func = handle->release_func_;
+  handle->release_func_ = nullptr;  // We delay the release
+
+  auto finalizerData = new SynchronizedFinalizerCallback(
+      this, [=]() { release_array_func(DotNetType::ByteArray, value_copy); });
+  // We have a pointer to a struct { int32_t, void* } and interpret it like a
+  // int32_t*
+  auto array_value_ptr = reinterpret_cast<int32_t*>(value_copy);
+  auto length = *array_value_ptr;
+  return Napi::ArrayBuffer::New(
+      env_, *reinterpret_cast<void**>(array_value_ptr + 1), length,
+      [](napi_env env, void* data, SynchronizedFinalizerCallback* hint) {
+        hint->Call();
+      },
+      finalizerData);
 }
 
 }  // namespace coreclrhosting

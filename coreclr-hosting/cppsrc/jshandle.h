@@ -25,7 +25,6 @@ typedef enum {
   // Custom types
   Error
 
-  // TODO: What about special objects like arrays & promises
 } Enum;
 }
 
@@ -34,7 +33,8 @@ struct JsHandle {
   union {
     void* value_;
     double double_value_;
-    char* string_value_;
+    char16_t* string_value_;
+    char* u8_string_value_;
     Napi::Reference<Napi::Object>* object_value_;
     Napi::Reference<Napi::Function>* function_value_;
   };
@@ -43,8 +43,9 @@ struct JsHandle {
 
   static JsHandle Error(std::string message) {
     JsHandle result = Undefined();
-    result.string_value_ = new char[message.size() + 1];
-    memcpy(result.string_value_, message.c_str(), message.size() + 1);
+    auto buffer_size = message.size() + 1;
+    result.u8_string_value_ = new char[buffer_size];
+    memcpy(result.u8_string_value_, message.c_str(), buffer_size);
     result.type_ = JsType::Error;
     return result;
   }
@@ -59,9 +60,10 @@ struct JsHandle {
     type_ = JsType::Function;
   }
   JsHandle(Napi::String value) {
-    auto utf8 = value.Utf8Value();
-    string_value_ = new char[utf8.size() + 1];
-    memcpy(string_value_, utf8.c_str(), utf8.size() + 1);
+    auto utf16 = value.Utf16Value();
+    auto buffer_size = 2 * (utf16.size() + 1);
+    string_value_ = new char16_t[buffer_size];
+    memcpy(string_value_, utf16.c_str(), buffer_size);
     type_ = JsType::String;
   }
   JsHandle(Napi::Boolean boolean_value) {
@@ -87,7 +89,7 @@ struct JsHandle {
     if (type_ == JsType::Function) return function_value_->Value();
 
     if (type_ == JsType::Error) {
-      Napi::Error::New(env, string_value_)
+      Napi::Error::New(env, u8_string_value_)
           .ThrowAsJavaScriptException();
       return Napi::Value();
     }
@@ -142,8 +144,14 @@ struct JsHandle {
       return;
     }
 
-    if (type_ == JsType::String || type_ == JsType::Error) {
+    if (type_ == JsType::String) {
       delete[] string_value_;
+      string_value_ = nullptr;
+      return;
+    }
+
+    if (type_ == JsType::Error) {
+      delete[] u8_string_value_;
       string_value_ = nullptr;
     }
   }

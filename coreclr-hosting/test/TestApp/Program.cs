@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using FluentAssertions;
-    using NodeHostEnvironment;
     using NodeHostEnvironment.NativeHost;
 
     public class Program
@@ -17,8 +16,8 @@
                 var host = NativeHost.Initialize(/*"./build/Release/coreclr-hosting.node"*/);
                 var global = host.Global;
 
-                /*Console.WriteLine("Waiting for debugger!");
-                while(!System.Diagnostics.Debugger.IsAttached) System.Threading.Thread.Sleep(50);*/
+                //Console.WriteLine("Waiting for debugger!");
+                //while(!System.Diagnostics.Debugger.IsAttached) System.Threading.Thread.Sleep(50);
 
                 global.registerAsyncTest(new Func<Task>(() => Task.Delay(5)));
 
@@ -219,7 +218,38 @@
                     {
                         string sep = global.require("path").sep;
                         sep.Should().Be(System.IO.Path.DirectorySeparatorChar.ToString());                        
-                    }));  
+                    }));
+
+                    global.it("should implement equals for objects & functions", new Action(() => 
+                    {
+                        var a = host.New();
+                        global.a = a;
+
+                        AssertionExtensions.Should(Equals(a, a)).BeTrue("Ref equal");                        
+                        AssertionExtensions.Should(Equals(a, global.a)).Be(true);
+                        AssertionExtensions.Should(Equals(a, global.testObject)).Be(false);
+                        AssertionExtensions.Should(Equals(global.testObject, global.testObject)).Be(true);
+                        AssertionExtensions.Should(Equals(global.testObject, global.it)).Be(false);
+                        AssertionExtensions.Should(Equals(global.it, global.it)).Be(true);
+
+                        AssertionExtensions.Should(a == a).BeTrue("Ref equal");                        
+                        AssertionExtensions.Should(a == global.a).BeTrue("a == global.a");
+                        AssertionExtensions.Should(a == global.testObject).Be(false);
+                        AssertionExtensions.Should(global.testObject == global.testObject).Be(true);
+                        AssertionExtensions.Should(global.testObject == global.it).Be(false);
+                        AssertionExtensions.Should(global.it == global.it).Be(true);
+
+                    }));
+
+                    // TODO: Test hash code
+
+                    global.it("should marshal byte arrays", new Action(() => 
+                    {
+                        var a = new byte[] { 1, 2, 3, 4};
+                        global.testObject.assertByteArray(a);
+                        
+
+                    }));
 
                 }));
 

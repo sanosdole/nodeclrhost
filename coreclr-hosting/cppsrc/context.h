@@ -18,19 +18,20 @@
 namespace coreclrhosting {
 
 class Context {
-  struct FunctionFinalizerData;
+  struct SynchronizedFinalizerCallback;
   typedef std::function<void(void*)> netCallback_t;
   typedef std::vector<std::pair<netCallback_t, void*>> netCallbacks_t;
 
   Napi::Env env_;
   uv_async_t async_handle_;
   netCallbacks_t dotnet_callbacks_;
-  std::set<FunctionFinalizerData*> function_finalizers_;
+  std::set<SynchronizedFinalizerCallback*> function_finalizers_;
   std::shared_ptr<std::mutex> finalizer_mutex_;
   std::mutex mutex_;
   bool release_called_;
   std::unique_ptr<DotNetHost> host_;
   std::function<Napi::Function(DotNetHandle*)> function_factory_;
+  std::function<Napi::ArrayBuffer(DotNetHandle*)> array_buffer_factory_;
 
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;  // no self-assignments
@@ -54,6 +55,7 @@ class Context {
   bool IsActiveContext() { return ThreadInstance::Current() == this; }
 
   Napi::Function CreateFunction(DotNetHandle* handle);
+  Napi::ArrayBuffer CreateArrayBuffer(DotNetHandle* handle);
   JsHandle InvokeIntern(Napi::Value handle, Napi::Value receiver, int argc,
                         DotNetHandle* argv);
 
@@ -61,10 +63,6 @@ class Context {
   static Napi::Value RunCoreApp(const Napi::CallbackInfo& info);
   static Context* CurrentInstance() { return ThreadInstance::Current(); }
 
-  // TODO: How to get the instance when not on node thread? => .NET calls
-  // getInstance on main thread
-  // TODO: How to ensure ThreadContext on calls from node to .NET delegates (see
-  // DotNetHandle)
   void PostCallback(netCallback_t callback,
                     void* data);  // can be called from any thread
   void Release();                 // can be called from any thread

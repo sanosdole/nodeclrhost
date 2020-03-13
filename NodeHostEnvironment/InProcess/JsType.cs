@@ -14,7 +14,6 @@ namespace NodeHostEnvironment.InProcess
         External,
 
         // Custom types
-        Error
-        // TODO: What about special objects like arrays & promises
+        Error // Not an JS error, but a value that indicates an internal error (Exception)
     }
 }

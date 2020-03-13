@@ -27,7 +27,7 @@ extern "C" struct DotNetHandle {
   union {
     void *value_;
     JsHandle *jshandle_value_;
-    char *string_value_;
+    int32_t *string_value_;
     bool bool_value_;
     int32_t int32_value_;
     int64_t int64_value_;
@@ -45,13 +45,13 @@ extern "C" struct DotNetHandle {
 
   Napi::Value ToValue(
       const Napi::Env &env,
-      std::function<Napi::Function(DotNetHandle *)> function_factory) {
+      std::function<Napi::Function(DotNetHandle *)> function_factory,
+      std::function<Napi::ArrayBuffer(DotNetHandle *)> array_buffer_factory) {
     if (type_ == DotNetType::Null) return env.Null();
     if (type_ == DotNetType::JsHandle) return jshandle_value_->AsObject(env);
-    if (type_ == DotNetType::String)
-      return Napi::String::New(
-          env, string_value_);  // TODO: string is copied, we could use char16_t
-                                // to prevent a copy
+    if (type_ == DotNetType::String) {
+      return StringValue(env);
+    }
     if (type_ == DotNetType::Boolean)
       return Napi::Boolean::New(env, bool_value_);
     if (type_ == DotNetType::Int32) return Napi::Number::New(env, int32_value_);
@@ -63,21 +63,7 @@ extern "C" struct DotNetHandle {
       return function_factory(this);
     }
     if (type_ == DotNetType::ByteArray) {
-      auto release_func = release_func_;
-      release_func_ = nullptr;  // We delay the release
-
-      return Napi::ArrayBuffer::New(
-          env,
-          reinterpret_cast<void *>(reinterpret_cast<int32_t *>(value_) + 1),
-          *reinterpret_cast<int32_t *>(value_),
-          [release_func](napi_env env, void *finalize_data) {
-            DotNetHandle copy;
-            copy.type_ = DotNetType::ByteArray;
-            copy.value_ = reinterpret_cast<void *>(
-                reinterpret_cast<int32_t *>(finalize_data) - 1);
-            copy.release_func_ = release_func;
-            copy.Release();
-          });
+      return array_buffer_factory(this);
     }
     if (type_ == DotNetType::Task) {
       napi_deferred deferred;
@@ -92,7 +78,7 @@ extern "C" struct DotNetHandle {
       // This must return either DotNetType::Null or an DotNetType::Exception
       if (result.type_ == DotNetType::Exception) {
         // Reject with the error right away
-        auto error = Napi::Error::New(env, result.string_value_);
+        auto error = Napi::Error::New(env, result.StringValue(env));
         napi_reject_deferred(env, deferred, error.Value());
       }
       result.Release();
@@ -100,14 +86,17 @@ extern "C" struct DotNetHandle {
       return Napi::Promise(env, promise);
     }
 
-    if (type_ == DotNetType::Exception) {
-      // printf("Throwing: %s\n", string_value_);
-      Napi::Error::New(env, string_value_).ThrowAsJavaScriptException();
+    if (type_ == DotNetType::Exception) {      
+      Napi::Error::New(env, StringValue(env)).ThrowAsJavaScriptException();
       return Napi::Value();
     }
 
     // TODO: Support other types
     return Napi::Value();
+  }
+
+  inline Napi::String StringValue(const Napi::Env &env) {
+    return Napi::String::New(env, *reinterpret_cast<char16_t**>(string_value_ + 1), *string_value_);
   }
 };
 

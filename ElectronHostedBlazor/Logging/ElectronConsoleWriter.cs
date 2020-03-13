@@ -42,7 +42,6 @@ namespace ElectronHostedBlazor.Logging
             }
 
             _node.Run(WriteQueuedEntries);
-            return;
         }
 
         private void WriteIntern(LogLevel logLevel, string finalMessage)

@@ -40,9 +40,9 @@ namespace ElectronHostedBlazor.Logging
             _writer.Write(logLevel, finalMessage);
         }
 
-        private class NoOpDisposable : IDisposable
+        private sealed class NoOpDisposable : IDisposable
         {
-            public static NoOpDisposable Instance = new NoOpDisposable();
+            public static readonly NoOpDisposable Instance = new NoOpDisposable();
 
             public void Dispose() { }
         }

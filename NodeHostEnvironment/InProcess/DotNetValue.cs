@@ -1,10 +1,9 @@
 namespace NodeHostEnvironment.InProcess
 {
+    using System.Linq;
     using System.Runtime.InteropServices;
-    using System.Text;
-    using System;
-    using System.Dynamic;
     using System.Threading.Tasks;
+    using System;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void ReleaseDotNetValue(DotNetType type, IntPtr value);
@@ -25,26 +24,26 @@ namespace NodeHostEnvironment.InProcess
                     Value = IntPtr.Zero,
                     ReleaseFunc = null
                 };
-            if (obj is bool)
-                return FromBool((bool)obj);
-            if (obj is int)
-                return FromInt((int)obj);
-            if (obj is double)
-                return FromDouble((double)obj);
-            if (obj is Delegate)
-                return FromDelegate((Delegate)obj, host);
-            if (obj is JsValue)
-                return FromJsValue((JsValue)obj);
-            if (obj is JsDynamicObject)
-                return FromJsValue(((JsDynamicObject)obj).Handle);
-            if (obj is string)
-                return FromString((string)obj);
-            if (obj is byte[])
-                return FromByteArray((byte[])obj);
-            if (obj is Exception)
-                return FromException((Exception)obj);
-            if (obj is Task)
-                return FromTask((Task)obj, host);
+            if (obj is bool boolean)
+                return FromBool(boolean);
+            if (obj is int @int)
+                return FromInt(@int);
+            if (obj is double @double)
+                return FromDouble(@double);
+            if (obj is Delegate @delegate)
+                return FromDelegate(@delegate, host);
+            if (obj is JsValue value)
+                return FromJsValue(value);
+            if (obj is JsDynamicObject @object)
+                return FromJsValue(@object.Handle);
+            if (obj is string @string)
+                return FromString(@string);
+            if (obj is byte[] v)
+                return FromByteArray(v);
+            if (obj is Exception exception)
+                return FromException(exception);
+            if (obj is Task task)
+                return FromTask(task, host);
 
             throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
         }
@@ -57,15 +56,23 @@ namespace NodeHostEnvironment.InProcess
                 var requiredParameters = @delegate.Method.GetParameters();
                 if (requiredParameters.Length > argc)
                 {
+                    foreach (var toRelease in argv)
+                        host.Release(toRelease);
+                    // This exception will be passed properly to JS
                     throw new InvalidOperationException($"We need at least {requiredParameters.Length} arguments!");
-                    // TODO: Error handling? Maybe retrun js error object?
                 }
 
                 var mappedArgs = new object[requiredParameters.Length];
                 for (int c = 0; c < requiredParameters.Length; c++)
                 {
-                    if (!argv[c].TryGetObject(host, requiredParameters[c].ParameterType, out object parameter))
-                        throw new InvalidOperationException("Cannot get object from JsHandle");                    
+                    var paramType = requiredParameters[c].ParameterType;
+                    if (!argv[c].TryGetObject(host, paramType, out object parameter))
+                    {
+                        // Release remaining arguments
+                        foreach (var toRelease in argv.Skip(c + 1))
+                            host.Release(toRelease);
+                        throw new InvalidOperationException($"Cannot get {paramType.FullName} from JS handle of type {argv[c].Type}");
+                    }
 
                     mappedArgs[c] = parameter;
                 }
@@ -78,8 +85,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Function,
-                Value = value,
-                ReleaseFunc = releaseCallback
+                    Value = value,
+                    ReleaseFunc = releaseCallback
             };
         }
 
@@ -90,8 +97,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.JsHandle,
-                Value = ptr,
-                ReleaseFunc = ReleaseHGlobal
+                    Value = ptr,
+                    ReleaseFunc = ReleaseHGlobal
             };
         }
 
@@ -100,8 +107,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.String,
-                Value = NativeUtf8FromString(value),
-                ReleaseFunc = ReleaseHGlobal
+                    Value = NativeUtf8FromString(value),
+                    ReleaseFunc = ReleaseString
             };
         }
 
@@ -110,8 +117,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Boolean,
-                Value = value ? new IntPtr(1) : IntPtr.Zero,
-                ReleaseFunc = null
+                    Value = value ? new IntPtr(1) : IntPtr.Zero,
+                    ReleaseFunc = null
             };
         }
 
@@ -120,8 +127,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Int32,
-                Value = new IntPtr(value),
-                ReleaseFunc = null
+                    Value = new IntPtr(value),
+                    ReleaseFunc = null
             };
         }
 
@@ -130,9 +137,9 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Double,
-                // TODO: Breaks on 32bit node :(
-                Value = new IntPtr(BitConverter.DoubleToInt64Bits(value)),
-                ReleaseFunc = null
+                    // TODO: Breaks on 32bit node :(
+                    Value = new IntPtr(BitConverter.DoubleToInt64Bits(value)),
+                    ReleaseFunc = null
             };
         }
 
@@ -141,8 +148,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.ByteArray,
-                Value = ArrayPointer(value),
-                ReleaseFunc = ReleaseArrayPointer
+                    Value = ArrayPointer(value),
+                    ReleaseFunc = ReleaseArrayPointer
             };
         }
 
@@ -151,8 +158,8 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Exception,
-                Value = NativeUtf8FromString($"{value.GetType().Name}: {value.Message}\n{value.StackTrace}"),
-                ReleaseFunc = ReleaseHGlobal
+                    Value = NativeUtf8FromString($"{value.GetType().Name}: {value.Message}\n{value.StackTrace}"),
+                    ReleaseFunc = ReleaseString
             };
         }
 
@@ -162,46 +169,57 @@ namespace NodeHostEnvironment.InProcess
             return new DotNetValue
             {
                 Type = DotNetType.Task,
-                Value = host.MarshallTask(value, out releaseDotNetCallback),
-                ReleaseFunc = releaseDotNetCallback
+                    Value = host.MarshallTask(value, out releaseDotNetCallback),
+                    ReleaseFunc = releaseDotNetCallback
             };
         }
 
         private static readonly ReleaseDotNetValue ReleaseHGlobal = ReleaseHGlobalIntern;
+
+        private static readonly ReleaseDotNetValue ReleaseString = ReleaseStringIntern;
         private static readonly ReleaseDotNetValue ReleaseArrayPointer = ReleaseArrayPointerIntern;
 
         private static void ReleaseHGlobalIntern(DotNetType type, IntPtr value)
         {
-            //Console.WriteLine($"Releasing pointer {value.ToInt64():X8}");
             Marshal.FreeHGlobal(value);
         }
 
         private static IntPtr NativeUtf8FromString(string managedString)
         {
-            int len = Encoding.UTF8.GetByteCount(managedString);
-            byte[] buffer = new byte[len + 1];
-            Encoding.UTF8.GetBytes(managedString, 0, managedString.Length, buffer, 0);
-            IntPtr nativeUtf8 = Marshal.AllocHGlobal(buffer.Length);
-            Marshal.Copy(buffer, 0, nativeUtf8, buffer.Length);
-            //Console.WriteLine($"Passing pointer {nativeUtf8.ToInt64():X8}");
-            return nativeUtf8;
+            var gcHandle = GCHandle.Alloc(managedString, GCHandleType.Pinned);
+            var dataPtr = gcHandle.AddrOfPinnedObject();
+            var structPtr = Marshal.AllocHGlobal(sizeof(int) + 2 * IntPtr.Size);
+            Marshal.WriteInt32(structPtr, managedString.Length);
+            Marshal.WriteIntPtr(structPtr, sizeof(int), dataPtr);
+            Marshal.WriteIntPtr(structPtr, sizeof(int) + IntPtr.Size, GCHandle.ToIntPtr(gcHandle));
+            return structPtr;
+        }
+
+        private static void ReleaseStringIntern(DotNetType type, IntPtr value)
+        {
+            var gcHandlePtr = Marshal.ReadIntPtr(value, sizeof(int) + IntPtr.Size);
+            var gcHandle = GCHandle.FromIntPtr(gcHandlePtr);
+            gcHandle.Free();
+            Marshal.FreeHGlobal(value);
         }
 
         private static void ReleaseArrayPointerIntern(DotNetType type, IntPtr value)
         {
-            // TODO DM 22.08.2019: Do not copy the array!
+            var gcHandlePtr = Marshal.ReadIntPtr(value, sizeof(int) + IntPtr.Size);
+            var gcHandle = GCHandle.FromIntPtr(gcHandlePtr);
+            gcHandle.Free();
             Marshal.FreeHGlobal(value);
         }
 
         private static IntPtr ArrayPointer(byte[] array)
         {
-            // TODO DM 22.08.2019: Do not copy the array!
-            int length = array.Length;
-            IntPtr native = Marshal.AllocHGlobal(array.Length + Marshal.SizeOf(length));
-            Marshal.WriteInt32(native, length);
-            Marshal.Copy(array, 0, new IntPtr(native.ToInt64() + Marshal.SizeOf(length)), length);
-            return native;
+            var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
+            var dataPtr = gcHandle.AddrOfPinnedObject();
+            var structPtr = Marshal.AllocHGlobal(sizeof(int) + 2 * IntPtr.Size);
+            Marshal.WriteInt32(structPtr, array.Length);
+            Marshal.WriteIntPtr(structPtr, sizeof(int), dataPtr);
+            Marshal.WriteIntPtr(structPtr, sizeof(int) + IntPtr.Size, GCHandle.ToIntPtr(gcHandle));
+            return structPtr;
         }
-
     }
 }
