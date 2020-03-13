@@ -1,0 +1,29 @@
+@page "/JSInterop"
+@inject IJSRuntime JSRuntime
+
+<h1>JavaScript Interop</h1>
+
+<h2>Invoke JavaScript functions from .NET methods</h2>
+
+<input @ref="_entryInput" id="jsInteropInput" />
+
+<button type="button" class="btn btn-primary" @onclick="TriggerJsPrompt">
+    Trigger JavaScript Prompt
+</button>
+
+<h3 id="welcome" style="color:green;font-style:italic"></h3>
+
+@code {
+    private ElementReference _entryInput;
+
+    public async Task TriggerJsPrompt()
+    {
+        var name = await JSRuntime.InvokeAsync<string>(
+                "exampleJsFunctions.getInputValue",
+                _entryInput);
+
+        await JSRuntime.InvokeVoidAsync(
+                "exampleJsFunctions.displayWelcome",
+                $"Hello {name}! Welcome to Blazor!");
+    }
+}

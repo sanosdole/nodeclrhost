@@ -3,44 +3,66 @@
 // Modified by Daniel Martin for nodeclrhost
 
 using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.JSInterop;
+using Microsoft.JSInterop.Infrastructure;
 using NodeHostEnvironment;
 
 namespace ElectronHostedBlazor.Services
 {
-    internal sealed class ElectronJSRuntime : IJSRuntime, IJSInProcessRuntime
+    // TODO: Proper error handling and logging
+    internal sealed class ElectronJSRuntime : JSInProcessRuntime, IJSRuntime, IJSInProcessRuntime
     {
         private readonly dynamic _window;
+        private readonly dynamic _dotNet;
+        private readonly dynamic _jsCallDispatcher;
 
         public ElectronJSRuntime(IBridgeToNode node)
         {
-            _window = node.Global.window;
+            _window = node.Global.window;            
+            _dotNet = node.Global.DotNet; // No need for require, as electron-blazor-glue exports this. 
+            _jsCallDispatcher = _dotNet.jsCallDispatcher;
+
+            var dotnetDispatcher = node.New();
+            dotnetDispatcher.invokeDotNetFromJS = new Func<string, string, dynamic, string, string>(InvokeDotNetFromJS);
+            dotnetDispatcher.beginInvokeDotNetFromJS = new Action<long, string, string, dynamic, string>(BeginInvokeDotNetFromJS);
+            dotnetDispatcher.endInvokeJSFromDotNet = new Action<long, bool, string>(EndInvokeJSFromDotNet);
+            _dotNet.attachDispatcher(dotnetDispatcher);
+            JsonSerializerOptions.Converters.Add(new ElementReferenceJsonConverter());
         }
 
-        public T Invoke<T>(string identifier, params object[] args)
+        private void EndInvokeJSFromDotNet(long callId, bool succeeded, string argsJson)
         {
-            if (!_window.TryInvokeMember(identifier, args, out object result))
-                throw new InvalidOperationException($"Could not invoke {identifier} from global!");
-            return (T)result;
+            DotNetDispatcher.EndInvokeJS(this, argsJson);
         }
 
-        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, params object[] args)
+        private void BeginInvokeDotNetFromJS(long callId, string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
         {
-            //_logger.LogDebug("Invoking '{0}'", identifier);
-            if (!_window.TryInvokeMember(identifier, args, out object result))
-                throw new InvalidOperationException($"Could not invoke {identifier} from global!");
-            return new ValueTask<TValue>((TValue)result);
+            var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId, callId.ToString());
+            DotNetDispatcher.BeginInvokeDotNet(this, callInfo, argsJson);
         }
 
-        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken = default, params object[] args)
+        private string InvokeDotNetFromJS(string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
         {
-            //_logger.LogDebug("Invoking '{0}'", identifier);            
-            if (!_window.TryInvokeMember(identifier, args.ToArray(), out object result))
-                throw new InvalidOperationException($"Could not invoke {identifier} from global!");
-            return new ValueTask<TValue>((TValue)result);
+            var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long) dotNetObjectId, null);
+            return DotNetDispatcher.Invoke(this, callInfo, argsJson);
         }
+
+        protected override string InvokeJS(string identifier, string argsJson)
+        {
+            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson);
+        }
+
+        protected override void BeginInvokeJS(long taskId, string identifier, string argsJson)
+        {
+            _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson);
+        }
+
+        protected override void EndInvokeDotNet(DotNetInvocationInfo invocationInfo, in DotNetInvocationResult invocationResult)
+        {
+            _jsCallDispatcher.endInvokeDotNetFromJS(invocationInfo.CallId,
+                invocationResult.Success,
+                invocationResult.Success ? invocationResult.Result : invocationResult.Exception.ToString());
+        }
+
     }
 }

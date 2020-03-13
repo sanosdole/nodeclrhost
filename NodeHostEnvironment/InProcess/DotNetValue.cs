@@ -28,6 +28,8 @@ namespace NodeHostEnvironment.InProcess
                 return FromBool(boolean);
             if (obj is int @int)
                 return FromInt(@int);
+            if (obj is long @long)
+                return FromLong(@long);
             if (obj is double @double)
                 return FromDouble(@double);
             if (obj is Delegate @delegate)
@@ -123,6 +125,16 @@ namespace NodeHostEnvironment.InProcess
         }
 
         public static DotNetValue FromInt(int value)
+        {
+            return new DotNetValue
+            {
+                Type = DotNetType.Int32,
+                    Value = new IntPtr(value),
+                    ReleaseFunc = null
+            };
+        }
+
+        public static DotNetValue FromLong(long value)
         {
             return new DotNetValue
             {
