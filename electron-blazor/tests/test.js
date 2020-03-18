@@ -38,7 +38,9 @@ describe("blazor-test-app", function () {
 
     const jsInteropNavBtn = "body > app > div.sidebar > div:nth-child(2) > ul > li:nth-child(3) > a";
     const jsInteropInput = "#jsInteropInput";
-    const jsInteropButton = "body > app > div.main > div.content.px-4 > button";
+    const jsInteropButton = "#triggerjsfromdotnet";
+    const dotnetInteropResult = "#dotnetinvocationcount";
+    const dotnetInteropButton = "#triggerdotnetfromjs";
     const jsInteropTitle = "body > app > div.main > div.content.px-4 > h1";
     const jsInteropResult = "#welcome";
 
@@ -89,11 +91,17 @@ describe("blazor-test-app", function () {
             return await app.client.element(jsInteropButton).isEnabled().should.eventually.equal(true);
         });
 
-        it("execute js interop", function () {
+        it("execute dotnet-js interop", function () {
             return app.client
                 .setValue(jsInteropInput, "testuser")
                 .click(jsInteropButton)
                 .waitUntilTextExists(jsInteropResult, 'Hello testuser! Welcome to Blazor!');
+        });
+
+        it("execute js-dotnet interop", function () {
+            return app.client                
+                .click(dotnetInteropButton)
+                .waitUntilTextExists(dotnetInteropResult, '1');
         });
     });
 });

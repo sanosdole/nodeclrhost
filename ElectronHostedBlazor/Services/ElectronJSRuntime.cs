@@ -37,15 +37,16 @@ namespace ElectronHostedBlazor.Services
 
         private void BeginInvokeDotNetFromJS(long callId, string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
         {
-            var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId, callId.ToString());
+            var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long) dotNetObjectId, callId.ToString());
             DotNetDispatcher.BeginInvokeDotNet(this, callInfo, argsJson);
-        }
+        }        
 
         private string InvokeDotNetFromJS(string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
         {
             var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long) dotNetObjectId, null);
             return DotNetDispatcher.Invoke(this, callInfo, argsJson);
         }
+
 
         protected override string InvokeJS(string identifier, string argsJson)
         {

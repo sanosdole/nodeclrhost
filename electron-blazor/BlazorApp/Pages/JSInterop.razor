@@ -7,14 +7,37 @@
 
 <input @ref="_entryInput" id="jsInteropInput" />
 
-<button type="button" class="btn btn-primary" @onclick="TriggerJsPrompt">
+<button id="triggerjsfromdotnet" type="button" class="btn btn-primary" @onclick="TriggerJsPrompt">
     Trigger JavaScript Prompt
 </button>
 
 <h3 id="welcome" style="color:green;font-style:italic"></h3>
 
+<button id="triggerdotnetfromjs" type="button" class="btn btn-primary" @onclick="TriggerNetInstanceMethod">
+    Trigger .NET instance method HelloHelper.SayHello
+</button>
+
+<h3 id="dotnetinvocationcount" style="color:green;font-style:italic">@_invokeCounter</h3>
+
+
 @code {
     private ElementReference _entryInput;
+    private int _invokeCounter;
+
+    public async Task TriggerNetInstanceMethod()
+    {        
+        await JSRuntime.InvokeAsync<string>(
+            "exampleJsFunctions.sayHello",
+            DotNetObjectReference.Create(this));
+    }
+
+    [JSInvokable]
+    public string SayHello() 
+    {
+        _invokeCounter++;
+        StateHasChanged();
+        return $"Hello, {_invokeCounter}!";
+    }
 
     public async Task TriggerJsPrompt()
     {
