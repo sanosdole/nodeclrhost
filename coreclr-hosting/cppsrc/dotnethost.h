@@ -30,11 +30,10 @@ class DotNetHost {
   ~DotNetHost();
 
   static DotNetHostCreationResult::Enum Create(
-      const std::vector<std::string>& arguments,
+      std::string assembly_path,
       std::unique_ptr<DotNetHost>& host);
 
-  // name must be located in path
-  int32_t ExecuteAssembly();
+  int32_t ExecuteAssembly(const std::vector<std::string> &arguments/*, void *result_callback(int32_t)*/);
 };
 
 }  // namespace coreclrhosting

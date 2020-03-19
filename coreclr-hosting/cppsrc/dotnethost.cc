@@ -29,7 +29,6 @@
 #define STR(s) L##s
 #define CH(c) L##c
 #define DIR_SEPARATOR L'\\'
-#define CORECLR_FILE_NAME L"coreclr.dll"
 
 #else
 
@@ -241,22 +240,16 @@ LibraryHandle LoadHostfxr(const std::string &assembly,
 }  // namespace
 namespace coreclrhosting {
 
+extern "C" typedef int32_t(*EntryPointPtr)(int argc, const char *argv[]);
+
 class DotNetHost::Impl {
  public:
-  std::vector<std::string> arguments_;
-  coreclr_execute_assembly_ptr coreclr_execute_assembly_;
-  coreclr_shutdown_ptr coreclr_shutdown_;
-  void *host_handle_;
-  unsigned int domain_id_;
-  hostfxr_handle context_;
-  // hostfxr_run_app_fn run_fptr_;
+  EntryPointPtr entry_point_;
+  hostfxr_handle context_;  
   hostfxr_close_fn close_fptr_;
-  LibraryHandle hostfxr_lib_;
-  LibraryHandle coreclr_lib_;
+  LibraryHandle hostfxr_lib_;  
 
-  ~Impl() {
-    coreclr_shutdown_(host_handle_, domain_id_);
-    free_library(coreclr_lib_);
+  ~Impl() {    
     close_fptr_(context_);
     free_library(hostfxr_lib_);
   }
@@ -266,59 +259,49 @@ DotNetHost::DotNetHost(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 DotNetHost::~DotNetHost() {}
 
 DotNetHostCreationResult::Enum DotNetHost::Create(
-    const std::vector<std::string> &arguments,
+    std::string assembly_path,
     std::unique_ptr<DotNetHost> &host) {
-  /*if (arguments.size() < 1)
-    throw std::invalid_argument(
-        "At least the path to an assembly is required!");*/
-  auto assembly_path = arguments[0];
 #ifdef WINDOWS
   std::replace(assembly_path.begin(), assembly_path.end(), u8'/', u8'\\');
 #else
   std::replace(assembly_path.begin(), assembly_path.end(), '\\', '/');
 #endif
-
-  if (!FileExists(assembly_path))
+  
+  auto runtime_config = assembly_path;
+#ifdef WINDOWS
+  auto dll_index = runtime_config.find_last_of(u8".dll");
+#else
+  auto dll_index = runtime_config.find_last_of(".dll");
+#endif  
+  if (dll_index == std::string::npos)
+    return DotNetHostCreationResult::kAssemblyNotFound;
+#ifdef WINDOWS
+  runtime_config = runtime_config.substr(0, dll_index - 3) + u8".runtimeconfig.json";  
+#else
+  runtime_config = runtime_config.substr(0, dll_index - 3) + ".runtimeconfig.json";
+#endif  
+  
+  if (!FileExists(assembly_path) || !FileExists(runtime_config))
     return DotNetHostCreationResult::kAssemblyNotFound;
 
   string_t hostfxr_path;
   auto lib = LoadHostfxr(assembly_path, hostfxr_path);
   if (nullptr == lib) return DotNetHostCreationResult::kCoreClrNotFound;
 
-  auto init_fptr = GetFunction<hostfxr_initialize_for_dotnet_command_line_fn>(
-      lib, "hostfxr_initialize_for_dotnet_command_line");
-  // auto run_fptr = GetFunction<hostfxr_run_app_fn>(lib, "hostfxr_run_app");
-  auto close_fptr = GetFunction<hostfxr_close_fn>(lib, "hostfxr_close");
+  auto init_fptr = GetFunction<hostfxr_initialize_for_runtime_config_fn>(
+      lib, "hostfxr_initialize_for_runtime_config");
+  auto get_runtime_delegate_fptr = GetFunction<hostfxr_get_runtime_delegate_fn>(lib, "hostfxr_get_runtime_delegate");
+  auto close_fptr = GetFunction<hostfxr_close_fn>(lib, "hostfxr_close");  
 
-  auto get_prop_fptr = GetFunction<hostfxr_get_runtime_property_value_fn>(
-      lib, "hostfxr_get_runtime_property_value");
-  // auto set_prop_fptr =
-  // GetFunction<hostfxr_set_runtime_property_value_fn>(lib,
-  // "hostfxr_set_runtime_property_value");
-  auto get_props_fptr = GetFunction<hostfxr_get_runtime_properties_fn>(
-      lib, "hostfxr_get_runtime_properties");
-
-  if (!init_fptr /*|| !run_fptr*/ || !close_fptr || !get_prop_fptr ||
-      !get_props_fptr) {
+  if (!init_fptr || !get_runtime_delegate_fptr || !close_fptr) {
     free_library(lib);
     return DotNetHostCreationResult::kInvalidCoreClr;
   }
 
-  // Create proper arguments array
-  auto in_size = arguments.size();
-  std::vector<string_t> final_arguments(in_size);
-  std::vector<const char_t *> final_arguments_char(in_size);
-  // Is there a LINQ equivalent for this?
-  for (auto i = 0u; i < in_size; i++) {
-    final_arguments[i] =
-        StringTFromUtf8(i == 0u ? assembly_path : arguments[i]);
-    final_arguments_char[i] = final_arguments[i].c_str();
-  }
-
-  // Load context for running
+  // Load context
   hostfxr_handle cxt = nullptr;
-  auto rc = init_fptr(final_arguments.size(), final_arguments_char.data(),
-                      nullptr, &cxt);
+  auto runtime_config_t = StringTFromUtf8(runtime_config);
+  auto rc = init_fptr(runtime_config_t.c_str(), nullptr, &cxt);
   if (rc != 0 || cxt == nullptr) {
     std::cerr << "Init '" << assembly_path << "' failed: " << std::hex
               << std::showbase << rc << std::endl;
@@ -327,98 +310,39 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
     return DotNetHostCreationResult::kInitializeFailed;
   }
 
-  // Log properties
-  size_t prop_count = 64;
-  const char_t *prop_keys[64];
-  const char_t *prop_values[64];
-  rc = get_props_fptr(cxt, &prop_count, prop_keys, prop_values);
-  if (0 != rc) {
-    std::cerr << "hostfxr did not set up properties" << std::hex
-              << std::showbase << rc << std::endl;
-    close_fptr(cxt);
+  // Get runtime delegate for resolving delegates
+  load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_fptr = nullptr;
+  rc = get_runtime_delegate_fptr(
+            cxt,
+            hdt_load_assembly_and_get_function_pointer,
+            reinterpret_cast<void**>(&load_assembly_and_get_function_fptr));
+    if (rc != 0 || load_assembly_and_get_function_fptr == nullptr) {
+        std::cerr << "Get delegate failed: " << std::hex << std::showbase << rc << std::endl;
+        close_fptr(cxt);
     free_library(lib);
-    return DotNetHostCreationResult::kInvalidCoreClr;
-  }
+    return DotNetHostCreationResult::kInitializeFailed;
+    }
 
-  // Due to hostpolicy.cpp:255 shutting down the coreclr after running we load
-  // coreclr manually
-  const char_t *jit_path_buffer;
-  rc = get_prop_fptr(cxt, STR("JIT_PATH"), &jit_path_buffer);
-  if (0 != rc) {
-    std::cerr << "hostfxr did not set up JIT_PATH, which is required for "
-                 "locating coreclr"
-              << std::hex << std::showbase << rc << std::endl;
-    close_fptr(cxt);
+  // Resolve NodeHostEnvironment entry point
+  auto assembly_path_t = StringTFromUtf8(assembly_path);
+  EntryPointPtr entry_point = nullptr; 
+  rc = load_assembly_and_get_function_fptr(
+        assembly_path_t.c_str(),
+        STR("NodeHostEnvironment.NativeHost.NativeEntryPoint, NodeHostEnvironment"),
+        STR("RunHostedApplication"),
+        STR("NodeHostEnvironment.NativeHost.EntryPointSignature, NodeHostEnvironment"),
+        nullptr,
+        (void**)&entry_point);
+  if (rc != 0 || entry_point == nullptr) {
+        std::cerr << "Get delegate failed: " << std::hex << std::showbase << rc << std::endl;
+        close_fptr(cxt);
     free_library(lib);
-    return DotNetHostCreationResult::kInvalidCoreClr;
-  }
-  string_t jit_path = jit_path_buffer;
-
-  auto coreclr_base_path = GetDirectoryFromFilePath(jit_path);
-  auto coreclr_path = coreclr_base_path + DIR_SEPARATOR + CORECLR_FILE_NAME;
-  auto coreclr_lib = load_library(coreclr_path.c_str());
-  if (nullptr == coreclr_lib) {
-    std::cerr << "No coreclr found at: "
-              << StringUtf8FromT(coreclr_path).c_str() << std::endl;
-    close_fptr(cxt);
-    free_library(lib);
-    return DotNetHostCreationResult::kInvalidCoreClr;
-  }
-
-  auto coreclr_initialize =
-      GetFunction<coreclr_initialize_ptr>(coreclr_lib, "coreclr_initialize");
-  auto coreclr_shutdown =
-      GetFunction<coreclr_shutdown_ptr>(coreclr_lib, "coreclr_shutdown");
-  auto coreclr_execute_assembly = GetFunction<coreclr_execute_assembly_ptr>(
-      coreclr_lib, "coreclr_execute_assembly");
-
-  if (!coreclr_initialize || !coreclr_shutdown || !coreclr_execute_assembly) {
-    std::cerr << "Invalid coreclr found at: "
-              << StringUtf8FromT(coreclr_path).c_str() << std::endl;
-    free_library(coreclr_lib);
-    close_fptr(cxt);
-    free_library(lib);
-    return DotNetHostCreationResult::kInvalidCoreClr;
-  }
-
-  std::vector<std::string> clr_prop_keys_string(prop_count);
-  std::vector<const char *> clr_prop_keys(prop_count);
-  std::vector<std::string> clr_prop_values_string(prop_count);
-  std::vector<const char *> clr_prop_values(prop_count);
-
-  for (auto i = 0u; i < prop_count; i++) {
-    clr_prop_keys_string[i] = StringUtf8FromT(prop_keys[i]);
-    clr_prop_keys[i] = clr_prop_keys_string[i].c_str();
-
-    clr_prop_values_string[i] = StringUtf8FromT(prop_values[i]);
-    clr_prop_values[i] = clr_prop_values_string[i].c_str();
-
-    // printf("%d %s = %s\n", i, clr_prop_keys[i], clr_prop_values[i]);
-  }
-
-  void *host_handle = nullptr;
-  unsigned int domain_id = -1;
-  rc = coreclr_initialize(assembly_path.c_str(), "nodehost", prop_count,
-                          clr_prop_keys.data(), clr_prop_values.data(),
-                          &host_handle, &domain_id);
-  if (0 != rc) {
-    std::cerr << "Could not initialize coreclr found at: "
-              << StringUtf8FromT(coreclr_path).c_str() << std::endl;
-    free_library(coreclr_lib);
-    close_fptr(cxt);
-    free_library(lib);
-    return DotNetHostCreationResult::kInvalidCoreClr;
-  }
+    return DotNetHostCreationResult::kInitializeFailed;
+    }
 
   auto impl = std::make_unique<DotNetHost::Impl>();
-  impl->coreclr_lib_ = coreclr_lib;
-  impl->arguments_ = arguments;
-  impl->host_handle_ = host_handle;
-  impl->domain_id_ = domain_id;
-  impl->coreclr_execute_assembly_ = coreclr_execute_assembly;
-  impl->coreclr_shutdown_ = coreclr_shutdown;
-  impl->context_ = cxt;
-  // impl->run_fptr_ = run_fptr;
+  impl->entry_point_ = entry_point;  
+  impl->context_ = cxt;  
   impl->close_fptr_ = close_fptr;
   impl->hostfxr_lib_ = lib;
 
@@ -427,27 +351,13 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   return DotNetHostCreationResult::kOK;
 }
 
-int32_t DotNetHost::ExecuteAssembly() {
-  // Due to hostpolicy.cpp:255 this will shutdown the coreclr once
-  // finished. Instead load/initialize coreclr and execute it manually (using
-  // props from context)
-  // return impl_->run_fptr_(impl_->context_);
-
-  std::vector<const char *> arguments(impl_->arguments_.size() - 1);
-  for (auto i = 0u; i < arguments.size(); i++) {
-    arguments[i] = impl_->arguments_[i + 1].c_str();
+int32_t DotNetHost::ExecuteAssembly(const std::vector<std::string> &arguments) {
+  std::vector<const char *> final_arguments(arguments.size() - 1);
+  for (auto i = 0u; i < final_arguments.size(); i++) {
+    final_arguments[i] = arguments[i + 1].c_str();
   }
 
-  unsigned int exit_code = 0;
-  auto rc = impl_->coreclr_execute_assembly_(
-      impl_->host_handle_, impl_->domain_id_, arguments.size(),
-      arguments.data(), impl_->arguments_[0].c_str(), &exit_code);
-
-  if (0 != rc) {
-    std::cerr << "Failed to execute assembly: " << impl_->arguments_[0].c_str()
-              << std::endl;
-  }
-  return exit_code;
+  return impl_->entry_point_(final_arguments.size(), final_arguments.data());
 }
 
 }  // namespace coreclrhosting

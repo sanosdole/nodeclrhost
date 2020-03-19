@@ -162,7 +162,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
 
   std::unique_ptr<DotNetHost> host;
 
-  auto result = DotNetHost::Create(arguments, host);
+  auto result = DotNetHost::Create(arguments[0], host);
   switch (result) {
     case DotNetHostCreationResult::kOK:
       break;
@@ -197,7 +197,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   auto context = new Context(std::move(host), env);
   ThreadInstance _(context);
 
-  auto exit_code = context->host_->ExecuteAssembly();
+  auto exit_code = context->host_->ExecuteAssembly(arguments);
   return Napi::Number::New(env, exit_code);
 }
 
