@@ -352,9 +352,9 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
 }
 
 int32_t DotNetHost::ExecuteAssembly(const std::vector<std::string> &arguments) {
-  std::vector<const char *> final_arguments(arguments.size() - 1);
+  std::vector<const char *> final_arguments(arguments.size());
   for (auto i = 0u; i < final_arguments.size(); i++) {
-    final_arguments[i] = arguments[i + 1].c_str();
+    final_arguments[i] = arguments[i].c_str();
   }
 
   return impl_->entry_point_(final_arguments.size(), final_arguments.data());

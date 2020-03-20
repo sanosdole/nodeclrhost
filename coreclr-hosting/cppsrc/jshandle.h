@@ -50,6 +50,7 @@ struct JsHandle {
     return result;
   }
 
+  // TODO DM 20.03.2020: Replace ctors with factory methods to remove UDT warning
   JsHandle(Napi::Object object) {
     object_value_ = new Napi::Reference<Napi::Object>(Napi::Persistent(object));
     type_ = JsType::Object;
@@ -68,12 +69,10 @@ struct JsHandle {
   }
   JsHandle(Napi::Boolean boolean_value) {
     type_ = JsType::Boolean;
-    //* ( void * * ) &doubleValue
     value_ = boolean_value.Value() ? (void*)1 : (void*)0;    
   }
   JsHandle(double double_value) {
     type_ = JsType::Number;
-    //* ( void * * ) &doubleValue
     double_value_ = double_value;
   }
   JsHandle(JsType::Enum type, void* value) {
@@ -125,9 +124,9 @@ struct JsHandle {
     return Undefined();
   }
 
-  bool SupportsMembers() { return type_ == JsType::Object || type_ == JsType::Function; }
+  bool SupportsMembers() const { return type_ == JsType::Object || type_ == JsType::Function; }
 
-  bool IsNotNullFunction() {
+  bool IsNotNullFunction() const {
     return type_ == JsType::Function && function_value_ != nullptr;
   }
 
