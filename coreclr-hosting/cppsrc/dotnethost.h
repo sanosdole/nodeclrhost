@@ -33,7 +33,7 @@ class DotNetHost {
       std::string assembly_path,
       std::unique_ptr<DotNetHost>& host);
 
-  int32_t ExecuteAssembly(const std::vector<std::string> &arguments/*, void *result_callback(int32_t)*/);
+  void* GetManagedFunction(std::string type_name, std::string method_name, std::string signature_delegate_name);
 };
 
 }  // namespace coreclrhosting

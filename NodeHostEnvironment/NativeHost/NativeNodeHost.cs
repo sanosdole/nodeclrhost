@@ -19,12 +19,10 @@ namespace NodeHostEnvironment.NativeHost
 
         private DelegateBasedNativeApi NativeMethods { get; }
 
-        public NativeNodeHost(DelegateBasedNativeApi nativeMethods)
+        public NativeNodeHost(IntPtr context, DelegateBasedNativeApi nativeMethods)
         {
             NativeMethods = nativeMethods;
-            _context = NativeMethods.GetContext();
-            if (_context == IntPtr.Zero)
-                throw new InvalidOperationException("Host can only be created on the node main thread");
+            _context = context;
             _scheduler = new NodeTaskScheduler(PostCallbackIntern);
             ReleaseCallback = ReleaseCallbackIntern;
             ReleaseTaskCallback = ReleaseTaskCallbackIntern;
@@ -187,7 +185,7 @@ namespace NodeHostEnvironment.NativeHost
             // TODO: Ensure that further requests are denied with exception!
             NativeMethods.ReleaseContext(_context);
         }
-
+        
         public int PostCallback(NodeCallback callback, IntPtr data)
         {
             return NativeMethods.PostCallback(_context, callback, data);

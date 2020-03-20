@@ -3,28 +3,47 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using NodeHostEnvironment.InProcess;
 
 namespace NodeHostEnvironment.NativeHost
 {
+
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    public delegate int EntryPointSignature(int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 0)] string[] argv);
+    internal delegate DotNetValue EntryPointSignature(
+        IntPtr context,
+        // TODO DM 20.03.2020: Pass API as struct with delegates
+        int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 1)] string[] argv);
 
-    public static class NativeEntryPoint
+    internal static class NativeEntryPoint
     {
+        private static readonly EntryPointSignature CompileCheck = RunHostedApplication;
 
-        public static int RunHostedApplication(int argc, string[] argv)
+        internal static DotNetValue RunHostedApplication(IntPtr context,
+            // TODO DM 20.03.2020: Pass API as struct with delegates
+            int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 2)] string[] argv)
         {
-            var assembly_path = argv[0];
-            Console.WriteLine($"assembly_path: {assembly_path}");
-            Console.WriteLine($"Entry assembly: {Assembly.GetEntryAssembly()?.FullName}");
-            var assembly = Assembly.Load(Path.GetFileNameWithoutExtension(assembly_path));
-            Console.WriteLine($"Loaded assembly: {assembly?.FullName}");
-            var entryPoint = assembly.EntryPoint;
-            Console.WriteLine($"Entrypoint: {entryPoint?.Name} {entryPoint?.DeclaringType.FullName}");
-            var result = entryPoint.Invoke(null, new object[] { argv });
-            if (null == result)
-                return 0;
-            return (int) result;
+            var pathToCoreClrHostingModule = Environment.GetEnvironmentVariable("CORECLR_HOSTING_MODULE_PATH") ??
+                "./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node";
+            var nativeMethods = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>(pathToCoreClrHostingModule);
+            var host = NativeHost.Host = new NativeNodeHost(context, nativeMethods);
+
+            try
+            {
+                var assembly_path = argv[0];
+                var assembly = Assembly.Load(Path.GetFileNameWithoutExtension(assembly_path));
+                var entryPoint = assembly.EntryPoint;
+                var result = entryPoint.Invoke(null, new object[] { argv.Skip(1).ToArray() });
+                return DotNetValue.FromObject(result ?? 0, host);
+            }
+            catch (TargetInvocationException tie)
+            {
+                return DotNetValue.FromObject(tie.InnerException, host);
+            }
+            catch (Exception e)
+            {
+                return DotNetValue.FromObject(e, host);
+            }
+
         }
     }
 }

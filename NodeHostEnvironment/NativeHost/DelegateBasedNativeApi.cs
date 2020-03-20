@@ -9,8 +9,7 @@ namespace NodeHostEnvironment.NativeHost
 
     internal sealed class DelegateBasedNativeApi
     {
-        public DelegateBasedNativeApi(GetContext getContext,
-            ReleaseContext releaseContext,
+        public DelegateBasedNativeApi(ReleaseContext releaseContext,
             PostCallback postCallback,
             GetMember getMember,
             GetMemberByIndex getMemberByIndex,
@@ -21,7 +20,6 @@ namespace NodeHostEnvironment.NativeHost
             CompletePromise completePromise,
             Release release)
         {
-            GetContext = getContext;
             ReleaseContext = releaseContext;
             PostCallback = postCallback;
             GetMember = getMember;
@@ -34,7 +32,6 @@ namespace NodeHostEnvironment.NativeHost
             Release = release;
         }
 
-        public GetContext GetContext { get; }
         public ReleaseContext ReleaseContext { get; }
         public PostCallback PostCallback { get; }
         public GetMember GetMember { get; }
@@ -46,9 +43,6 @@ namespace NodeHostEnvironment.NativeHost
         public CompletePromise CompletePromise { get; }
         public Release Release { get; }
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    internal delegate IntPtr GetContext();
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void ReleaseContext(IntPtr context);

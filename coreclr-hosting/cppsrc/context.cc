@@ -140,6 +140,10 @@ void Context::Release() {
   uv_async_send(&async_handle_);
 }
 
+extern "C" typedef DotNetHandle (*EntryPointFunction)(Context* context,
+                                                      int argc,
+                                                      const char* argv[]);
+
 Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
 
@@ -150,19 +154,19 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   }
 
   std::vector<std::string> arguments(info.Length());
+  std::vector<const char*> arguments_c(info.Length());
   for (auto i = 0u; i < info.Length(); i++) {
     if (!info[i].IsString()) {
       Napi::Error::New(env, "Expected only string arguments")
           .ThrowAsJavaScriptException();
       return Napi::Value();
     }
-    arguments[i] = info[i].ToString();
-    // printf("Argument %d:%s\n", i, arguments[i].c_str());
+    arguments_c[i] = (arguments[i] = info[i].ToString()).c_str();
   }
 
   std::unique_ptr<DotNetHost> host;
 
-  auto result = DotNetHost::Create(arguments[0], host);
+  auto result = DotNetHost::Create(info[0].ToString(), host);
   switch (result) {
     case DotNetHostCreationResult::kOK:
       break;
@@ -197,8 +201,16 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   auto context = new Context(std::move(host), env);
   ThreadInstance _(context);
 
-  auto exit_code = context->host_->ExecuteAssembly(arguments);
-  return Napi::Number::New(env, exit_code);
+  // TODO DM 20.03.2020: Move into method on context
+  auto entry_point_ptr = context->host_->GetManagedFunction(
+      "NodeHostEnvironment.NativeHost.NativeEntryPoint, NodeHostEnvironment",
+      "RunHostedApplication",
+      "NodeHostEnvironment.NativeHost.EntryPointSignature, "
+      "NodeHostEnvironment");
+  auto entry_point = static_cast<EntryPointFunction>(entry_point_ptr);
+
+  return entry_point(context, arguments_c.size(), arguments_c.data())
+      .ToValue(env, context->function_factory_, context->array_buffer_factory_);
 }
 
 JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
@@ -381,8 +393,9 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         return napiResultValue;
       });
 
-  auto finalizer_data = new SynchronizedFinalizerCallback(
-      this, [=]() { release_func(DotNetType::Function, reinterpret_cast<void*>(function_value)); });
+  auto finalizer_data = new SynchronizedFinalizerCallback(this, [=]() {
+    release_func(DotNetType::Function, reinterpret_cast<void*>(function_value));
+  });
   napi_add_finalizer(env_, function, static_cast<void*>(finalizer_data),
                      SynchronizedFinalizerCallback::Wrapper, nullptr, nullptr);
 

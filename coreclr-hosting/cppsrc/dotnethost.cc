@@ -227,10 +227,10 @@ LibraryHandle LoadHostfxr(const std::string &assembly,
   params.assembly_path = assembly_t.c_str();
 
   auto rcPath = get_hostfxr_path(buffer, &buffer_size, &params);
-  if (rcPath != 0) {    
+  if (rcPath != 0) {
     return nullptr;
   }
-  
+
   hostfxr_path_out = GetDirectoryFromFilePath(buffer);
 
   // Load hostfxr and get desired exports
@@ -240,16 +240,15 @@ LibraryHandle LoadHostfxr(const std::string &assembly,
 }  // namespace
 namespace coreclrhosting {
 
-extern "C" typedef int32_t(*EntryPointPtr)(int argc, const char *argv[]);
-
 class DotNetHost::Impl {
  public:
-  EntryPointPtr entry_point_;
-  hostfxr_handle context_;  
+  string_t assembly_path_t_;
+  load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_;
+  hostfxr_handle context_;
   hostfxr_close_fn close_fptr_;
-  LibraryHandle hostfxr_lib_;  
+  LibraryHandle hostfxr_lib_;
 
-  ~Impl() {    
+  ~Impl() {
     close_fptr_(context_);
     free_library(hostfxr_lib_);
   }
@@ -259,28 +258,29 @@ DotNetHost::DotNetHost(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
 DotNetHost::~DotNetHost() {}
 
 DotNetHostCreationResult::Enum DotNetHost::Create(
-    std::string assembly_path,
-    std::unique_ptr<DotNetHost> &host) {
+    std::string assembly_path, std::unique_ptr<DotNetHost> &host) {
 #ifdef WINDOWS
   std::replace(assembly_path.begin(), assembly_path.end(), u8'/', u8'\\');
 #else
   std::replace(assembly_path.begin(), assembly_path.end(), '\\', '/');
 #endif
-  
+
   auto runtime_config = assembly_path;
 #ifdef WINDOWS
   auto dll_index = runtime_config.find_last_of(u8".dll");
 #else
   auto dll_index = runtime_config.find_last_of(".dll");
-#endif  
+#endif
   if (dll_index == std::string::npos)
     return DotNetHostCreationResult::kAssemblyNotFound;
 #ifdef WINDOWS
-  runtime_config = runtime_config.substr(0, dll_index - 3) + u8".runtimeconfig.json";  
+  runtime_config =
+      runtime_config.substr(0, dll_index - 3) + u8".runtimeconfig.json";
 #else
-  runtime_config = runtime_config.substr(0, dll_index - 3) + ".runtimeconfig.json";
-#endif  
-  
+  runtime_config =
+      runtime_config.substr(0, dll_index - 3) + ".runtimeconfig.json";
+#endif
+
   if (!FileExists(assembly_path) || !FileExists(runtime_config))
     return DotNetHostCreationResult::kAssemblyNotFound;
 
@@ -290,8 +290,9 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
 
   auto init_fptr = GetFunction<hostfxr_initialize_for_runtime_config_fn>(
       lib, "hostfxr_initialize_for_runtime_config");
-  auto get_runtime_delegate_fptr = GetFunction<hostfxr_get_runtime_delegate_fn>(lib, "hostfxr_get_runtime_delegate");
-  auto close_fptr = GetFunction<hostfxr_close_fn>(lib, "hostfxr_close");  
+  auto get_runtime_delegate_fptr = GetFunction<hostfxr_get_runtime_delegate_fn>(
+      lib, "hostfxr_get_runtime_delegate");
+  auto close_fptr = GetFunction<hostfxr_close_fn>(lib, "hostfxr_close");
 
   if (!init_fptr || !get_runtime_delegate_fptr || !close_fptr) {
     free_library(lib);
@@ -311,38 +312,23 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   }
 
   // Get runtime delegate for resolving delegates
-  load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_fptr = nullptr;
+  load_assembly_and_get_function_pointer_fn
+      load_assembly_and_get_function_fptr = nullptr;
   rc = get_runtime_delegate_fptr(
-            cxt,
-            hdt_load_assembly_and_get_function_pointer,
-            reinterpret_cast<void**>(&load_assembly_and_get_function_fptr));
-    if (rc != 0 || load_assembly_and_get_function_fptr == nullptr) {
-        std::cerr << "Get delegate failed: " << std::hex << std::showbase << rc << std::endl;
-        close_fptr(cxt);
+      cxt, hdt_load_assembly_and_get_function_pointer,
+      reinterpret_cast<void **>(&load_assembly_and_get_function_fptr));
+  if (rc != 0 || load_assembly_and_get_function_fptr == nullptr) {
+    std::cerr << "Get delegate failed: " << std::hex << std::showbase << rc
+              << std::endl;
+    close_fptr(cxt);
     free_library(lib);
     return DotNetHostCreationResult::kInitializeFailed;
-    }
-
-  // Resolve NodeHostEnvironment entry point
-  auto assembly_path_t = StringTFromUtf8(assembly_path);
-  EntryPointPtr entry_point = nullptr; 
-  rc = load_assembly_and_get_function_fptr(
-        assembly_path_t.c_str(),
-        STR("NodeHostEnvironment.NativeHost.NativeEntryPoint, NodeHostEnvironment"),
-        STR("RunHostedApplication"),
-        STR("NodeHostEnvironment.NativeHost.EntryPointSignature, NodeHostEnvironment"),
-        nullptr,
-        (void**)&entry_point);
-  if (rc != 0 || entry_point == nullptr) {
-        std::cerr << "Get delegate failed: " << std::hex << std::showbase << rc << std::endl;
-        close_fptr(cxt);
-    free_library(lib);
-    return DotNetHostCreationResult::kInitializeFailed;
-    }
+  }
 
   auto impl = std::make_unique<DotNetHost::Impl>();
-  impl->entry_point_ = entry_point;  
-  impl->context_ = cxt;  
+  impl->assembly_path_t_ = StringTFromUtf8(assembly_path);
+  impl->load_assembly_and_get_function_ = load_assembly_and_get_function_fptr;
+  impl->context_ = cxt;
   impl->close_fptr_ = close_fptr;
   impl->hostfxr_lib_ = lib;
 
@@ -351,13 +337,23 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   return DotNetHostCreationResult::kOK;
 }
 
-int32_t DotNetHost::ExecuteAssembly(const std::vector<std::string> &arguments) {
-  std::vector<const char *> final_arguments(arguments.size());
-  for (auto i = 0u; i < final_arguments.size(); i++) {
-    final_arguments[i] = arguments[i].c_str();
-  }
+void *DotNetHost::GetManagedFunction(std::string type_name, std::string method_name,
+                              std::string signature_delegate_name) {
+  void *result;
+  auto type_name_t = StringTFromUtf8(type_name);
+  auto method_name_t = StringTFromUtf8(method_name);
+  auto signature_delegate_name_t = StringTFromUtf8(signature_delegate_name);
+  auto rc = impl_->load_assembly_and_get_function_(
+      impl_->assembly_path_t_.c_str(),
+      type_name_t.c_str(), method_name_t.c_str(),
+      signature_delegate_name_t.c_str(), nullptr, (void **)&result);
+  if (rc != 0) {
+    std::cerr << "Get delegate failed: " << std::hex << std::showbase << rc
+              << std::endl;
 
-  return impl_->entry_point_(final_arguments.size(), final_arguments.data());
+    return nullptr;
+  }
+  return result;
 }
 
 }  // namespace coreclrhosting
