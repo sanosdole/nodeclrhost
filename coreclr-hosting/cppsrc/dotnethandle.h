@@ -97,7 +97,7 @@ extern "C" struct DotNetHandle {
       auto length = *collection_value_;
       auto values = reinterpret_cast<DotNetHandle*>(collection_value_ + 1);
       auto array = Napi::Array::New(env, length);
-      for (uint32_t inx = 0; inx < length; inx++) {
+      for (int32_t inx = 0; inx < length; inx++) {
         array.Set(inx, values[inx].ToValue(env, function_factory, array_buffer_factory));
       }
       return array;

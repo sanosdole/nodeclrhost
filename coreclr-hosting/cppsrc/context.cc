@@ -280,7 +280,7 @@ JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
 
   auto newObj = Napi::Object::New(env_);
 
-  return JsHandle(newObj);
+  return JsHandle::FromObject(newObj);
 }
 
 JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,

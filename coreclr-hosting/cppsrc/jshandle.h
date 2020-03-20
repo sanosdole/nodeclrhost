@@ -39,7 +39,8 @@ struct JsHandle {
     Napi::Reference<Napi::Function>* function_value_;
   };
 
-  static JsHandle Undefined() { return JsHandle(JsType::Undefined, nullptr); }
+  static JsHandle Undefined() { return { JsType::Undefined, nullptr }; }
+  static JsHandle Null() { return { JsType::Null, nullptr }; }
 
   static JsHandle Error(std::string message) {
     JsHandle result = Undefined();
@@ -51,33 +52,32 @@ struct JsHandle {
   }
 
   // TODO DM 20.03.2020: Replace ctors with factory methods to remove UDT warning
-  JsHandle(Napi::Object object) {
-    object_value_ = new Napi::Reference<Napi::Object>(Napi::Persistent(object));
-    type_ = JsType::Object;
+  static JsHandle FromObject(Napi::Object object) {
+    return { JsType::Object, new Napi::Reference<Napi::Object>(Napi::Persistent(object)) };
   }
-  JsHandle(Napi::Function func) {
-    function_value_ =
-        new Napi::Reference<Napi::Function>(Napi::Persistent(func));
-    type_ = JsType::Function;
+  
+  static JsHandle FromFunction(Napi::Function func) {
+    return { JsType::Function, new Napi::Reference<Napi::Function>(Napi::Persistent(func)) };
   }
-  JsHandle(Napi::String value) {
+  static JsHandle FromString(Napi::String value) {
     auto utf16 = value.Utf16Value();
     auto buffer_size = 2 * (utf16.size() + 1);
-    string_value_ = new char16_t[buffer_size];
-    memcpy(string_value_, utf16.c_str(), buffer_size);
-    type_ = JsType::String;
+    auto string_value = new char16_t[buffer_size];
+    memcpy(string_value, utf16.c_str(), buffer_size);
+    
+    return { JsType::String, string_value };
   }
-  JsHandle(Napi::Boolean boolean_value) {
-    type_ = JsType::Boolean;
-    value_ = boolean_value.Value() ? (void*)1 : (void*)0;    
+  static JsHandle FromBoolean(Napi::Boolean boolean_value) {
+    return { JsType::Boolean, boolean_value.Value() ? (void*)1 : (void*)0 };
   }
-  JsHandle(double double_value) {
-    type_ = JsType::Number;
-    double_value_ = double_value;
+  static JsHandle FromDouble(double double_value) {    
+    JsHandle result;
+    result.type_ = JsType::Number;
+    result.double_value_ = double_value;
+    return result;
   }
-  JsHandle(JsType::Enum type, void* value) {
-    value_ = value;
-    type_ = type;
+  static JsHandle Make(JsType::Enum type, void* value) {    
+    return { type, value };
   }
 
   Napi::Value AsObject(const Napi::Env& env) const {
@@ -100,25 +100,25 @@ struct JsHandle {
 
   static JsHandle FromValue(Napi::Value value) {
     if (value.IsNull()) {
-      return JsHandle(JsType::Null, nullptr);
+      return Null();
     }
     if (value.IsString()) {
-      return JsHandle(value.ToString());
+      return FromString(value.ToString());
     }
     if (value.IsBoolean()) {
-      return JsHandle(value.ToBoolean());
+      return FromBoolean(value.ToBoolean());
     }
     if (value.IsNumber()) {
       auto number = value.ToNumber();
       // TODO: How to handle 32bit processes...
       auto doubleValue = number.DoubleValue();
-      return JsHandle(doubleValue);
+      return FromDouble(doubleValue);
     }    
     if (value.IsFunction()) {
-      return JsHandle(value.As<Napi::Function>());
+      return FromFunction(value.As<Napi::Function>());
     }
     if (value.IsObject()) {
-      return JsHandle(value.ToObject());
+      return FromObject(value.ToObject());
     }
     
     return Undefined();
