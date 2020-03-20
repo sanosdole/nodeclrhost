@@ -1,6 +1,6 @@
-#include "context.h"
+#include "nativeapi.h"
 
-using namespace coreclrhosting;
+#include "context.h"
 
 #ifdef WINDOWS
 #define EXPORT_TO_DOTNET extern "C" __declspec(dllexport)
@@ -8,7 +8,7 @@ using namespace coreclrhosting;
 #define EXPORT_TO_DOTNET extern "C" __attribute__((visibility("default")))
 #endif
 
-EXPORT_TO_DOTNET void* GetContext() { return Context::CurrentInstance(); }
+using namespace coreclrhosting;
 
 /* MUST BE C-STYLE FUNCTION */
 EXPORT_TO_DOTNET void PostCallback(void* context_handle, void callback(void*),
@@ -29,8 +29,8 @@ EXPORT_TO_DOTNET JsHandle GetMember(void* context_handle, JsHandle owner_handle,
   auto context = reinterpret_cast<Context*>(context_handle);
   return context->GetMember(owner_handle, name);
 }
-EXPORT_TO_DOTNET JsHandle GetMemberByIndex(void* context_handle, JsHandle owner_handle,
-                                    int index) {
+EXPORT_TO_DOTNET JsHandle GetMemberByIndex(void* context_handle,
+                                           JsHandle owner_handle, int index) {
   auto context = reinterpret_cast<Context*>(context_handle);
   return context->GetMemberByIndex(owner_handle, index);
 }
@@ -54,13 +54,20 @@ EXPORT_TO_DOTNET JsHandle Invoke(void* context_handle, JsHandle handle,
 }
 
 EXPORT_TO_DOTNET JsHandle InvokeByName(void* context_handle, char* name,
-                                 JsHandle receiver, int argc,
-                                 DotNetHandle* argv) {
+                                       JsHandle receiver, int argc,
+                                       DotNetHandle* argv) {
   auto context = reinterpret_cast<Context*>(context_handle);
   return context->Invoke(name, receiver, argc, argv);
 }
 
-EXPORT_TO_DOTNET void CompletePromise(void* context_handle, void* deferred, DotNetHandle dotnet_handle) {
+EXPORT_TO_DOTNET void CompletePromise(void* context_handle, void* deferred,
+                                      DotNetHandle dotnet_handle) {
   auto context = reinterpret_cast<Context*>(context_handle);
-  return context->CompletePromise(reinterpret_cast<napi_deferred>(deferred), dotnet_handle);
+  return context->CompletePromise(reinterpret_cast<napi_deferred>(deferred),
+                                  dotnet_handle);
 }
+
+NativeApi NativeApi::instance_ = {
+    &::ReleaseContext,  &::PostCallback, &::GetMember,    &::GetMemberByIndex,
+    &::SetMember,       &::Invoke,       &::InvokeByName, &::CreateObject,
+    &::CompletePromise, &::Release};

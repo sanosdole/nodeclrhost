@@ -11,20 +11,17 @@ namespace NodeHostEnvironment.NativeHost
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate DotNetValue EntryPointSignature(
         IntPtr context,
-        // TODO DM 20.03.2020: Pass API as struct with delegates
-        int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 1)] string[] argv);
+        NativeApi nativeMethods,
+        int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 2)] string[] argv);
 
     internal static class NativeEntryPoint
     {
         private static readonly EntryPointSignature CompileCheck = RunHostedApplication;
 
         internal static DotNetValue RunHostedApplication(IntPtr context,
-            // TODO DM 20.03.2020: Pass API as struct with delegates
+            NativeApi nativeMethods,
             int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 2)] string[] argv)
         {
-            var pathToCoreClrHostingModule = Environment.GetEnvironmentVariable("CORECLR_HOSTING_MODULE_PATH") ??
-                "./node_modules/coreclr-hosting/build/Release/coreclr-hosting.node";
-            var nativeMethods = DynamicLibraryLoader.LoadApi<DelegateBasedNativeApi>(pathToCoreClrHostingModule);
             var host = NativeHost.Host = new NativeNodeHost(context, nativeMethods);
 
             try

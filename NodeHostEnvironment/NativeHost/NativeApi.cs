@@ -7,41 +7,19 @@ namespace NodeHostEnvironment.NativeHost
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate DotNetValue SetupDeferred(IntPtr deferred);
 
-    internal sealed class DelegateBasedNativeApi
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct NativeApi
     {
-        public DelegateBasedNativeApi(ReleaseContext releaseContext,
-            PostCallback postCallback,
-            GetMember getMember,
-            GetMemberByIndex getMemberByIndex,
-            SetMember setMember,
-            Invoke invoke,
-            InvokeByName invokeByName,
-            CreateObject createObject,
-            CompletePromise completePromise,
-            Release release)
-        {
-            ReleaseContext = releaseContext;
-            PostCallback = postCallback;
-            GetMember = getMember;
-            GetMemberByIndex = getMemberByIndex;
-            SetMember = setMember;
-            Invoke = invoke;
-            InvokeByName = invokeByName;
-            CreateObject = createObject;
-            CompletePromise = completePromise;
-            Release = release;
-        }
-
-        public ReleaseContext ReleaseContext { get; }
-        public PostCallback PostCallback { get; }
-        public GetMember GetMember { get; }
-        public GetMemberByIndex GetMemberByIndex { get; }
-        public SetMember SetMember { get; }
-        public Invoke Invoke { get; }
-        public InvokeByName InvokeByName { get; }
-        public CreateObject CreateObject { get; }
-        public CompletePromise CompletePromise { get; }
-        public Release Release { get; }
+        public ReleaseContext ReleaseContext;
+        public PostCallback PostCallback;
+        public GetMember GetMember;
+        public GetMemberByIndex GetMemberByIndex;
+        public SetMember SetMember;
+        public Invoke Invoke;
+        public InvokeByName InvokeByName;
+        public CreateObject CreateObject;
+        public CompletePromise CompletePromise;
+        public Release Release;
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]

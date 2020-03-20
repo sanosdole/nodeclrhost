@@ -17,9 +17,9 @@ namespace NodeHostEnvironment.NativeHost
         private readonly ReleaseDotNetValue ReleaseCallback;
         private readonly ReleaseDotNetValue ReleaseTaskCallback;
 
-        private DelegateBasedNativeApi NativeMethods { get; }
+        private NativeApi NativeMethods { get; }
 
-        public NativeNodeHost(IntPtr context, DelegateBasedNativeApi nativeMethods)
+        public NativeNodeHost(IntPtr context, NativeApi nativeMethods)
         {
             NativeMethods = nativeMethods;
             _context = context;
@@ -185,7 +185,7 @@ namespace NodeHostEnvironment.NativeHost
             // TODO: Ensure that further requests are denied with exception!
             NativeMethods.ReleaseContext(_context);
         }
-        
+
         public int PostCallback(NodeCallback callback, IntPtr data)
         {
             return NativeMethods.PostCallback(_context, callback, data);

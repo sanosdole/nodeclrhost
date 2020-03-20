@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "nativeapi.h"
+
 namespace {
 
 struct AsyncHandleData {
@@ -141,6 +143,7 @@ void Context::Release() {
 }
 
 extern "C" typedef DotNetHandle (*EntryPointFunction)(Context* context,
+                                                      NativeApi nativeApi,
                                                       int argc,
                                                       const char* argv[]);
 
@@ -209,7 +212,8 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
       "NodeHostEnvironment");
   auto entry_point = reinterpret_cast<EntryPointFunction>(entry_point_ptr);
 
-  return entry_point(context, arguments_c.size(), arguments_c.data())
+  return entry_point(context, NativeApi::instance_, arguments_c.size(),
+                     arguments_c.data())
       .ToValue(env, context->function_factory_, context->array_buffer_factory_);
 }
 
