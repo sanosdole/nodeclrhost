@@ -7,7 +7,6 @@ using NodeHostEnvironment.InProcess;
 
 namespace NodeHostEnvironment.NativeHost
 {
-
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate DotNetValue EntryPointSignature(
         IntPtr context,
@@ -22,6 +21,9 @@ namespace NodeHostEnvironment.NativeHost
             NativeApi nativeMethods,
             int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 2)] string[] argv)
         {
+            //Console.WriteLine("Waiting for debugger!");
+            //while(!System.Diagnostics.Debugger.IsAttached) System.Threading.Thread.Sleep(50);
+
             var host = NativeHost.Host = new NativeNodeHost(context, nativeMethods);
 
             try
@@ -29,6 +31,8 @@ namespace NodeHostEnvironment.NativeHost
                 var assembly_path = argv[0];
                 var assembly = Assembly.Load(Path.GetFileNameWithoutExtension(assembly_path));
                 var entryPoint = assembly.EntryPoint;
+                if (entryPoint.IsSpecialName && entryPoint.Name.StartsWith("<") && entryPoint.Name.EndsWith(">"))
+                    entryPoint = entryPoint.DeclaringType.GetMethod(entryPoint.Name.Substring(1,entryPoint.Name.Length - 2), BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
                 var result = entryPoint.Invoke(null, new object[] { argv.Skip(1).ToArray() });
                 return DotNetValue.FromObject(result ?? 0, host);
             }
