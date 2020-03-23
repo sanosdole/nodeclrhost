@@ -11,6 +11,6 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "dependencies": {
-    "coreclr-hosting": "file:../coreclr-hosting"
+    "coreclr-hosting": "file:../../coreclr-hosting"
   }
 }

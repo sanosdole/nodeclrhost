@@ -40,7 +40,7 @@ jobs:
        - npm run mocha
        - cd ../electron-blazor-glue
        - npm run prepare   
-       - cd ../electron-blazor       
+       - cd ../examples/electron-blazor       
        - rm -rf node_modules
        - rm -f package-lock.json
        - npm i
@@ -49,6 +49,7 @@ jobs:
        - npm run test    
       after_success:
        - echo $TRAVIS_TAG
+       - cd ..
        - cd ..
        - ./ci_npm_publish.sh
       deploy:

@@ -12,7 +12,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "coreclr-hosting": "file:../coreclr-hosting",
+    "coreclr-hosting": "file:../../coreclr-hosting",
     "electron": "^7.1.4"
   }
 }

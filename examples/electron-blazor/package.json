@@ -19,8 +19,8 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "dependencies": {
-    "coreclr-hosting": "file:../coreclr-hosting",
-    "electron-blazor-glue": "file:../electron-blazor-glue",
+    "coreclr-hosting": "file:../../coreclr-hosting",
+    "electron-blazor-glue": "file:../../electron-blazor-glue",
     "typescript": "^3.7.5"
   },
   "devDependencies": {
