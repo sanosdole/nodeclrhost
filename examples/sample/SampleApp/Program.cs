@@ -7,7 +7,7 @@
 
     class Program
     {
-        static int Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             var host = NativeHost.Initialize();
             var console = host.Global.console;
@@ -20,12 +20,12 @@
                                         //host.Dispose();
                                     }),
                                    1500);*/
-            RunAsyncApp(host);
+            await RunAsyncApp(host);
             //host.Dispose();
             return 5;
         }
 
-        private static async void RunAsyncApp(IBridgeToNode host)
+        private static async Task RunAsyncApp(IBridgeToNode host)
         {
             try
             {
@@ -83,9 +83,7 @@
             }
             finally
             {
-                host.Global.console.log($"ByeBye world from pid:{host.Global.process.pid}!");
-                // This will lead to node closing and future callbacks being rejected
-                host.Dispose();
+                host.Global.console.log($"ByeBye world from pid:{host.Global.process.pid}!");                
             }
         }
 

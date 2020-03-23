@@ -17,11 +17,6 @@ EXPORT_TO_DOTNET void PostCallback(void* context_handle, void callback(void*),
   context->PostCallback(callback, data);
 }
 
-EXPORT_TO_DOTNET void ReleaseContext(void* context_handle) {
-  auto context = reinterpret_cast<Context*>(context_handle);
-  context->Release();
-}
-
 EXPORT_TO_DOTNET void Release(JsHandle handle) { handle.Release(); }
 
 EXPORT_TO_DOTNET JsHandle GetMember(void* context_handle, JsHandle owner_handle,
@@ -67,7 +62,12 @@ EXPORT_TO_DOTNET void CompletePromise(void* context_handle, void* deferred,
                                   dotnet_handle);
 }
 
-NativeApi NativeApi::instance_ = {
-    &::ReleaseContext,  &::PostCallback, &::GetMember,    &::GetMemberByIndex,
-    &::SetMember,       &::Invoke,       &::InvokeByName, &::CreateObject,
-    &::CompletePromise, &::Release};
+NativeApi NativeApi::instance_ = {reinterpret_cast<void*>(&::PostCallback),
+                                  reinterpret_cast<void*>(&::GetMember),
+                                  reinterpret_cast<void*>(&::GetMemberByIndex),
+                                  reinterpret_cast<void*>(&::SetMember),
+                                  reinterpret_cast<void*>(&::Invoke),
+                                  reinterpret_cast<void*>(&::InvokeByName),
+                                  reinterpret_cast<void*>(&::CreateObject),
+                                  reinterpret_cast<void*>(&::CompletePromise),
+                                  reinterpret_cast<void*>(&::Release)};

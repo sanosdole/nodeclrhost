@@ -212,9 +212,29 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
       "NodeHostEnvironment");
   auto entry_point = reinterpret_cast<EntryPointFunction>(entry_point_ptr);
 
-  return entry_point(context, NativeApi::instance_, arguments_c.size(),
-                     arguments_c.data())
-      .ToValue(env, context->function_factory_, context->array_buffer_factory_);
+  auto return_value = entry_point(context, NativeApi::instance_,
+                                  arguments_c.size(), arguments_c.data())
+                          .ToValue(env, context->function_factory_,
+                                   context->array_buffer_factory_);
+
+  if (return_value.IsPromise()) {
+    return return_value.As<Napi::Promise>()
+        .Get("then")
+        .As<Napi::Function>()
+        .MakeCallback(
+            return_value,
+            {Napi::Function::New(env,
+                                 [context](const Napi::CallbackInfo& f_info) {
+                                   context->Release();
+                                   return f_info[0];
+                                 }),
+             Napi::Function::New(env,
+                                 [context](const Napi::CallbackInfo& r_info) {
+                                   context->Release();
+                                   return r_info[0];
+                                 })});
+  }
+  return return_value;
 }
 
 JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {

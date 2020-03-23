@@ -34,7 +34,6 @@
                 if (remainingTestCount <= 0)
                 {
                     tcs.SetResult(0);
-                    host.Dispose();
                 }
             });
 

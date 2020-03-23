@@ -3,7 +3,6 @@
 
 extern "C" {
 struct NativeApi {
-  void* ReleaseContext;
   void* PostCallback;
   void* GetMember;
   void* GetMemberByIndex;

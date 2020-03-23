@@ -6,7 +6,7 @@ namespace NodeHostEnvironment
     /// <summary>
     /// Interface for accessing the node host environment.
     /// </summary>
-    public interface IBridgeToNode : IDisposable
+    public interface IBridgeToNode
     {
         dynamic Global { get; }
         dynamic New();

@@ -14,7 +14,6 @@ namespace NodeHostEnvironment.InProcess
     {
         bool CheckAccess();
         TaskFactory Factory { get; }
-        void ReleaseHost();
 
         // Get a handle, ownerHandler == Zero + Object => Global
         JsValue GetMember(JsValue ownerHandle, string name);

@@ -10,7 +10,6 @@ namespace NodeHostEnvironment.NativeHost
     [StructLayout(LayoutKind.Sequential)]
     internal struct NativeApi
     {
-        public ReleaseContext ReleaseContext;
         public PostCallback PostCallback;
         public GetMember GetMember;
         public GetMemberByIndex GetMemberByIndex;
@@ -21,9 +20,6 @@ namespace NodeHostEnvironment.NativeHost
         public CompletePromise CompletePromise;
         public Release Release;
     }
-
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    internal delegate void ReleaseContext(IntPtr context);
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate int PostCallback(IntPtr context, NodeCallback callback, IntPtr data);

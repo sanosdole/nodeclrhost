@@ -180,12 +180,6 @@ namespace NodeHostEnvironment.NativeHost
             }
         }
 
-        public void ReleaseHost()
-        {
-            // TODO: Ensure that further requests are denied with exception!
-            NativeMethods.ReleaseContext(_context);
-        }
-
         public int PostCallback(NodeCallback callback, IntPtr data)
         {
             return NativeMethods.PostCallback(_context, callback, data);

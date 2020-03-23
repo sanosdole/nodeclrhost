@@ -2,52 +2,45 @@
 {
     using System.Threading.Tasks;
     using System;
-    using NodeHostEnvironment;
     using NodeHostEnvironment.NativeHost;
+    using NodeHostEnvironment;
 
     class Program
     {
         static dynamic browserWindow;
-        static int Main(string[] args)
-        {            
+        static Task<int> Main(string[] args)
+        {
+            var tcs = new TaskCompletionSource<int>();
             var host = NativeHost.Initialize();
-            try
+            var console = host.Global.console;
+
+            console.log($"Running broswer app in {host.Global.process.pid}");
+            var electron = host.Global.electron;
+            electron.app.on("ready", new Action<dynamic>((dynamic launchInfo) =>
             {
-                var console = host.Global.console;
-                
-                console.log($"Running broswer app in {host.Global.process.pid}");
-                var electron = host.Global.electron;
-                electron.app.on("ready", new Action<dynamic>((dynamic launchInfo) =>
-                {
-                    console.log("app is ready");
-                    var options = host.New();
-                    options.title = ".NET rocks";
-                    var webPreferences = host.New();
-                    options.webPreferences = webPreferences;
-                    webPreferences.nodeIntegration = true;
-                    /*webPreferences.contextIsolation = false;
-                    webPreferences.sandbox = false;
-                    webPreferences.devTools = false;*/
+                console.log("app is ready");
+                var options = host.New();
+                options.title = ".NET rocks";
+                var webPreferences = host.New();
+                options.webPreferences = webPreferences;
+                webPreferences.nodeIntegration = true;
+                /*webPreferences.contextIsolation = false;
+                webPreferences.sandbox = false;
+                webPreferences.devTools = false;*/
 
-                    //console.log("options:", options);
-                    
-                    browserWindow = electron.BrowserWindow.CreateNewInstance(options);
-                    
-                    browserWindow.loadFile("renderer.html");
-                }));
+                //console.log("options:", options);
 
-                electron.app.on("will-quit", new Action<dynamic>(e =>
-                {
-                    host.Dispose();
+                browserWindow = electron.BrowserWindow.CreateNewInstance(options);
 
-                }));
+                browserWindow.loadFile("renderer.html");
+            }));
 
-            }
-            catch (Exception e)
+            electron.app.on("will-quit", new Action<dynamic>(e =>
             {
-                Console.WriteLine("Exception: {0}", e);
-            }
-            return 5;
+                tcs.SetResult(5);
+
+            }));
+            return tcs.Task;
         }
     }
 }
