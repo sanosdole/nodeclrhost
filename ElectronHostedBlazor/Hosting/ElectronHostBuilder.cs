@@ -100,19 +100,17 @@ namespace ElectronHostedBlazor.Hosting
             services.AddSingleton(_BrowserHostBuilderContext);
 
             // Could use `Properties` to configure path
-            var nodeHost = NativeHost.Initialize();
-            nodeHost.Global.window.addEventListener("unload",
-                new Action<dynamic>(e => nodeHost.Dispose()));
-            services.AddSingleton<IBridgeToNode>(nodeHost);
+            var node = NativeHost.Initialize();
+            services.AddSingleton(node);
 
-            var jsRuntime = new ElectronJSRuntime(nodeHost);
+            var jsRuntime = new ElectronJSRuntime(node);
             services.AddSingleton<IJSRuntime>(jsRuntime);
             services.AddSingleton<IJSInProcessRuntime>(jsRuntime);
 
             services.AddSingleton<IElectronHost, ElectronHost>();
 
-            services.AddSingleton<NavigationManager>(new ElectronNavigationManager(nodeHost));
-            services.AddSingleton<INavigationInterception>(new ElectronNavigationInterception(nodeHost));
+            services.AddSingleton<NavigationManager, ElectronNavigationManager>();
+            services.AddSingleton<INavigationInterception, ElectronNavigationInterception>();
 
             // DM 19.08.2019: We do not need an HttpClient like WebAssembly does as we have the full framework
             /*services.AddSingleton<HttpClient>(s =>

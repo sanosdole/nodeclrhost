@@ -2,13 +2,14 @@ namespace BlazorApp
 {
     using ElectronHostedBlazor.Hosting;
     using Microsoft.Extensions.Logging;
+    using System.Threading.Tasks;
 
     public class Program
     {
-        public static void Main(string[] args)
+        public static Task<int> Main(string[] args)
         {
             //System.Diagnostics.Debugger.Launch();
-            CreateHostBuilder(args).Build().Run();
+            return CreateHostBuilder(args).Build().Run();
         }
 
         public static IElectronHostBuilder CreateHostBuilder(string[] args) =>

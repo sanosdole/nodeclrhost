@@ -7,47 +7,28 @@ namespace ElectronHostedBlazor.Hosting
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using ElectronHostedBlazor.Rendering;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.JSInterop;
+    using NodeHostEnvironment;
 
     internal class ElectronHost : IElectronHost
     {
         private readonly IJSRuntime _runtime;
+        private readonly IBridgeToNode _node;
 
-        private IServiceScope _scope;
-        private ElectronRenderer _renderer;
-
-        public ElectronHost(IServiceProvider services, IJSRuntime runtime)
+        public ElectronHost(IServiceProvider services, IJSRuntime runtime, IBridgeToNode node)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
             _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
+            _node = node ?? throw new ArgumentNullException(nameof(node));
         }
 
         public IServiceProvider Services { get; }
 
-        public Task StartAsync(CancellationToken cancellationToken = default)
-        {
-            // We need to do this as early as possible, it eliminates a bunch of problems. Note that what we do
-            // is a bit fragile. If you see things breaking because JSRuntime.Current isn't set, then it's likely
-            // that something on the startup path went wrong.
-            //
-            // We want to the JSRuntime created here to be the 'ambient' runtime when JS calls back into .NET. When
-            // this happens in the browser it will be a direct call from Mono. We effectively needs to set the
-            // JSRuntime in the 'root' execution context which implies that we want to do as part of a direct
-            // call from Program.Main, and before any 'awaits'.
-            //JSRuntime.SetCurrentJSRuntime(_runtime);
-            //SetBrowserHttpMessageHandlerAsDefault();
-
-            return StartAsyncAwaited();
-        }
-
-        private async Task StartAsyncAwaited()
-        {
+        public async Task RunAsync(CancellationToken cancellationToken = default)
+        {            
             var scopeFactory = Services.GetRequiredService<IServiceScopeFactory>();
-            _scope = scopeFactory.CreateScope();
-
-            try
+            using (var _scope = scopeFactory.CreateScope())
             {
                 var startup = _scope.ServiceProvider.GetService<IBlazorStartup>();
                 if (startup == null)
@@ -63,38 +44,15 @@ namespace ElectronHostedBlazor.Hosting
                 var builder = new ElectronBlazorApplicationBuilder(_scope.ServiceProvider);
                 startup.Configure(builder, _scope.ServiceProvider);
 
-                _renderer = await builder.CreateRendererAsync();
-            }
-            catch
-            {
-                _scope.Dispose();
-                _scope = null;
-
-                if (_renderer != null)
+                using(var _renderer = await builder.CreateRendererAsync())
                 {
-                    _renderer.Dispose();
-                    _renderer = null;
+                    var tcs = new TaskCompletionSource<object>();
+                    _node.Global.window.addEventListener("unload",
+                        new Action<dynamic>(e => tcs.SetResult(0)));
+                    await tcs.Task;
                 }
-
-                throw;
             }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken = default)
-        {
-            if (_scope != null)
-            {
-                _scope.Dispose();
-                _scope = null;
-            }
-
-            if (_renderer != null)
-            {
-                _renderer.Dispose();
-                _renderer = null;
-            }
-
-            return Task.CompletedTask;
+            
         }
 
         public void Dispose()
