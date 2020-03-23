@@ -6,6 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
+    <ProjectReference Include="..\..\..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
   </ItemGroup>
 </Project>

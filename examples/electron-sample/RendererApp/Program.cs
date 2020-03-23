@@ -8,7 +8,7 @@
 
     class Program
     {
-        static Task<int> Main(string[] args)
+        static async Task<int> Main(string[] args)
         {
             var tcs = new TaskCompletionSource<int>();
             var host = NativeHost.Initialize();

@@ -4,8 +4,8 @@
 
 namespace ElectronHostedBlazor.Hosting
 {
-    using System;
     using System.Threading.Tasks;
+    using System;
 
     /// <summary>
     /// Extension methods for <see cref="IElectronHost"/>.
@@ -21,17 +21,13 @@ namespace ElectronHostedBlazor.Hosting
         /// get a chance to gracefully shut down. For now, <see cref="Run(IElectronHost)"/> simply starts the host
         /// and allows execution to continue.
         /// </remarks>
-        public static Task<int> Run(this IElectronHost host)
+        public static async Task<int> Run(this IElectronHost host)
         {
-            return host.RunAsync().ContinueWith(task =>
+            using(host)
             {
-                if (task.Exception != null)
-                {
-                    Console.WriteLine(task.Exception);
-                }                
-                host.Dispose();
-                return task.Exception == null ? 0 : -1;
-            });
+                await host.RunAsync();
+                return 0;
+            }
         }
     }
 }
