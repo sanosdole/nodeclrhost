@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using System;
-    using NodeHostEnvironment.NativeHost;
     using NodeHostEnvironment;
 
     class Program
@@ -10,7 +9,7 @@
         static dynamic browserWindow;
         static Task<int> Main(string[] args)
         {
-            var host = NativeHost.Initialize();
+            var host = NodeHost.Instance;
 
             var tcs = new TaskCompletionSource<int>();
 

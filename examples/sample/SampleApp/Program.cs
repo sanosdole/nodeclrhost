@@ -3,13 +3,12 @@
     using System.Threading.Tasks;
     using System;    
     using NodeHostEnvironment;
-    using NodeHostEnvironment.NativeHost;
 
     class Program
     {
         static async Task<int> Main(string[] args)
         {
-            var host = NativeHost.Initialize();
+            var host = NodeHost.Instance;
             var console = host.Global.console;
             console.log("Starting timeout");
             

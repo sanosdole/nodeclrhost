@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using System;
-    using NodeHostEnvironment.NativeHost;
     using NodeHostEnvironment;
 
     class Program
@@ -11,7 +10,7 @@
         static Task<int> Main(string[] args)
         {
             var tcs = new TaskCompletionSource<int>();
-            var host = NativeHost.Initialize();
+            var host = NodeHost.Instance;
             var console = host.Global.console;
 
             console.log($"Running broswer app in {host.Global.process.pid}");

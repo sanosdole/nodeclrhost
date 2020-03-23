@@ -21,10 +21,8 @@ namespace NodeHostEnvironment.NativeHost
             NativeApi nativeMethods,
             int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPStr, SizeParamIndex = 2)] string[] argv)
         {
-            //Console.WriteLine("Waiting for debugger!");
-            //while(!System.Diagnostics.Debugger.IsAttached) System.Threading.Thread.Sleep(50);
-
-            var host = NativeHost.Host = new NativeNodeHost(context, nativeMethods);
+            var host = new NativeNodeHost(context, nativeMethods);
+            NodeHost.Instance = new NodeBridge(host);
 
             try
             {

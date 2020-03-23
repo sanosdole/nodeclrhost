@@ -13,7 +13,6 @@ namespace ElectronHostedBlazor.Hosting
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.JSInterop;
-    using NodeHostEnvironment.NativeHost;
     using NodeHostEnvironment;
 
     internal sealed class ElectronHostBuilder : IElectronHostBuilder
@@ -100,7 +99,7 @@ namespace ElectronHostedBlazor.Hosting
             services.AddSingleton(_BrowserHostBuilderContext);
 
             // Could use `Properties` to configure path
-            var node = NativeHost.Initialize();
+            var node = NodeHost.Instance;
             services.AddSingleton(node);
 
             var jsRuntime = new ElectronJSRuntime(node);

@@ -2,14 +2,14 @@
 {
     using System.Threading.Tasks;
     using System;
-    using NodeHostEnvironment.NativeHost;
+    using NodeHostEnvironment;
     using Tests;
 
     public class Program
     {
         public static Task<int> Main(string[] args)
         {
-            var host = NativeHost.Initialize();
+            var host = NodeHost.Instance;
             var tcs = new TaskCompletionSource<int>();
 
             //Console.WriteLine("Waiting for debugger!");

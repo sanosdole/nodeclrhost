@@ -8,28 +8,27 @@ namespace NodeHostEnvironment
     /// </summary>
     public interface IBridgeToNode
     {
+        /// <summary>
+        /// Returns the global JS object
+        /// </summary>
         dynamic Global { get; }
+
+        /// <summary>
+        /// Instantiates a new JS object
+        /// </summary>
         dynamic New();
 
+        /// <summary>
+        /// Checks whether the current thread is the node thread and the bridge can be accessed.
+        /// If this is not the case use a <see cref="Run"/> overload to access the bridge.
+        /// </summary>
+        /// <returns></returns>
         bool CheckAccess();
+
+        /// <summary>
+        /// Run a delegate on the node thread.
+        /// </summary>
         Task<T> Run<T>(Func<T> func);
-
-        /* TODO: Default interface implementation requires dotnet 3.0 Preview 9+ 
-                public async Task<T> Run<T>(Func<Task<T>> action)
-                {
-                    return await Run(action);
-                }
-
-                public Task Run(Func<Task> action)
-                {
-                    return Run<Task>(action).Unwrap();
-                }
-
-                public Task Run(Action action)
-                {
-                    return Run(() => { action(); return (object)null; });
-                }
-        */
     }
 
     /// <summary>

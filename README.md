@@ -29,7 +29,7 @@ To run a .NET application the following JS code is required:
 ```js
 const coreclrHosting = require('coreclr-hosting');
 
-var exitcode = coreclrHosting.runCoreApp(pathToAssembly, "hello", "world");
+var exitcode = await coreclrHosting.runCoreApp(pathToAssembly, "hello", "world");
 console.log('.NET entry point returned: ' + exitcode);
 ```
 
@@ -38,18 +38,19 @@ The .NET application has to set up the hosting environment in its entry point li
 ```cs
 class Program
 {
-    static int Main(string[] args)
+    static async Task<int> Main(string[] args)
     {
-        var host = NativeHost.Initialize(); // This will initialize the bridge
+        var tcs = new TaskCompletionSource<int>();
+        var host = NodeHost.Instance;
         var console = host.Global.console;
         console.log("Starting timeout");
         host.Global.setTimeout(new Action(() =>
                                 {
                                     console.log("Timeout from node");
-                                    host.Dispose(); // This will allow the node application to exit
+                                    tcs.SetResult(5);
                                 }),
                                 1500);
-        return 5;
+        return tcs.Task;
     }
 }
 ```
@@ -58,7 +59,7 @@ This application will output:
 
 ```console
 Starting timeout
-.NET entry point returned: 5
 Timeout from node
+.NET entry point returned: 5
 ```
 
