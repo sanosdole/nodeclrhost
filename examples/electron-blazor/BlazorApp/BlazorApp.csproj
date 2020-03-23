@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
-    <ProjectReference Include="..\..\ElectronHostedBlazor\ElectronHostedBlazor.csproj" />
+    <ProjectReference Include="..\..\..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
+    <ProjectReference Include="..\..\..\ElectronHostedBlazor\ElectronHostedBlazor.csproj" />
 
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.1.0" />    
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="3.1.0" />
