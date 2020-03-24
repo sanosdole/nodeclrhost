@@ -131,8 +131,7 @@ namespace NodeHostEnvironment.NativeHost
 
                     if (_task.IsCompleted)
                     {
-                        var exception = _task.Exception;
-                        // TODO DM 23.11.2019: Unwrap AggregateExceptions
+                        var exception = UnwrapAggregateException(_task.Exception);
                         var value = exception == null ?
                             DotNetValue.FromObject(GetResult(_task), _parent) :
                             DotNetValue.FromException(exception);
@@ -143,8 +142,7 @@ namespace NodeHostEnvironment.NativeHost
                     {
                         _task.ContinueWith(t =>
                         {
-                            var exception = t.Exception;
-                            // TODO DM 23.11.2019: Unwrap AggregateExceptions
+                            var exception = UnwrapAggregateException(t.Exception);
                             var value = exception == null ?
                                 DotNetValue.FromObject(GetResult(t), _parent) :
                                 DotNetValue.FromException(exception);
@@ -162,6 +160,16 @@ namespace NodeHostEnvironment.NativeHost
                 {
                     return DotNetValue.FromException(e);
                 }
+            }
+
+            private Exception UnwrapAggregateException(AggregateException exception)
+            {
+                if (null == exception)
+                    return null;
+                exception = exception.Flatten();
+                if (exception.InnerExceptions.Count == 1)
+                    return exception.InnerExceptions[0];
+                return exception;
             }
 
             private object GetResult(Task t)
