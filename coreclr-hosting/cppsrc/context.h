@@ -18,7 +18,7 @@
 namespace coreclrhosting {
 
 class Context {
-  struct SynchronizedFinalizerCallback;
+  class SynchronizedFinalizerCallback;
   typedef std::function<void(void*)> netCallback_t;
   typedef std::vector<std::pair<netCallback_t, void*>> netCallbacks_t;
 

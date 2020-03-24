@@ -1,0 +1,67 @@
+@page "/JSInterop"
+@inject IJSRuntime JSRuntime
+
+<h1>JavaScript Interop</h1>
+
+<h2>Invoke JavaScript functions from .NET methods</h2>
+
+<input @ref="_entryInput" id="jsInteropInput" />
+
+<button id="triggerjsfromdotnet" type="button" class="btn btn-primary" @onclick="TriggerJsPrompt">
+    Trigger JavaScript Prompt
+</button>
+
+<h3 id="welcome" style="color:green;font-style:italic"></h3>
+
+<button id="triggerdotnetfromjs" type="button" class="btn btn-primary" @onclick="TriggerNetInstanceMethod">
+    Trigger .NET instance method HelloHelper.SayHello
+</button>
+
+<h3 id="dotnetinvocationcount" style="color:green;font-style:italic">@_invokeCounter</h3>
+
+
+@code {
+    private ElementReference _entryInput;
+    private int _invokeCounter;
+
+    public async Task TriggerNetInstanceMethod()
+    {        
+        await JSRuntime.InvokeAsync<string>(
+            "exampleJsFunctions.sayHello",
+            DotNetObjectReference.Create(this));
+    }
+
+    [JSInvokable]
+    public string SayHello() 
+    {
+        _invokeCounter++;
+        StateHasChanged();
+        return $"Hello, {_invokeCounter}!";
+    }
+
+    [JSInvokable]
+    public static async Task AsyncVoidTest(DotNetObjectReference<JSInterop> instanceRef) 
+    {
+        var instance = instanceRef.Value;
+        instance._invokeCounter--;
+        instance.StateHasChanged();
+        await Task.Delay(100);
+        instance._invokeCounter++;
+        instance.StateHasChanged();
+        await Task.Yield();
+        instance._invokeCounter++;
+        instance.StateHasChanged();
+        instanceRef.Dispose();
+    }
+
+    public async Task TriggerJsPrompt()
+    {
+        var name = await JSRuntime.InvokeAsync<string>(
+                "exampleJsFunctions.getInputValue",
+                _entryInput);
+
+        await JSRuntime.InvokeVoidAsync(
+                "exampleJsFunctions.displayWelcome",
+                $"Hello {name}! Welcome to Blazor!");
+    }
+}

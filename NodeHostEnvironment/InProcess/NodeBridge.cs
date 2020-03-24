@@ -27,10 +27,6 @@ namespace NodeHostEnvironment.InProcess
         {
             return _host.Factory.StartNew(func);
         }
-        public void Dispose()
-        {
-            _host.ReleaseHost();
-        }
 
         public bool CheckAccess()
         {

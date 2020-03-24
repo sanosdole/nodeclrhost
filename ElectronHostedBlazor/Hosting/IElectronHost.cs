@@ -16,17 +16,10 @@ namespace ElectronHostedBlazor.Hosting
         IServiceProvider Services { get; }
 
         /// <summary>
-        /// Start the program.
+        /// Run the program.
         /// </summary>
-        /// <param name="cancellationToken">Used to abort program start.</param>
+        /// <param name="cancellationToken">Used to abort program run.</param>
         /// <returns></returns>
-        Task StartAsync(CancellationToken cancellationToken = default);
-
-        /// <summary>
-        /// Attempts to gracefully stop the program.
-        /// </summary>
-        /// <param name="cancellationToken">Used to indicate when stop should no longer be graceful.</param>
-        /// <returns></returns>
-        Task StopAsync(CancellationToken cancellationToken = default);
+        Task RunAsync(CancellationToken cancellationToken = default);
     }
 }

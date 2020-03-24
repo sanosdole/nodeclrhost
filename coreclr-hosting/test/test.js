@@ -97,11 +97,11 @@ global.setupTestObject = function () {
 };
 
 console.log("PID: " + process.pid);
-var result = coreclrhosting.runCoreApp(__dirname + '/TestApp/bin/Debug/netcoreapp3.0/TestApp.dll');
+var result = coreclrhosting.runCoreApp(__dirname + '/TestApp/bin/Debug/netcoreapp3.0/TestApp.dll', "AdditionalArgument");
 
 describe('coreclrhosting', function () {
-  it('should return 0', function () {
-    assert.strictEqual(result, 0);
+  it('should return 0', async function () {
+    assert.strictEqual(await result, 0);
   });
 
 });

@@ -4,6 +4,7 @@
 
 namespace ElectronHostedBlazor.Hosting
 {
+    using System.Threading.Tasks;
     using System;
 
     /// <summary>
@@ -20,20 +21,13 @@ namespace ElectronHostedBlazor.Hosting
         /// get a chance to gracefully shut down. For now, <see cref="Run(IElectronHost)"/> simply starts the host
         /// and allows execution to continue.
         /// </remarks>
-        public static void Run(this IElectronHost host)
+        public static async Task<int> Run(this IElectronHost host)
         {
-            // Behave like async void, because we don't yet support async-main properly on Node.
-            // However, don't actualy make this method async, because we rely on startup being synchronous
-            // for things like attaching navigation event handlers.
-            host.StartAsync().ContinueWith(task =>
+            using(host)
             {
-                if (task.Exception != null)
-                {
-                    Console.WriteLine(task.Exception);
-                }
-                //host.StopAsync();
-                //host.Dispose();
-            });
+                await host.RunAsync();
+                return 0;
+            }
         }
     }
 }

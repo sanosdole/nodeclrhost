@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "nativeapi.h"
+
 namespace {
 
 struct AsyncHandleData {
@@ -140,6 +142,11 @@ void Context::Release() {
   uv_async_send(&async_handle_);
 }
 
+extern "C" typedef DotNetHandle (*EntryPointFunction)(Context* context,
+                                                      NativeApi nativeApi,
+                                                      int argc,
+                                                      const char* argv[]);
+
 Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
 
@@ -150,19 +157,19 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   }
 
   std::vector<std::string> arguments(info.Length());
+  std::vector<const char*> arguments_c(info.Length());
   for (auto i = 0u; i < info.Length(); i++) {
     if (!info[i].IsString()) {
       Napi::Error::New(env, "Expected only string arguments")
           .ThrowAsJavaScriptException();
       return Napi::Value();
     }
-    arguments[i] = info[i].ToString();
-    // printf("Argument %d:%s\n", i, arguments[i].c_str());
+    arguments_c[i] = (arguments[i] = info[i].ToString()).c_str();
   }
 
   std::unique_ptr<DotNetHost> host;
 
-  auto result = DotNetHost::Create(arguments, host);
+  auto result = DotNetHost::Create(info[0].ToString(), host);
   switch (result) {
     case DotNetHostCreationResult::kOK:
       break;
@@ -197,8 +204,37 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   auto context = new Context(std::move(host), env);
   ThreadInstance _(context);
 
-  auto exit_code = context->host_->ExecuteAssembly();
-  return Napi::Number::New(env, exit_code);
+  // TODO DM 20.03.2020: Move into method on context
+  auto entry_point_ptr = context->host_->GetManagedFunction(
+      "NodeHostEnvironment.NativeHost.NativeEntryPoint, NodeHostEnvironment",
+      "RunHostedApplication",
+      "NodeHostEnvironment.NativeHost.EntryPointSignature, "
+      "NodeHostEnvironment");
+  auto entry_point = reinterpret_cast<EntryPointFunction>(entry_point_ptr);
+
+  auto return_value = entry_point(context, NativeApi::instance_,
+                                  arguments_c.size(), arguments_c.data())
+                          .ToValue(env, context->function_factory_,
+                                   context->array_buffer_factory_);
+
+  if (return_value.IsPromise()) {
+    return return_value.As<Napi::Promise>()
+        .Get("then")
+        .As<Napi::Function>()
+        .MakeCallback(
+            return_value,
+            {Napi::Function::New(env,
+                                 [context](const Napi::CallbackInfo& f_info) {
+                                   context->Release();
+                                   return f_info[0];
+                                 }),
+             Napi::Function::New(env,
+                                 [context](const Napi::CallbackInfo& r_info) {
+                                   context->Release();
+                                   return r_info[0];
+                                 })});
+  }
+  return return_value;
 }
 
 JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
@@ -280,7 +316,7 @@ JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
 
   auto newObj = Napi::Object::New(env_);
 
-  return JsHandle(newObj);
+  return JsHandle::FromObject(newObj);
 }
 
 JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
@@ -381,8 +417,9 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         return napiResultValue;
       });
 
-  auto finalizer_data = new SynchronizedFinalizerCallback(
-      this, [=]() { release_func(DotNetType::Function, reinterpret_cast<void*>(function_value)); });
+  auto finalizer_data = new SynchronizedFinalizerCallback(this, [=]() {
+    release_func(DotNetType::Function, reinterpret_cast<void*>(function_value));
+  });
   napi_add_finalizer(env_, function, static_cast<void*>(finalizer_data),
                      SynchronizedFinalizerCallback::Wrapper, nullptr, nullptr);
 

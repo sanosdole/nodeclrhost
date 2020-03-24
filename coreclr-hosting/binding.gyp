@@ -7,7 +7,7 @@
             "cppsrc/main.cc",
             "cppsrc/dotnethost.cc",
             "cppsrc/context.cc",
-            "cppsrc/dotnetexports.cc"
+            "cppsrc/nativeapi.cc"
         ],
         'include_dirs': [
             "<!@(node -p \"require('node-addon-api').include\")",

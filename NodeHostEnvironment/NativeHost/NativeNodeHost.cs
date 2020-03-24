@@ -17,14 +17,12 @@ namespace NodeHostEnvironment.NativeHost
         private readonly ReleaseDotNetValue ReleaseCallback;
         private readonly ReleaseDotNetValue ReleaseTaskCallback;
 
-        private DelegateBasedNativeApi NativeMethods { get; }
+        private NativeApi NativeMethods { get; }
 
-        public NativeNodeHost(DelegateBasedNativeApi nativeMethods)
+        public NativeNodeHost(IntPtr context, NativeApi nativeMethods)
         {
             NativeMethods = nativeMethods;
-            _context = NativeMethods.GetContext();
-            if (_context == IntPtr.Zero)
-                throw new InvalidOperationException("Host can only be created on the node main thread");
+            _context = context;
             _scheduler = new NodeTaskScheduler(PostCallbackIntern);
             ReleaseCallback = ReleaseCallbackIntern;
             ReleaseTaskCallback = ReleaseTaskCallbackIntern;
@@ -133,8 +131,7 @@ namespace NodeHostEnvironment.NativeHost
 
                     if (_task.IsCompleted)
                     {
-                        var exception = _task.Exception;
-                        // TODO DM 23.11.2019: Unwrap AggregateExceptions
+                        var exception = UnwrapAggregateException(_task.Exception);
                         var value = exception == null ?
                             DotNetValue.FromObject(GetResult(_task), _parent) :
                             DotNetValue.FromException(exception);
@@ -145,8 +142,7 @@ namespace NodeHostEnvironment.NativeHost
                     {
                         _task.ContinueWith(t =>
                         {
-                            var exception = t.Exception;
-                            // TODO DM 23.11.2019: Unwrap AggregateExceptions
+                            var exception = UnwrapAggregateException(t.Exception);
                             var value = exception == null ?
                                 DotNetValue.FromObject(GetResult(t), _parent) :
                                 DotNetValue.FromException(exception);
@@ -166,6 +162,16 @@ namespace NodeHostEnvironment.NativeHost
                 }
             }
 
+            private Exception UnwrapAggregateException(AggregateException exception)
+            {
+                if (null == exception)
+                    return null;
+                exception = exception.Flatten();
+                if (exception.InnerExceptions.Count == 1)
+                    return exception.InnerExceptions[0];
+                return exception;
+            }
+
             private object GetResult(Task t)
             {
                 // DM 23.11.2019: This could be optimized if necessary
@@ -180,12 +186,6 @@ namespace NodeHostEnvironment.NativeHost
                 }
                 return null;
             }
-        }
-
-        public void ReleaseHost()
-        {
-            // TODO: Ensure that further requests are denied with exception!
-            NativeMethods.ReleaseContext(_context);
         }
 
         public int PostCallback(NodeCallback callback, IntPtr data)

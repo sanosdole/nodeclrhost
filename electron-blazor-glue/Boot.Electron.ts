@@ -57,9 +57,7 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
   }  
 
   // DM 21.08.2019: Start the blazor app
-  console.info("Running in process " + process.pid);
-  console.info("Starting " + assemblyPath);
-  var result = coreclrhosting.runCoreApp(assemblyPath, ...args);
+  var result = await coreclrhosting.runCoreApp(assemblyPath, ...args);
   console.info("Main returned: " + result);
 
   // TODO DM 29.11.2019: Do we need any of this for RCLs to work?

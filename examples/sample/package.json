@@ -1,0 +1,16 @@
+{
+  "name": "sample",
+  "version": "1.0.0",
+  "description": "Sample for using coreclr-hosting module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-sampleapp": "dotnet build SampleApp/SampleApp.csproj",
+    "start": "npm run build-sampleapp && node --expose-gc ./index.js"
+  },
+  "author": "Daniel Martin",
+  "license": "MIT",
+  "dependencies": {
+    "coreclr-hosting": "file:../../coreclr-hosting"
+  }
+}
