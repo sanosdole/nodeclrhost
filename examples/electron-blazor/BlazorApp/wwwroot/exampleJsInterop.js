@@ -14,7 +14,8 @@ window.exampleJsFunctions = {
         });
     },
     sayHello: function (dotnetHelper) {
-      return dotnetHelper.invokeMethodAsync('SayHello')
-        .then(r => console.log(r));
+      return dotnetHelper.invokeMethodAsync('SayHello')      
+        .then(r => console.log(r))
+        .then(r => DotNet.invokeMethodAsync('BlazorApp', 'AsyncVoidTest', dotnetHelper));
     }
   };

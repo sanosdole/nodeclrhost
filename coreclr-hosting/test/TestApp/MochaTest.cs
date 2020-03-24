@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using NodeHostEnvironment;
@@ -56,6 +55,13 @@ namespace TestApp
                 try
                 {
                     return (Task) method.Invoke(this, null);
+                }
+                catch (AggregateException ae)
+                {
+                    ae = ae.Flatten();                    
+                    if (ae.InnerExceptions.Count == 1)
+                        throw ae.InnerExceptions[0];
+                    throw;
                 }
                 catch (TargetInvocationException tie)
                 {

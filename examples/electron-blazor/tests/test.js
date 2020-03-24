@@ -101,7 +101,7 @@ describe("blazor-test-app", function () {
         it("execute js-dotnet interop", function () {
             return app.client                
                 .click(dotnetInteropButton)
-                .waitUntilTextExists(dotnetInteropResult, '1');
+                .waitUntilTextExists(dotnetInteropResult, '2');
         });
     });
 });

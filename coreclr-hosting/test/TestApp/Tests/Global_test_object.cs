@@ -138,7 +138,7 @@ namespace TestApp.Tests
         }
 
         // TODO DM 24.11.2019: This would require another bunch of reflection code to get working...
-        /*public async Task It_should_await result from createPromise()
+        /*public async Task It_should_await_result_from_createPromise()
         {
             string result = await global.testObject.createPromise(true);
             result.Should().Be("Resolved");
@@ -181,6 +181,14 @@ namespace TestApp.Tests
             }
             didThrow.Should().Be(true);
 
+        }
+
+        public async Task It_should_marshal_Task_with_VoidTaskResult()
+        {
+            var task = new Func<Task>(async () => { await Task.Yield(); await Task.Yield(); })();
+            ((bool) Global.testObject.isPromise(task)).Should().Be(true);
+
+            await (Task) Global.testObject.awaitPromise(task);
         }
 
         public void It_should_instantiate_TestClass()

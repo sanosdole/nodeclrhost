@@ -39,6 +39,21 @@
         return $"Hello, {_invokeCounter}!";
     }
 
+    [JSInvokable]
+    public static async Task AsyncVoidTest(DotNetObjectReference<JSInterop> instanceRef) 
+    {
+        var instance = instanceRef.Value;
+        instance._invokeCounter--;
+        instance.StateHasChanged();
+        await Task.Delay(100);
+        instance._invokeCounter++;
+        instance.StateHasChanged();
+        await Task.Yield();
+        instance._invokeCounter++;
+        instance.StateHasChanged();
+        instanceRef.Dispose();
+    }
+
     public async Task TriggerJsPrompt()
     {
         var name = await JSRuntime.InvokeAsync<string>(
