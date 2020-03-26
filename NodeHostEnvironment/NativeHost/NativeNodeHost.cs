@@ -100,9 +100,10 @@ namespace NodeHostEnvironment.NativeHost
                 }
                 catch (Exception exception)
                 {
-                    exception = UnwrapAggregateException(exception as AggregateException);
-                    if (exception is TargetInvocationException tie)
-                        exception = tie.InnerException;
+                    if (exception is AggregateException aggregateException)
+                        exception = UnwrapAggregateException(aggregateException);
+                    if (exception is TargetInvocationException targetInvocationexception)
+                        exception = targetInvocationexception.InnerException;
 
                     result = DotNetValue.FromException(exception);
                 }
