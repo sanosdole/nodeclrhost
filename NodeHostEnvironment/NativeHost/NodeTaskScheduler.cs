@@ -7,6 +7,7 @@ namespace NodeHostEnvironment.NativeHost
    using System.Threading.Tasks;
    using System.Threading;
    using System;
+   using NodeHostEnvironment.InProcess;
 
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
    internal delegate void NodeCallback(IntPtr data);
@@ -28,33 +29,26 @@ namespace NodeHostEnvironment.NativeHost
          _tasks = new ConcurrentQueue<Task>();
          Factory = new TaskFactory(this);
          _synchronizationContext = new Context(Factory);
-         // Set immediatly as this must only be called from node main
+         // Set immediatly as this must only be called from node main.
+         // Also we never reset it
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
       }
 
       public bool ContextIsActive => SynchronizationContext.Current == _synchronizationContext;
 
-      public IDisposable SetNodeContext()
+      public object RunCallbackSynchronously(Func<object, object> callback, object args)
       {
-         return new SynchronizationContextOverride(_synchronizationContext);
-      }
-
-      private sealed class SynchronizationContextOverride : IDisposable
-      {
-         private readonly SynchronizationContext _context;
-         private readonly SynchronizationContext _previous;
-         public SynchronizationContextOverride(SynchronizationContext context)
+         // Ensure context
+         SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+         
+         // Ensure TaskScheduler.Current
+         if (Current != this)
          {
-            _context = context;
-            _previous = SynchronizationContext.Current;
-            SynchronizationContext.SetSynchronizationContext(_context);
+            var task = new Task<object>(callback, args);
+            task.RunSynchronously(this);
+            return task.Result;
          }
-         public void Dispose()
-         {
-            Debug.Assert(SynchronizationContext.Current == _context, "Someone modified the context on this thread, this is evil!");
-            SynchronizationContext.SetSynchronizationContext(_previous);
-
-         }
+         return callback(args);
       }
 
       /// <summary>
@@ -107,14 +101,13 @@ namespace NodeHostEnvironment.NativeHost
          // from in-lining thread pool continuations onto the Node thread. This works as it uses
          // the synchronization context to detect whether a normal continuation
          // or a continuation with a specific TaskScheduler is used.
-         using(SetNodeContext())
-         {
-            // Continually get the next task and try to execute it.
-            // This will continue until no more tasks remain.
-            Task result;
-            while (_tasks.TryDequeue(out result))
-               TryExecuteTask(result);
-         }
+         SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+
+         // Continually get the next task and try to execute it.
+         // This will continue until no more tasks remain.
+         while (_tasks.TryDequeue(out Task result))
+            TryExecuteTask(result);
+
       }
 
       private sealed class Context : SynchronizationContext

@@ -72,9 +72,12 @@ namespace NodeHostEnvironment.NativeHost
         /// </summary>
         private sealed class CallbackHolder
         {
+            [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+            private delegate void CallbackSignature(int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct, SizeParamIndex = 0)] JsValue[] argv, out DotNetValue result);
+
             public IntPtr CallbackPtr { get; }
             public DotNetCallback Wrapped { get; }
-            private readonly DotNetCallback _wrapper;
+            private readonly CallbackSignature _wrapper;
             private readonly NativeNodeHost _parent;
 
             public CallbackHolder(DotNetCallback toWrap, NativeNodeHost parent)
@@ -91,16 +94,17 @@ namespace NodeHostEnvironment.NativeHost
 
                 try
                 {
-                    using(_parent._scheduler.SetNodeContext())
-                    Wrapped(argc, argv ?? new JsValue[0], out result);
+                    result = (DotNetValue) _parent._scheduler.RunCallbackSynchronously(
+                        state => Wrapped((JsValue[]) state),
+                        argv ?? new JsValue[0]);
                 }
-                catch (TargetInvocationException tie)
+                catch (Exception exception)
                 {
-                    result = DotNetValue.FromException(tie.InnerException);
-                }
-                catch (Exception e)
-                {
-                    result = DotNetValue.FromException(e);
+                    exception = UnwrapAggregateException(exception as AggregateException);
+                    if (exception is TargetInvocationException tie)
+                        exception = tie.InnerException;
+
+                    result = DotNetValue.FromException(exception);
                 }
 
             }
@@ -162,16 +166,6 @@ namespace NodeHostEnvironment.NativeHost
                 }
             }
 
-            private Exception UnwrapAggregateException(AggregateException exception)
-            {
-                if (null == exception)
-                    return null;
-                exception = exception.Flatten();
-                if (exception.InnerExceptions.Count == 1)
-                    return exception.InnerExceptions[0];
-                return exception;
-            }
-
             private object GetResult(Task t)
             {
                 // DM 23.11.2019: This could be optimized if necessary
@@ -186,6 +180,16 @@ namespace NodeHostEnvironment.NativeHost
                 }
                 return null;
             }
+        }
+
+        private static Exception UnwrapAggregateException(AggregateException exception)
+        {
+            if (null == exception)
+                return null;
+            exception = exception.Flatten();
+            if (exception.InnerExceptions.Count == 1)
+                return exception.InnerExceptions[0];
+            return exception;
         }
 
         public int PostCallback(NodeCallback callback, IntPtr data)
@@ -206,7 +210,6 @@ namespace NodeHostEnvironment.NativeHost
             return NativeMethods.GetMemberByIndex(_context, ownerHandle, index);
         }
 
-
         // Convert handles to primitives can be done in managed code based on JsType
         // ATTENTION: 32bit node exists :(
 
@@ -225,7 +228,7 @@ namespace NodeHostEnvironment.NativeHost
             return NativeMethods.Invoke(_context, handle, receiverHandle, argc, argv);
         }
 
-        public JsValue InvokeByName(string name, JsValue receiverHandle, int argc, DotNetValue[] argv) 
+        public JsValue InvokeByName(string name, JsValue receiverHandle, int argc, DotNetValue[] argv)
         {
             CheckInContext();
             return NativeMethods.InvokeByName(_context, name, receiverHandle, argc, argv);
@@ -245,10 +248,10 @@ namespace NodeHostEnvironment.NativeHost
             lengthHandle.ThrowError(this); // Maybe inner exception?
             if (lengthHandle.Type != JsType.Number)
                 throw new InvalidOperationException("JsValue is not an array, as it has no 'length' member");
-            
+
             // TODO: This will break on 32 bit systems!
-            var length = (int)BitConverter.Int64BitsToDouble((long) lengthHandle.Value);
-            
+            var length = (int) BitConverter.Int64BitsToDouble((long) lengthHandle.Value);
+
             // Allocating the array in managed code spares us releasing native array allocation
             var result = new JsValue[length];
             for (int i = 0; i < length; i++)
@@ -262,7 +265,7 @@ namespace NodeHostEnvironment.NativeHost
         public void Release(JsValue handle)
         {
             // This should be callable from any thread
-            NativeMethods.Release(handle);            
+            NativeMethods.Release(handle);
         }
 
         public string StringFromNativeUtf8(IntPtr nativeUtf8)

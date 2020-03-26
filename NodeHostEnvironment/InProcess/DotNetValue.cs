@@ -64,10 +64,10 @@ namespace NodeHostEnvironment.InProcess
         public static DotNetValue FromDelegate(Delegate @delegate, IHostInProcess host)
         {
             ReleaseDotNetValue releaseCallback;
-            var value = host.MarshallCallback((int argc, JsValue[] argv, out DotNetValue result) =>
+            var value = host.MarshallCallback((JsValue[] argv) =>
             {
                 var requiredParameters = @delegate.Method.GetParameters();
-                if (requiredParameters.Length > argc)
+                if (requiredParameters.Length > argv.Length)
                 {
                     foreach (var toRelease in argv)
                         host.Release(toRelease);
@@ -91,7 +91,7 @@ namespace NodeHostEnvironment.InProcess
                 }
 
                 var resultObj = @delegate.DynamicInvoke(mappedArgs);
-                result = DotNetValue.FromObject(resultObj, host);
+                return FromObject(resultObj, host);
 
             }, out releaseCallback);
 

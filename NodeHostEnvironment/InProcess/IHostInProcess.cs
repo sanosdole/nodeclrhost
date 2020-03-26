@@ -1,11 +1,9 @@
 namespace NodeHostEnvironment.InProcess
 {
-    using System.Runtime.InteropServices;
     using System.Threading.Tasks;
     using System;
 
-    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-    internal delegate void DotNetCallback(int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct, SizeParamIndex = 0)] JsValue[] argv, out DotNetValue result);
+    internal delegate DotNetValue DotNetCallback(JsValue[] argv);
 
     /// <summary>
     /// Interface for enabling unit testing without node environment
