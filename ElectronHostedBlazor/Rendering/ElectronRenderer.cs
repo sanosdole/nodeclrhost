@@ -21,9 +21,10 @@ namespace ElectronHostedBlazor.Rendering
     {
         private bool isDispatchingEvent;
         private readonly Queue<IncomingEventInfo> deferredIncomingEvents = new Queue<IncomingEventInfo>();
+        private readonly ILogger<ElectronRenderer> _logger;
         private readonly dynamic _blazorInternal;
         private readonly ElectronDispatcher _dispatcher;
-
+        
         /// <summary>
         /// Constructs an instance of <see cref="ElectronRenderer"/>.
         /// </summary>
@@ -32,6 +33,7 @@ namespace ElectronHostedBlazor.Rendering
         public ElectronRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBridgeToNode node)
             : base(serviceProvider, loggerFactory)
         {
+            _logger = loggerFactory.CreateLogger<ElectronRenderer>();
             _blazorInternal = node.Global.window.Blazor._internal;
             _dispatcher = new ElectronDispatcher(node);
             var eventDispatcher = new ElectronEventDispatcher(this);
@@ -124,18 +126,17 @@ namespace ElectronHostedBlazor.Rendering
 
         /// <inheritdoc />
         protected override void HandleException(Exception exception)
-        {
-            Console.Error.WriteLine($"Unhandled exception rendering component:");
+        {            
             if (exception is AggregateException aggregateException)
             {
                 foreach (var innerException in aggregateException.Flatten().InnerExceptions)
                 {
-                    Console.Error.WriteLine(innerException);
+                    _logger.LogError(innerException, "Unhandled exception while rendering a component");
                 }
             }
             else
             {
-                Console.Error.WriteLine(exception);
+                _logger.LogError(exception, "Unhandled exception while rendering a component");
             }
         }
 
