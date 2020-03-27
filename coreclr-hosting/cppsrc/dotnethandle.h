@@ -48,7 +48,7 @@ extern "C" struct DotNetHandle {
   Napi::Value ToValue(
       const Napi::Env &env,
       std::function<Napi::Function(DotNetHandle *)> function_factory,
-      std::function<Napi::ArrayBuffer(DotNetHandle *)> array_buffer_factory) {
+      std::function<Napi::Value(DotNetHandle *)> array_buffer_factory) {
     if (type_ == DotNetType::Null) return env.Null();
     if (type_ == DotNetType::JsHandle) return jshandle_value_->AsObject(env);
     if (type_ == DotNetType::String) {

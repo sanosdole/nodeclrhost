@@ -426,7 +426,7 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   return function;
 }
 
-Napi::ArrayBuffer Context::CreateArrayBuffer(DotNetHandle* handle) {
+Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
   auto value_copy = handle->value_;
   auto release_array_func = handle->release_func_;
   handle->release_func_ = nullptr;  // We delay the release
@@ -437,8 +437,8 @@ Napi::ArrayBuffer Context::CreateArrayBuffer(DotNetHandle* handle) {
   // int32_t*
   auto array_value_ptr = reinterpret_cast<int32_t*>(value_copy);
   auto length = *array_value_ptr;
-  return Napi::ArrayBuffer::New(
-      env_, *reinterpret_cast<void**>(array_value_ptr + 1), length,
+  return Napi::Buffer<uint8_t>::New(
+      env_, *reinterpret_cast<uint8_t**>(array_value_ptr + 1), length,
       [](napi_env env, void* data, SynchronizedFinalizerCallback* hint) {
         hint->Call();
       },

@@ -1,0 +1,34 @@
+@using NodeHostEnvironment
+@using System.IO;
+@page "/ImageBlob"
+
+<img src="@_source"/>
+
+@code {
+    private string _source;
+
+    [Inject]
+    public IBridgeToNode Node { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        var bytes = File.ReadAllBytes(@"BlazorApp/wwwroot/exampleImage.gif");
+
+        //var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+        //return URL.createObjectURL(new Blob([ ab ], { type: mime }));
+
+        var opts = Node.New();
+        opts.temp = bytes;
+        opts.type = "image/jpeg";
+
+        dynamic b = opts.temp;
+        opts.temp = null;
+
+        var blob = Node.Global.Blob.CreateNewInstance(new dynamic[] { b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }, opts);
+
+        _source = (string)Node.Global.URL.createObjectURL(blob);
+    }
+
+}

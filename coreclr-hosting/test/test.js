@@ -64,12 +64,11 @@ global.setupTestObject = function () {
       this.value = arg;
     },
     assertByteArray: function(bytes) {
-      var view = new Uint8Array(bytes);
       assert.strictEqual(4, bytes.byteLength);
-      assert.strictEqual(1, view[0]);
-      assert.strictEqual(2, view[1]);
-      assert.strictEqual(3, view[2]);
-      assert.strictEqual(4, view[3]);
+      assert.strictEqual(1, bytes[0]);
+      assert.strictEqual(2, bytes[1]);
+      assert.strictEqual(3, bytes[2]);
+      assert.strictEqual(4, bytes[3]);
     },
     assertMixedArray: function(array) {      
       assert.strictEqual(4, array.length);

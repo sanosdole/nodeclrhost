@@ -248,6 +248,7 @@ namespace NodeHostEnvironment.InProcess
         {
             var gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
             var dataPtr = gcHandle.AddrOfPinnedObject();
+            // Memory layout: |int size|IntPtr data|IntPtr gcHandle|
             var structPtr = Marshal.AllocHGlobal(sizeof(int) + 2 * IntPtr.Size);
             Marshal.WriteInt32(structPtr, array.Length);
             Marshal.WriteIntPtr(structPtr, sizeof(int), dataPtr);

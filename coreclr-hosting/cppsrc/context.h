@@ -31,7 +31,7 @@ class Context {
   bool release_called_;
   std::unique_ptr<DotNetHost> host_;
   std::function<Napi::Function(DotNetHandle*)> function_factory_;
-  std::function<Napi::ArrayBuffer(DotNetHandle*)> array_buffer_factory_;
+  std::function<Napi::Value(DotNetHandle*)> array_buffer_factory_;
 
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;  // no self-assignments
@@ -55,7 +55,7 @@ class Context {
   bool IsActiveContext() { return ThreadInstance::Current() == this; }
 
   Napi::Function CreateFunction(DotNetHandle* handle);
-  Napi::ArrayBuffer CreateArrayBuffer(DotNetHandle* handle);
+  Napi::Value CreateArrayBuffer(DotNetHandle* handle);
   JsHandle InvokeIntern(Napi::Value handle, Napi::Value receiver, int argc,
                         DotNetHandle* argv);
 

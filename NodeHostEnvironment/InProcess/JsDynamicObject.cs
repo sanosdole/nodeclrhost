@@ -65,6 +65,27 @@ namespace NodeHostEnvironment.InProcess
             return base.TryGetIndex(binder, indexes, out result);
         }
 
+        public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object value)
+        {
+            if (indexes.Length != 1)
+                throw new InvalidOperationException("We only support single parameter indexer");
+            var index = indexes[0];
+            if (index == null)
+                throw new ArgumentNullException(nameof(index));
+            if (index is string stringIndex)
+            {
+                _host.SetMember(Handle, stringIndex, DotNetValue.FromObject(value, _host));
+                return true;
+            }
+            /*if (index is int intIndex)
+            {
+                var jsHandle = _host.SetMemberByIndex(Handle, intIndex);
+                return true;
+            }*/
+
+            return base.TrySetIndex(binder, indexes, value);
+        }
+
         public override bool TryInvokeMember(InvokeMemberBinder binder,
             object[] args,
             out object result)
