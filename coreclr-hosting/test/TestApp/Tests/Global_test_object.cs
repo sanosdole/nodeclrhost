@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using FluentAssertions;
+using NodeHostEnvironment;
 
 namespace TestApp.Tests
 {
@@ -236,6 +238,17 @@ namespace TestApp.Tests
         {
             var a = new byte[] { 1, 2, 3, 4 };
             Global.testObject.assertByteArray(a);
+        }
+
+        public void It_should_marshal_native_memory_to_JS()
+        {
+            var ptr = Marshal.AllocHGlobal(4);
+            Marshal.WriteByte(ptr, 0, 1);
+            Marshal.WriteByte(ptr, 1, 2);
+            Marshal.WriteByte(ptr, 2, 3);
+            Marshal.WriteByte(ptr, 3, 4);
+            var memory = new NativeMemory(ptr, 4, m => Marshal.FreeHGlobal(m.Pointer));            
+            Global.testObject.assertByteArray(memory);
         }
 
         public void It_should_marshal_mixed_collections_to_js()

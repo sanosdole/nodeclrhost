@@ -54,6 +54,9 @@ namespace NodeHostEnvironment.InProcess
 
             if (obj is byte[] byteArray)
                 return FromByteArray(byteArray);
+            if (obj is NativeMemory nativeMemory)
+                return FromNativeMemory(nativeMemory);
+                
 
             if (obj is IReadOnlyCollection<object> collection)
                 return FromReadOnlyCollection(collection, host);
@@ -176,6 +179,25 @@ namespace NodeHostEnvironment.InProcess
             };
         }
 
+        public static DotNetValue FromNativeMemory(NativeMemory value)
+        {
+            var gcHandle = GCHandle.Alloc(value, GCHandleType.Normal);
+            
+            // Memory layout: |int size|IntPtr data|IntPtr gcHandle|
+            var structPtr = Marshal.AllocHGlobal(sizeof(int) + 2 * IntPtr.Size);
+            Marshal.WriteInt32(structPtr, value.Length);
+            Marshal.WriteIntPtr(structPtr, sizeof(int), value.Pointer);
+            Marshal.WriteIntPtr(structPtr, sizeof(int) + IntPtr.Size, GCHandle.ToIntPtr(gcHandle));
+            
+            return new DotNetValue
+            {
+                Type = DotNetType.ByteArray,
+                    Value = structPtr,
+                    ReleaseFunc = ReleaseNativeMemory
+            };
+        }
+        
+
         private static DotNetValue FromReadOnlyCollection(IReadOnlyCollection<object> collection, IHostInProcess host)
         {
             return new DotNetValue
@@ -211,6 +233,7 @@ namespace NodeHostEnvironment.InProcess
 
         private static readonly ReleaseDotNetValue ReleaseString = ReleaseStringIntern;
         private static readonly ReleaseDotNetValue ReleaseArrayPointer = ReleaseArrayPointerIntern;
+        private static readonly ReleaseDotNetValue ReleaseNativeMemory = ReleaseNativeMemoryIntern;
 
         private static void ReleaseHGlobalIntern(DotNetType type, IntPtr value)
         {
@@ -242,6 +265,16 @@ namespace NodeHostEnvironment.InProcess
             var gcHandle = GCHandle.FromIntPtr(gcHandlePtr);
             gcHandle.Free();
             Marshal.FreeHGlobal(value);
+        }
+
+        private static void ReleaseNativeMemoryIntern(DotNetType type, IntPtr value)
+        {
+            var gcHandlePtr = Marshal.ReadIntPtr(value, sizeof(int) + IntPtr.Size);            
+            var gcHandle = GCHandle.FromIntPtr(gcHandlePtr);
+            var memory = (NativeMemory)gcHandle.Target;            
+            gcHandle.Free();
+            Marshal.FreeHGlobal(value);
+            memory.Dispose();
         }
 
         private static IntPtr ArrayPointer(byte[] array)
