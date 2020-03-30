@@ -45,8 +45,7 @@ namespace ElectronHostedBlazor.Rendering
 
             if (_node.CheckAccess())
             {
-                workItem();
-                return Task.CompletedTask;
+                return workItem();
             }
 
             return _node.RunAsync(workItem);
