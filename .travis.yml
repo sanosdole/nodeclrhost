@@ -29,6 +29,7 @@ jobs:
            prebuild -t 12.15.0 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 7.1.4 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 8.2.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"

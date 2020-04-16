@@ -36,7 +36,7 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^6.2.2",
+    "mocha": "^7.1.1",
     "node-gyp": "^6.1.0"
   },
   "dependencies": {
