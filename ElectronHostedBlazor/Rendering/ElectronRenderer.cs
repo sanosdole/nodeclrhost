@@ -24,6 +24,8 @@ namespace ElectronHostedBlazor.Rendering
         private readonly ILogger<ElectronRenderer> _logger;
         private readonly dynamic _blazorInternal;
         private readonly ElectronDispatcher _dispatcher;
+        private readonly dynamic _blazorInternalRenderBatch;
+        private readonly ReusableMemoryStream _reusableMemoryStream = new ReusableMemoryStream();
         
         /// <summary>
         /// Constructs an instance of <see cref="ElectronRenderer"/>.
@@ -38,6 +40,7 @@ namespace ElectronHostedBlazor.Rendering
             _dispatcher = new ElectronDispatcher(node);
             var eventDispatcher = new ElectronEventDispatcher(this);
             _blazorInternal.HandleRendererEvent = new Func<dynamic, string, Task>(eventDispatcher.DispatchEvent);
+            _blazorInternalRenderBatch = _blazorInternal.renderBatch;
         }
 
         public override Dispatcher Dispatcher => _dispatcher;
@@ -106,20 +109,13 @@ namespace ElectronHostedBlazor.Rendering
 
             // TODO DM 22.08.2019: Using out of process render batch is inefficient
             //var arrayBuilder = new ArrayBuilder<byte>(2048);
-            using (var memoryStream = new MemoryStream()/* new ArrayBuilderMemoryStream(arrayBuilder)*/)            
-            {
-                //System.Diagnostics.Debugger.Launch();
-                using(var writer = new RenderBatchWriter(memoryStream, true))
-                    writer.Write(batch);
 
-                var bytes = memoryStream.ToArray();
+            _reusableMemoryStream.SetLength(0);
+            _reusableMemoryStream.Position = 0;
+            using (var writer = new RenderBatchWriter(_reusableMemoryStream, true))
+               writer.Write(batch);
 
-                /*var segment = new ArraySegment<byte>(arrayBuilder.Buffer, 0, arrayBuilder.Count);
-                var bytes = segment.Array;*/
-                //global.console.info($"Rendering with {batch.UpdatedComponents.Count} updates in {bytes.Length} bytes. First byte: {bytes[0]}");
-
-                _blazorInternal.renderBatch(/*_NodeRendererId*/1, bytes);
-            }
+            _blazorInternalRenderBatch( /*_NodeRendererId*/1, _reusableMemoryStream.GetMemory());
 
             return Task.CompletedTask;
         }

@@ -20,13 +20,9 @@
         //return URL.createObjectURL(new Blob([ ab ], { type: mime }));
 
         var opts = Node.New();
-        opts.temp = bytes;
         opts.type = "image/jpeg";
 
-        dynamic b = opts.temp;
-        opts.temp = null;
-
-        var blob = Node.Global.Blob.CreateNewInstance(new dynamic[] { b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) }, opts);
+        var blob = Node.Global.Blob.CreateNewInstance(new dynamic[] { Node.Global.Uint8Array.from(bytes).buffer }, opts);
 
         _source = (string)Node.Global.URL.createObjectURL(blob);
     }
