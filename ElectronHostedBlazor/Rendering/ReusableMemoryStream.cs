@@ -83,7 +83,10 @@
          var size = _buffer.Length;
          while (size < requiredSize)
             size <<= 1;
+
+         var previous = _buffer;         
          _buffer = new byte[size];
+         System.Buffer.BlockCopy(previous, 0, _buffer, 0, previous.Length);
       }
 
       public override bool CanRead => false;
