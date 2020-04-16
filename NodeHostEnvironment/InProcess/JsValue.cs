@@ -15,6 +15,8 @@ namespace NodeHostEnvironment.InProcess
             Value = IntPtr.Zero
         };
 
+        public bool RequiresContextForRelease => Type == JsType.Object || Type == JsType.Function;
+
         public bool TryGetObject(IHostInProcess host, Type targetType, out object result)
         {
             var releaseHandle = true;

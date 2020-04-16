@@ -266,7 +266,15 @@ namespace NodeHostEnvironment.NativeHost
         public void Release(JsValue handle)
         {
             // This should be callable from any thread
-            NativeMethods.Release(handle);
+            if (!handle.RequiresContextForRelease || _scheduler.ContextIsActive)
+            {
+                NativeMethods.Release(handle);
+            }
+            else
+            {
+                _scheduler.Factory.StartNew(() => NativeMethods.Release(handle));
+            }
+            
         }
 
         public string StringFromNativeUtf8(IntPtr nativeUtf8)

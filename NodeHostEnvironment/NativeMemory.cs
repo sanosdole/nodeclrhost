@@ -1,7 +1,8 @@
-using System;
-
 namespace NodeHostEnvironment
 {
+    using System;
+    using System.Threading;
+
     /// <summary>
     /// Wrapper for a continuous block of native memory that can be passed to JS.
     /// </summary>
@@ -16,18 +17,21 @@ namespace NodeHostEnvironment
             _releaseCallback = releaseCallback;
         }
 
+        ~NativeMemory()
+        {
+            Dispose();
+        }
+
         public IntPtr Pointer { get; }
         public int Length { get; }
 
         public void Dispose()
         {
-            try
+            var toCall = Interlocked.Exchange(ref _releaseCallback, null);
+            if (toCall != null)
             {
-                _releaseCallback(this);
-            }
-            finally
-            {
-                _releaseCallback = null;
+                GC.SuppressFinalize(this);
+                toCall(this);
             }
         }
     }

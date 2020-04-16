@@ -3,6 +3,7 @@ namespace NodeHostEnvironment.InProcess
     using System.Collections.Generic;
     using System.Dynamic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using System;
 
@@ -10,6 +11,7 @@ namespace NodeHostEnvironment.InProcess
     public sealed class JsDynamicObject : DynamicObject, IDisposable
     {
         private readonly IHostInProcess _host;
+        private volatile int _disposed;
 
         internal JsValue Handle { get; }
 
@@ -21,13 +23,25 @@ namespace NodeHostEnvironment.InProcess
 
         public void Dispose()
         {
+            var wasDisposed = Interlocked.Exchange(ref _disposed, 1) == 1;
+            if (wasDisposed)
+                return;
             GC.SuppressFinalize(this);
             _host.Release(Handle);
         }
 
         ~JsDynamicObject()
         {
+            var wasDisposed = Interlocked.Exchange(ref _disposed, 1) == 1;
+            if (wasDisposed)
+                return;
             _host.Release(Handle);
+        }
+
+        private void CheckDisposed()
+        {
+            if (_disposed == 1)
+                throw new ObjectDisposedException("JsDynamicObject is already disposed");
         }
 
         public dynamic CreateNewInstance(params object[] arguments)
@@ -40,6 +54,7 @@ namespace NodeHostEnvironment.InProcess
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
+            CheckDisposed();
             var jsHandle = _host.GetMember(Handle, binder.Name);
             return jsHandle.TryGetObject(_host, binder.ReturnType, out result);
         }
@@ -48,6 +63,8 @@ namespace NodeHostEnvironment.InProcess
         {
             if (indexes.Length != 1)
                 throw new InvalidOperationException("We only support single parameter indexer");
+            CheckDisposed();
+
             var index = indexes[0];
             if (index == null)
                 throw new ArgumentNullException(nameof(index));
@@ -69,6 +86,8 @@ namespace NodeHostEnvironment.InProcess
         {
             if (indexes.Length != 1)
                 throw new InvalidOperationException("We only support single parameter indexer");
+            CheckDisposed();
+
             var index = indexes[0];
             if (index == null)
                 throw new ArgumentNullException(nameof(index));
@@ -90,6 +109,8 @@ namespace NodeHostEnvironment.InProcess
             object[] args,
             out object result)
         {
+            CheckDisposed();
+
             var resultHandle = _host.InvokeByName(binder.Name, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
             resultHandle.TryGetObject(_host, binder.ReturnType, out result);
             return true;
@@ -97,6 +118,8 @@ namespace NodeHostEnvironment.InProcess
 
         public override bool TryInvoke(InvokeBinder binder, object[] args, out object result)
         {
+            CheckDisposed();
+
             var resultHandle = _host.Invoke(Handle,
                 Handle,
                 args.Length,
@@ -108,6 +131,8 @@ namespace NodeHostEnvironment.InProcess
         // Converting an object to a specified type.
         public override bool TryConvert(ConvertBinder binder, out object result)
         {
+            CheckDisposed();
+
             if (TryConvertIntern(binder.Type, out result))
                 return true;
 
@@ -295,6 +320,8 @@ namespace NodeHostEnvironment.InProcess
 
         public override bool TrySetMember(SetMemberBinder binder, object value)
         {
+            CheckDisposed();
+
             _host.SetMember(Handle, binder.Name, DotNetValue.FromObject(value, _host));
             return true;
         }
@@ -328,6 +355,7 @@ namespace NodeHostEnvironment.InProcess
             System.Diagnostics.Debug.Assert(Handle.Type == JsType.Object || Handle.Type == JsType.Function,
                 "Only objects are supported by JsDynamicObject atm.");
 
+            CheckDisposed();
             // TODO: Do this using a native method, which would be more efficient.
             var gObj = _host.GetMember(JsValue.Global, "Object");
             try

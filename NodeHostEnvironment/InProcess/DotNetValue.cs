@@ -56,7 +56,6 @@ namespace NodeHostEnvironment.InProcess
                 return FromByteArray(byteArray);
             if (obj is NativeMemory nativeMemory)
                 return FromNativeMemory(nativeMemory);
-                
 
             if (obj is IReadOnlyCollection<object> collection)
                 return FromReadOnlyCollection(collection, host);
@@ -92,6 +91,10 @@ namespace NodeHostEnvironment.InProcess
 
                     mappedArgs[c] = parameter;
                 }
+
+                // Release remaining arguments
+                foreach (var toRelease in argv.Skip(mappedArgs.Length))
+                    host.Release(toRelease);
 
                 var resultObj = @delegate.DynamicInvoke(mappedArgs);
                 return FromObject(resultObj, host);
@@ -182,13 +185,13 @@ namespace NodeHostEnvironment.InProcess
         public static DotNetValue FromNativeMemory(NativeMemory value)
         {
             var gcHandle = GCHandle.Alloc(value, GCHandleType.Normal);
-            
+
             // Memory layout: |int size|IntPtr data|IntPtr gcHandle|
             var structPtr = Marshal.AllocHGlobal(sizeof(int) + 2 * IntPtr.Size);
             Marshal.WriteInt32(structPtr, value.Length);
             Marshal.WriteIntPtr(structPtr, sizeof(int), value.Pointer);
             Marshal.WriteIntPtr(structPtr, sizeof(int) + IntPtr.Size, GCHandle.ToIntPtr(gcHandle));
-            
+
             return new DotNetValue
             {
                 Type = DotNetType.ByteArray,
@@ -196,7 +199,6 @@ namespace NodeHostEnvironment.InProcess
                     ReleaseFunc = ReleaseNativeMemory
             };
         }
-        
 
         private static DotNetValue FromReadOnlyCollection(IReadOnlyCollection<object> collection, IHostInProcess host)
         {
@@ -269,9 +271,9 @@ namespace NodeHostEnvironment.InProcess
 
         private static void ReleaseNativeMemoryIntern(DotNetType type, IntPtr value)
         {
-            var gcHandlePtr = Marshal.ReadIntPtr(value, sizeof(int) + IntPtr.Size);            
+            var gcHandlePtr = Marshal.ReadIntPtr(value, sizeof(int) + IntPtr.Size);
             var gcHandle = GCHandle.FromIntPtr(gcHandlePtr);
-            var memory = (NativeMemory)gcHandle.Target;            
+            var memory = (NativeMemory) gcHandle.Target;
             gcHandle.Free();
             Marshal.FreeHGlobal(value);
             memory.Dispose();
