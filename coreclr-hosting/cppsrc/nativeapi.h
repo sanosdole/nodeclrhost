@@ -3,7 +3,9 @@
 
 extern "C" {
 struct NativeApi {
-  void* PostCallback;
+  void* RegisterSchedulerCallbacks;
+  void* SignalEventLoopEntry;
+  void* SignalMicroTask;
   void* GetMember;
   void* GetMemberByIndex;
   void* SetMember;

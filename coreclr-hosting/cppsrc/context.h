@@ -1,15 +1,14 @@
 #ifndef __CORECLR_HOSTING_CONTEXT_H__
 #define __CORECLR_HOSTING_CONTEXT_H__
 
+#include <napi.h>
+
 #include <future>
 #include <iostream>
 #include <mutex>
 #include <set>
 #include <string>
 #include <vector>
-
-#include <napi.h>
-#include <uv.h>
 
 #include "dotnethandle.h"
 #include "dotnethost.h"
@@ -19,25 +18,23 @@ namespace coreclrhosting {
 
 class Context {
   class SynchronizedFinalizerCallback;
-  typedef std::function<void(void*)> netCallback_t;
-  typedef std::vector<std::pair<netCallback_t, void*>> netCallbacks_t;
 
   Napi::Env env_;
-  uv_async_t async_handle_;
-  netCallbacks_t dotnet_callbacks_;
   std::set<SynchronizedFinalizerCallback*> function_finalizers_;
   std::shared_ptr<std::mutex> finalizer_mutex_;
-  std::mutex mutex_;
-  bool release_called_;
   std::unique_ptr<DotNetHost> host_;
   std::function<Napi::Function(DotNetHandle*)> function_factory_;
   std::function<Napi::Value(DotNetHandle*)> array_buffer_factory_;
+  std::function<void(Napi::Env env, Napi::Function jsCallback, void* data)> process_event_loop_;  
+  //std::function<Napi::Value(const Napi::CallbackInfo&)> process_micro_task_;
+  Napi::FunctionReference process_micro_task_;
+  Napi::FunctionReference signal_micro_task_;
+  Napi::ThreadSafeFunction dotnet_thread_safe_callback_;
 
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;  // no self-assignments
   Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env);
   ~Context();
-  void UvAsyncCallback();
 
   class ThreadInstance {
     static thread_local Context* thread_instance_;
@@ -63,9 +60,10 @@ class Context {
   static Napi::Value RunCoreApp(const Napi::CallbackInfo& info);
   static Context* CurrentInstance() { return ThreadInstance::Current(); }
 
-  void PostCallback(netCallback_t callback,
-                    void* data);  // can be called from any thread
-  void Release();                 // can be called from any thread
+  void RegisterSchedulerCallbacks(void (*process_event_loop)(void*),
+                                  void (*process_micro_task)(void*));
+  void SignalEventLoopEntry(void* data);  // Must be thread safe
+  void SignalMicroTask(void* data);
 
   // Get/SetMember , CreateObject, Invoke(Member) can only be called on node
   // thread

@@ -11,10 +11,20 @@
 using namespace coreclrhosting;
 
 /* MUST BE C-STYLE FUNCTION */
-EXPORT_TO_DOTNET void PostCallback(void* context_handle, void callback(void*),
-                                   void* data) {
+EXPORT_TO_DOTNET void RegisterSchedulerCallbacks(void* context_handle, void (*process_event_loop)(void*),
+                                   void (*process_micro_task)(void*)) {
   auto context = reinterpret_cast<Context*>(context_handle);
-  context->PostCallback(callback, data);
+  context->RegisterSchedulerCallbacks(process_event_loop, process_micro_task);
+}
+
+EXPORT_TO_DOTNET void SignalEventLoopEntry(void* context_handle, void* data) {
+  auto context = reinterpret_cast<Context*>(context_handle);
+  context->SignalEventLoopEntry(data);
+}
+
+EXPORT_TO_DOTNET void SignalMicroTask(void* context_handle, void* data) {
+  auto context = reinterpret_cast<Context*>(context_handle);
+  context->SignalMicroTask(data);
 }
 
 EXPORT_TO_DOTNET void Release(JsHandle handle) { handle.Release(); }
@@ -62,12 +72,15 @@ EXPORT_TO_DOTNET void CompletePromise(void* context_handle, void* deferred,
                                   dotnet_handle);
 }
 
-NativeApi NativeApi::instance_ = {reinterpret_cast<void*>(&::PostCallback),
-                                  reinterpret_cast<void*>(&::GetMember),
-                                  reinterpret_cast<void*>(&::GetMemberByIndex),
-                                  reinterpret_cast<void*>(&::SetMember),
-                                  reinterpret_cast<void*>(&::Invoke),
-                                  reinterpret_cast<void*>(&::InvokeByName),
-                                  reinterpret_cast<void*>(&::CreateObject),
-                                  reinterpret_cast<void*>(&::CompletePromise),
-                                  reinterpret_cast<void*>(&::Release)};
+NativeApi NativeApi::instance_ = {
+    reinterpret_cast<void*>(&::RegisterSchedulerCallbacks),
+    reinterpret_cast<void*>(&::SignalEventLoopEntry),
+    reinterpret_cast<void*>(&::SignalMicroTask),
+    reinterpret_cast<void*>(&::GetMember),
+    reinterpret_cast<void*>(&::GetMemberByIndex),
+    reinterpret_cast<void*>(&::SetMember),
+    reinterpret_cast<void*>(&::Invoke),
+    reinterpret_cast<void*>(&::InvokeByName),
+    reinterpret_cast<void*>(&::CreateObject),
+    reinterpret_cast<void*>(&::CompletePromise),
+    reinterpret_cast<void*>(&::Release)};

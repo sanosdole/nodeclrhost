@@ -2,84 +2,93 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-using System;
-using System.Text.Json;
-using Microsoft.JSInterop;
-using Microsoft.JSInterop.Infrastructure;
-using NodeHostEnvironment;
-
 namespace ElectronHostedBlazor.Services
 {
-    // TODO: Proper error handling and logging
-    internal sealed class ElectronJSRuntime : JSInProcessRuntime, IJSRuntime, IJSInProcessRuntime
-    {
-        private readonly IBridgeToNode _node;
-        private readonly dynamic _window;
-        private readonly dynamic _dotNet;
-        private readonly dynamic _jsCallDispatcher;
+   using System;
+   using System.Text.Json;
+   using Microsoft.JSInterop;
+   using Microsoft.JSInterop.Infrastructure;
+   using NodeHostEnvironment;
 
-        public ElectronJSRuntime(IBridgeToNode node)
-        {
-            _node = node;
-            _window = node.Global.window;
-            _dotNet = node.Global.DotNet; // No need for require, as electron-blazor-glue exports this. 
-            _jsCallDispatcher = _dotNet.jsCallDispatcher;
+   // TODO: Proper error handling and logging
+   internal sealed class ElectronJSRuntime : JSInProcessRuntime, IJSRuntime, IJSInProcessRuntime
+   {
+      private readonly IBridgeToNode _node;
+      private readonly dynamic _jsCallDispatcher;
 
-            var dotnetDispatcher = node.New();
-            dotnetDispatcher.invokeDotNetFromJS = new Func<string, string, dynamic, string, string>(InvokeDotNetFromJS);
-            dotnetDispatcher.beginInvokeDotNetFromJS = new Action<long, string, string, dynamic, string>(BeginInvokeDotNetFromJS);
-            dotnetDispatcher.endInvokeJSFromDotNet = new Action<long, bool, string>(EndInvokeJSFromDotNet);
-            _dotNet.attachDispatcher(dotnetDispatcher);
-            JsonSerializerOptions.Converters.Add(new ElementReferenceJsonConverter());
-        }
+      public ElectronJSRuntime(IBridgeToNode node)
+      {
+         _node = node;
+         using var dotNet = node.Global.DotNet;
+         _jsCallDispatcher = dotNet.jsCallDispatcher;
 
-        private void EndInvokeJSFromDotNet(long callId, bool succeeded, string argsJson)
-        {
-            DotNetDispatcher.EndInvokeJS(this, argsJson);
-        }
+         using var dotnetDispatcher = node.New();
+         dotnetDispatcher.invokeDotNetFromJS = new Func<string, string, dynamic, string, string>(InvokeDotNetFromJS);
+         dotnetDispatcher.beginInvokeDotNetFromJS = new Action<long, string, string, dynamic, string>(BeginInvokeDotNetFromJS);
+         dotnetDispatcher.endInvokeJSFromDotNet = new Action<long, bool, string>(EndInvokeJSFromDotNet);
+         dotNet.attachDispatcher(dotnetDispatcher);
+         JsonSerializerOptions.Converters.Add(new ElementReferenceJsonConverter());
+      }
 
-        private void BeginInvokeDotNetFromJS(long callId, string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
-        {
-            var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long) dotNetObjectId, callId.ToString());
-            DotNetDispatcher.BeginInvokeDotNet(this, callInfo, argsJson);
-        }
+      private void EndInvokeJSFromDotNet(long callId, bool succeeded, string argsJson)
+      {
+         DotNetDispatcher.EndInvokeJS(this, argsJson);
+      }
 
-        private string InvokeDotNetFromJS(string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
-        {
-            var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long) dotNetObjectId, null);
-            return DotNetDispatcher.Invoke(this, callInfo, argsJson);
-        }
+      private void BeginInvokeDotNetFromJS(long callId, string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
+      {
+         var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long)dotNetObjectId, callId.ToString());
+         DotNetDispatcher.BeginInvokeDotNet(this, callInfo, argsJson);
+      }
 
-        protected override string InvokeJS(string identifier, string argsJson)
-        {
-            if (!_node.CheckAccess())
-                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson)).Result;
+      private string InvokeDotNetFromJS(string assemblyName, string methodIdentifier, dynamic dotNetObjectId, string argsJson)
+      {
+         var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long)dotNetObjectId, null);
+         return DotNetDispatcher.Invoke(this, callInfo, argsJson);
+      }
 
-            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson);
-        }
+      protected override string InvokeJS(string identifier, string argsJson)
+      {
+         if (!_node.CheckAccess())
+            return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson)).Result;
 
-        protected override void BeginInvokeJS(long taskId, string identifier, string argsJson)
-        {
-            if (!_node.CheckAccess())
-            {
-                // Wait is for propagating exceptions
-                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson)).Wait();
-                return;
-            }
+         return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson);
+      }
 
-            _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson);
-        }
+      protected override void BeginInvokeJS(long taskId, string identifier, string argsJson)
+      {
+         if (!_node.CheckAccess())
+         {
+            // TODO DM 27.04.2020: Consider closing taskId on an exception
+            _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson))
+                 .Wait();
+            return;
+         }
 
-        protected override void EndInvokeDotNet(DotNetInvocationInfo invocationInfo, in DotNetInvocationResult invocationResult)
-        {
-            if (!_node.CheckAccess())
-                throw new InvalidOperationException("DotNetDispatcher did not use the proper TaskScheduler for its continuation!");
+         _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson);
+      }
 
-            _jsCallDispatcher.endInvokeDotNetFromJS(invocationInfo.CallId,
-                invocationResult.Success,
-                invocationResult.Success ?
-                JsonSerializer.Serialize(invocationResult.Result, JsonSerializerOptions) :
-                invocationResult.Exception.ToString());
-        }
-    }
+      protected override void EndInvokeDotNet(DotNetInvocationInfo invocationInfo, in DotNetInvocationResult invocationResult)
+      {
+         if (!_node.CheckAccess())
+         {
+            // TODO DM 27.04.2020: This seems to happen in electron, we should investigate how this is possible as dotnet uses TaskScheduler.Current
+            // Exceptions do not propagate here
+            var result = invocationResult;
+            _node.Run(() => _jsCallDispatcher.endInvokeDotNetFromJS(invocationInfo.CallId,
+                                                                    result.Success,
+                                                                    result.Success
+                                                                       ? JsonSerializer.Serialize(result.Result, JsonSerializerOptions)
+                                                                       : result.Exception.ToString()))
+                 .Wait();
+            return;
+         }
+
+         _jsCallDispatcher.endInvokeDotNetFromJS(invocationInfo.CallId,
+                                                 invocationResult.Success,
+                                                 invocationResult.Success
+                                                    ? JsonSerializer.Serialize(invocationResult.Result, JsonSerializerOptions)
+                                                    : invocationResult.Exception.ToString());
+      }
+   }
 }

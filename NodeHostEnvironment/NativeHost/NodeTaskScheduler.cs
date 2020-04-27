@@ -1,54 +1,60 @@
 namespace NodeHostEnvironment.NativeHost
 {
-   using System.Collections.Concurrent;
-   using System.Collections.Generic;
-   using System.Diagnostics;
-   using System.Runtime.InteropServices;
-   using System.Threading.Tasks;
-   using System.Threading;
    using System;
-   using NodeHostEnvironment.InProcess;
-
-   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-   internal delegate void NodeCallback(IntPtr data);
+   using System.Collections.Generic;
+   using System.Linq;
+   using System.Runtime.InteropServices;
+   using System.Threading;
+   using System.Threading.Tasks;
 
    internal sealed class NodeTaskScheduler : TaskScheduler
    {
-      private const int NoPendingCallback = 0;
-      private const int PendingCallback = 1;
-      private int _pendingCallback;
-      private readonly ConcurrentQueue<Task> _tasks;
-      private readonly NodeCallback _nodeCallback;
+      private readonly IntPtr _context;
       private readonly Context _synchronizationContext;
-      private readonly Action<NodeCallback, IntPtr> _postFunc;
+      private readonly SignalEventLoopEntry _signalEventLoopEntry;
+      private readonly SignalMicroTask _signalMicroTask;
 
-      public NodeTaskScheduler(Action<NodeCallback, IntPtr> postFunc)
+      // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we need it to stay alive
+      private readonly ProcessJsEventLoopEntry _onProcessJsEventLoopEntry;
+
+      // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we need it to stay alive
+      private readonly ProcessMicroTask _onProcessMicroTask;
+      private readonly ThreadLocal<bool> _isActive = new ThreadLocal<bool>();
+
+      private readonly Queue<Task> _microTasks = new Queue<Task>();
+
+      public NodeTaskScheduler(IntPtr context, NativeApi nativeMethods)
       {
-         _postFunc = postFunc;
-         _nodeCallback = NodeCallback;
-         _tasks = new ConcurrentQueue<Task>();
+         _context = context;
+         _signalEventLoopEntry = nativeMethods.SignalEventLoopEntry;
+         _signalMicroTask = nativeMethods.SignalMicroTask;
          Factory = new TaskFactory(this);
          _synchronizationContext = new Context(Factory);
-         // Set immediatly as this must only be called from node main.
-         // Also we never reset it
-         SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+
+         _onProcessJsEventLoopEntry = OnProcessJSEventLoopEntry;
+         _onProcessMicroTask = OnProcessMicroTask;
+         nativeMethods.RegisterSchedulerCallbacks(context, _onProcessJsEventLoopEntry, _onProcessMicroTask);
       }
 
-      public bool ContextIsActive => SynchronizationContext.Current == _synchronizationContext;
+      public bool ContextIsActive => _isActive.Value;
 
       public object RunCallbackSynchronously(Func<object, object> callback, object args)
       {
+         // If we have a dotnet stack, micro task processing will happen once its done.
+         if (ContextIsActive)
+            return callback(args);
+
+         // We have been called on a JS stack, start a new dotnet stack.
+         // MicroTask processing should be triggered when the JS stack is empty.
+
          // Ensure context
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
-         
+         _isActive.Value = true;
          // Ensure TaskScheduler.Current
-         if (Current != this)
-         {
-            var task = new Task<object>(callback, args);
-            task.RunSynchronously(this);
-            return task.Result;
-         }
-         return callback(args);
+         var task = new Task<object>(callback, args);
+         task.RunSynchronously(this);
+         _isActive.Value = false;
+         return task.Result;
       }
 
       /// <summary>
@@ -63,14 +69,21 @@ namespace NodeHostEnvironment.NativeHost
       /// <param name="task">The task to be executed.</param>
       protected override void QueueTask(Task task)
       {
-         // this is stupid, as we never inline tasks that have not been queued!!!
-         //if (TryExecuteTaskInline(task, false))
-         //   return;
+         if (ContextIsActive)
+         {
+            // If we are on the right thread we use a micro task.
+            // It will be processed in order with JS micro tasks once the stack is empty.
+            // TODO DM 27.04.2020: Profile if using a private queue is more efficient than creating a new JS func on every invocation
+            _microTasks.Enqueue(task);
+            _signalMicroTask(_context, IntPtr.Zero);
+            return;
+         }
 
-         // Push it into the blocking collection of tasks
-         _tasks.Enqueue(task);
-         if (Interlocked.Exchange(ref _pendingCallback, PendingCallback) == NoPendingCallback)
-            _postFunc(_nodeCallback, IntPtr.Zero);
+         var handle = GCHandle.Alloc(task, GCHandleType.Normal);
+         var handlePtr = GCHandle.ToIntPtr(handle);
+
+         // Otherwise it will be queued to the event loop.
+         _signalEventLoopEntry(_context, handlePtr);
       }
 
       /// <summary>
@@ -81,33 +94,50 @@ namespace NodeHostEnvironment.NativeHost
       /// <returns>True if the task was successfully in-lined, otherwise false.</returns>
       protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)
       {
-         // Try to inline if the current thread is our thread
-         return ContextIsActive && TryExecuteTask(task);
+         if (!ContextIsActive)
+            return false;
+
+         // Try to inline if the current thread is our thread so no deadlocks happen.
+         // We do not remove the task from its "queue", as its TryExecute will return false if it was already executed.
+         return TryExecuteTask(task);
       }
 
       /// <summary>Provides a list of the scheduled tasks for the debugger to consume.</summary>
       /// <returns>An enumerable of all tasks currently scheduled.</returns>
       protected override IEnumerable<Task> GetScheduledTasks()
       {
-         // Serialize the contents of the queue of tasks for the debugger
-         return _tasks.ToArray();
+         // TODO DM 27.04.2020: Support debugger in DEBUG builds
+         return Enumerable.Empty<Task>();
       }
 
-      private void NodeCallback(IntPtr data)
+      private void OnProcessMicroTask(IntPtr data)
       {
-         Interlocked.Exchange(ref _pendingCallback, NoPendingCallback);
+         /*var handle = GCHandle.FromIntPtr(data);
+         var microTask = (Task)handle.Target;*/
+         var microTask = _microTasks.Dequeue();
+
+         SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+         _isActive.Value = true;
+         TryExecuteTask(microTask);
+         _isActive.Value = false;
+         //handle.Free();
+      }
+
+      private void OnProcessJSEventLoopEntry(IntPtr data)
+      {
+         var handle = GCHandle.FromIntPtr(data);
+         var macroTask = (Task)handle.Target;
 
          // We need a synchronization context to prevent the async targeting pack
          // from in-lining thread pool continuations onto the Node thread. This works as it uses
          // the synchronization context to detect whether a normal continuation
          // or a continuation with a specific TaskScheduler is used.
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
+         _isActive.Value = true;
 
-         // Continually get the next task and try to execute it.
-         // This will continue until no more tasks remain.
-         while (_tasks.TryDequeue(out Task result))
-            TryExecuteTask(result);
-
+         TryExecuteTask(macroTask);
+         _isActive.Value = false;
+         handle.Free();
       }
 
       private sealed class Context : SynchronizationContext

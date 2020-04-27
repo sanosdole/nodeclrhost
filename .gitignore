@@ -72,3 +72,4 @@ examples/electron-blazor/chromedriverlog.txt
 # Resharper & VS19
 _Resharper.Caches
 .vs
+examples/electron-blazor/LocalService/LocalService.csproj.user

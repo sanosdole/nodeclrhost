@@ -9,20 +9,10 @@
 
 namespace {
 
-struct AsyncHandleData {
-  std::function<void(void)> callback_;
-  std::function<void(void)> release_callback_;
-};
-
-void asyncCallback(uv_async_t* handle) {
-  auto data = static_cast<AsyncHandleData*>(handle->data);
-  data->callback_();
+Napi::Value Noop(const Napi::CallbackInfo& info) {
+  return info.Env().Undefined();
 }
 
-void asyncReleaseCallback(uv_handle_t* handle) {
-  auto data = static_cast<AsyncHandleData*>(handle->data);
-  data->release_callback_();
-}
 }  // namespace
 
 namespace coreclrhosting {
@@ -73,73 +63,92 @@ thread_local Context* Context::ThreadInstance::thread_instance_;
 Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
     : env_(env),
       finalizer_mutex_(std::make_shared<std::mutex>()),
-      release_called_(false),
       host_(std::move(dotnet_host)),
+      dotnet_thread_safe_callback_(Napi::ThreadSafeFunction::New(
+          env, Napi::Function::New(env, Noop), "dotnet callback", 0, 1)),
+      process_event_loop_(nullptr),
       function_factory_(
           std::bind(&Context::CreateFunction, this, std::placeholders::_1)),
-      array_buffer_factory_(
-          std::bind(&Context::CreateArrayBuffer, this, std::placeholders::_1)) {
-  auto async_data = new AsyncHandleData();
-  async_data->callback_ = [this]() { this->UvAsyncCallback(); };
-  async_data->release_callback_ = [this]() { delete this; };
-  async_handle_.data = async_data;
-  uv_async_init(uv_default_loop(), &async_handle_, &asyncCallback);
-}
+      array_buffer_factory_(std::bind(&Context::CreateArrayBuffer, this,
+                                      std::placeholders::_1)) {}
 Context::~Context() {
+  ThreadInstance _(this);
+  dotnet_thread_safe_callback_.Release();
   std::lock_guard<std::mutex> lock(*finalizer_mutex_);
   for (auto finalizer_data : function_finalizers_) {
     finalizer_data->Cancel();
   }
-  ThreadInstance _(this);
   host_.reset(nullptr);  // Explicit reset while having thread instance set
 }
 
-void Context::UvAsyncCallback() {
-  ThreadInstance _(this);
+void Context::RegisterSchedulerCallbacks(void (*process_event_loop)(void*),
+                                         void (*process_micro_task)(void*)) {
+  Napi::HandleScope handle_scope(env_);
 
-  Napi::HandleScope handleScope(env_);
-  Napi::AsyncContext async_context(env_, "dotnet_callbacks");
-  Napi::CallbackScope cb_scope(env_, async_context);
+  process_event_loop_ = [this, process_event_loop](Napi::Env env,
+                                                   Napi::Function jsCallback,
+                                                   void* data) {
+    // jsCallback == Noop, so we do not call it
+    ThreadInstance _(this);
 
-  while (true) {
-    netCallbacks_t callbacks;
+    // Napi::HandleScope handle_scope(env_);
+    // Napi::AsyncContext async_context(env_, "dotnet scheduler");
+
+    // auto isolate = v8::Isolate::GetCurrent();
+
+    // We use a new scope per callback, so microtasks can be run after
+    // each callback (empty dotnet stack)
     {
-      std::lock_guard<std::mutex> lock(mutex_);
-      if (dotnet_callbacks_.empty())
-        break;
-      else
-        callbacks.swap(dotnet_callbacks_);
+      // Napi::CallbackScope cb_scope(env_, async_context);
+      (*process_event_loop)(data);
     }
 
-    for (const auto& callback : callbacks) {
-      callback.first(callback.second);
-    }
-  }
+    // DM 25.04.2020: Running them manually was necessary when using libuv
+    // directly.
+    //                     Consider triggering a thread safe function to
+    //                     process dotnet macro tasks
+    // v8::MicrotasksScope::PerformCheckpoint(isolate); Does not run
+    // microtasks
+    // isolate->RunMicrotasks();
+  };
 
-  // Check if we should close
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (release_called_) {
-      uv_close(reinterpret_cast<uv_handle_t*>(&async_handle_),
-               &asyncReleaseCallback);
-    }
-  }
+  /*process_micro_task_ = [this,
+                         process_micro_task](const Napi::CallbackInfo& f_info) {
+    ThreadInstance _(this);
+    (*process_micro_task)(f_info.Data());
+    return f_info.Env().Undefined();
+  };*/
+
+  process_micro_task_ = Napi::Persistent(Napi::Function::New(
+      env_,
+      [this, process_micro_task](const Napi::CallbackInfo& f_info) {
+        ThreadInstance _(this);
+        (*process_micro_task)(nullptr);
+        return f_info.Env().Undefined();
+      },
+      "invokeDotnetMicrotask"));
+
+  auto global = env_.Global();
+  auto queue_microtask = global.Get("queueMicrotask").As<Napi::Function>();
+  signal_micro_task_ = Napi::Persistent(queue_microtask);
 }
 
-void Context::PostCallback(netCallback_t callback, void* data) {
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    dotnet_callbacks_.push_back({callback, data});
-  }
-  uv_async_send(&async_handle_);
+void Context::SignalEventLoopEntry(void* data) {
+  auto acquire_status = dotnet_thread_safe_callback_.Acquire();
+  if (acquire_status != napi_ok) return;
+
+  // This will never block, as we used an unlimited queue
+  dotnet_thread_safe_callback_.BlockingCall(data, process_event_loop_);
+
+  dotnet_thread_safe_callback_.Release();
 }
 
-void Context::Release() {
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    release_called_ = true;
-  }
-  uv_async_send(&async_handle_);
+void Context::SignalMicroTask(void* data) {
+  Napi::HandleScope handle_scope(env_);
+  /*auto bound_func = Napi::Function::New(env_, process_micro_task_,
+                                        "invokeDotnetMicrotask", data);
+  signal_micro_task_.Value().Call(env_.Global(), {bound_func});*/
+  signal_micro_task_.Value().Call(env_.Global(), {process_micro_task_.Value()});
 }
 
 extern "C" typedef DotNetHandle (*EntryPointFunction)(Context* context,
@@ -225,15 +234,17 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
             return_value,
             {Napi::Function::New(env,
                                  [context](const Napi::CallbackInfo& f_info) {
-                                   context->Release();
+                                   delete context;
                                    return f_info[0];
                                  }),
              Napi::Function::New(env,
                                  [context](const Napi::CallbackInfo& r_info) {
-                                   context->Release();
+                                   delete context;
                                    return r_info[0];
                                  })});
   }
+
+  delete context;
   return return_value;
 }
 
@@ -363,7 +374,7 @@ JsHandle Context::InvokeIntern(Napi::Value handle, Napi::Value receiver,
     argv[c].Release();
   }
 
-  auto result = function.MakeCallback(receiver, arguments);
+  auto result = function.Call(receiver, arguments);
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }
@@ -371,26 +382,18 @@ JsHandle Context::InvokeIntern(Napi::Value handle, Napi::Value receiver,
 }
 
 void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
-  auto completeFunc = [this, handle](void* passed) mutable {
-    // TODO DM 29.11.2019: How to handle errors from node here?
-    auto deferred = reinterpret_cast<napi_deferred>(passed);
-    if (handle.type_ == DotNetType::Exception) {
-      auto error = Napi::Error::New(env_, handle.StringValue(env_));
-      napi_reject_deferred(env_, deferred, error.Value());
-    } else {
-      napi_resolve_deferred(
-          env_, deferred,
-          handle.ToValue(env_, function_factory_, array_buffer_factory_));
-    }
-    handle.Release();
-  };
+  Napi::HandleScope handleScope(env_);
 
-  if (IsActiveContext()) {
-    Napi::HandleScope handleScope(env_);
-    completeFunc(deferred);
+  // TODO DM 29.11.2019: How to handle errors from napi calls here?
+  if (handle.type_ == DotNetType::Exception) {
+    auto error = Napi::Error::New(env_, handle.StringValue(env_));
+    napi_reject_deferred(env_, deferred, error.Value());
   } else {
-    PostCallback(completeFunc, deferred);
+    napi_resolve_deferred(
+        env_, deferred,
+        handle.ToValue(env_, function_factory_, array_buffer_factory_));
   }
+  handle.Release();
 }
 
 Napi::Function Context::CreateFunction(DotNetHandle* handle) {

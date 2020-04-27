@@ -27,9 +27,9 @@
     "build:release": "node-gyp build",
     "clean": "node-gyp clean",
     "build-testapp": "dotnet build test/TestApp/TestApp.csproj",
-    "test": "npm run build && npm run build-testapp && mocha",
-    "test-only": "npm run build-testapp && mocha",
-    "mocha": "mocha",
+    "test": "npm run build && npm run build-testapp && npm run mocha",
+    "test-only": "npm run build-testapp && npm run mocha",
+    "mocha": "mocha -s 0",
     "prepare": "npm run build",
     "install": "prebuild-install || npm run rebuild"
   },

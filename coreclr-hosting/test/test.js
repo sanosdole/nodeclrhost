@@ -20,15 +20,15 @@ global.setupTestObject = function () {
     integerValue: 42,
     doubleValue: 3.1415,
     stringValue: "Hello world",
-    stringArray: [ "A", "B" ],
-    mixedArray: [ "A", 42, { iValue: 42, strValue: "strValue"} ],
+    stringArray: ["A", "B"],
+    mixedArray: ["A", 42, { iValue: 42, strValue: "strValue" }],
     objectValue: {
       nestedStringValue: "Nested hello"
     },
     nullValue: null,
     trueValue: true,
     falseValue: false,
-    addIntegerValue: function(value) {
+    addIntegerValue: function (value) {
       return value + this.integerValue;
     },
     funcThatThrows: function () {
@@ -37,7 +37,7 @@ global.setupTestObject = function () {
     invokeCallback: function (arg, cb) {
       cb(arg + 'Pong');
     },
-    invokeIntCallback:  function (arg, cb) {
+    invokeIntCallback: function (arg, cb) {
       cb(arg + 42);
     },
     isPromise: function (promise) {
@@ -63,26 +63,26 @@ global.setupTestObject = function () {
     TestClass: function (arg) {
       this.value = arg;
     },
-    assertByteArray: function(bytes) {
+    assertByteArray: function (bytes) {
       assert.strictEqual(4, bytes.byteLength);
       assert.strictEqual(1, bytes[0]);
       assert.strictEqual(2, bytes[1]);
       assert.strictEqual(3, bytes[2]);
       assert.strictEqual(4, bytes[3]);
     },
-    assertMixedArray: function(array) {      
+    assertMixedArray: function (array) {
       assert.strictEqual(4, array.length);
       assert.strictEqual("a", array[0]);
       assert.strictEqual(1, array[1]);
       assert.strictEqual("b", array[2]);
       assert.strictEqual(2, array[3]);
     },
-    assertStringArray: function(array) {      
+    assertStringArray: function (array) {
       assert.strictEqual(2, array.length);
       assert.strictEqual("a", array[0]);
-      assert.strictEqual("b", array[1]);      
+      assert.strictEqual("b", array[1]);
     },
-    assertIntArray: function(array) {      
+    assertIntArray: function (array) {
       assert.strictEqual(2, array.length);
       assert.strictEqual(1, array[0]);
       assert.strictEqual(2, array[1]);
@@ -99,8 +99,9 @@ console.log("PID: " + process.pid);
 var result = coreclrhosting.runCoreApp(__dirname + '/TestApp/bin/Debug/netcoreapp3.0/TestApp.dll', "AdditionalArgument");
 
 describe('coreclrhosting', function () {
-  it('should return 0', async function () {
+  it('should return promise resolving to 0', async function () {
     assert.strictEqual(await result, 0);
   });
 
 });
+

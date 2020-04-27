@@ -7,6 +7,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NodeHostEnvironment", "Node
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ElectronHostedBlazor", "ElectronHostedBlazor\ElectronHostedBlazor.csproj", "{6A999DD7-91BC-4E1D-8106-CA13750130EC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "coreclr-hosting\test\TestApp\TestApp.csproj", "{EE2E8170-A3D7-4817-9486-D96E585F44F3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorApp", "examples\electron-blazor\BlazorApp\BlazorApp.csproj", "{6EFFBD3A-9BEE-4B1A-BA9C-979B5D3AA045}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LocalService", "examples\electron-blazor\LocalService\LocalService.csproj", "{B15AE98E-5A60-4828-8713-AF1A02DE7CE7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{6B85A6DE-8586-4DC6-9AD5-48763EFEE85D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "electron-blazor", "electron-blazor", "{F7C8F560-4CE6-4C4E-ACD3-0E4030549AA8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,9 +31,26 @@ Global
 		{6A999DD7-91BC-4E1D-8106-CA13750130EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A999DD7-91BC-4E1D-8106-CA13750130EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A999DD7-91BC-4E1D-8106-CA13750130EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE2E8170-A3D7-4817-9486-D96E585F44F3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE2E8170-A3D7-4817-9486-D96E585F44F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE2E8170-A3D7-4817-9486-D96E585F44F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE2E8170-A3D7-4817-9486-D96E585F44F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EFFBD3A-9BEE-4B1A-BA9C-979B5D3AA045}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EFFBD3A-9BEE-4B1A-BA9C-979B5D3AA045}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EFFBD3A-9BEE-4B1A-BA9C-979B5D3AA045}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EFFBD3A-9BEE-4B1A-BA9C-979B5D3AA045}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B15AE98E-5A60-4828-8713-AF1A02DE7CE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B15AE98E-5A60-4828-8713-AF1A02DE7CE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B15AE98E-5A60-4828-8713-AF1A02DE7CE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B15AE98E-5A60-4828-8713-AF1A02DE7CE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{6EFFBD3A-9BEE-4B1A-BA9C-979B5D3AA045} = {F7C8F560-4CE6-4C4E-ACD3-0E4030549AA8}
+		{B15AE98E-5A60-4828-8713-AF1A02DE7CE7} = {F7C8F560-4CE6-4C4E-ACD3-0E4030549AA8}
+		{F7C8F560-4CE6-4C4E-ACD3-0E4030549AA8} = {6B85A6DE-8586-4DC6-9AD5-48763EFEE85D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1F1E3EEE-27E0-4B9D-8026-911FC1DC4540}
