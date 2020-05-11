@@ -228,7 +228,8 @@ export class BrowserRenderer {
       document.createElementNS('http://www.w3.org/2000/svg', tagName) :
       document.createElement(tagName);
     const newElement = toLogicalElement(newDomElementRaw);
-    insertLogicalChild(newDomElementRaw, parent, childIndex);
+    // DM 24.04.2020: Do not add element to DOM before it is finished
+    //insertLogicalChild(newDomElementRaw, parent, childIndex);
 
     // Apply attributes
     const descendantsEndIndexExcl = frameIndex + frameReader.subtreeLength(frame);
@@ -254,6 +255,9 @@ export class BrowserRenderer {
       newDomElementRaw.value = selectValue;
       delete newDomElementRaw[selectValuePropname];
     }
+
+    // DM 24.04.2020: Add element to DOM after it is finished
+    insertLogicalChild(newDomElementRaw, parent, childIndex);
   }
 
   private insertComponent(batch: RenderBatch, parent: LogicalElement, childIndex: number, frame: RenderTreeFrame) {

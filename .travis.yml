@@ -1,5 +1,5 @@
 language: node_js
-node_js: 12.13.1
+node_js: 12.16.3
 
 jobs:
   include:
@@ -19,7 +19,7 @@ jobs:
        - sudo apt-get update
        - sudo apt-get install dotnet-sdk-3.1
       install: 
-       - npm install -g npm@'>=6.13.3'
+       - npm install -g npm@'>=6.14.5'
        - "cd coreclr-hosting"
        - npm i -g prebuild
        - npm i --build-from-source
@@ -27,9 +27,11 @@ jobs:
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
            prebuild -t 12.13.1 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 12.15.0 --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 12.16.3 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 7.1.4 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.2.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 8.2.5 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
@@ -72,7 +74,7 @@ jobs:
            - dotnet-sdk
       install: 
        - "cd coreclr-hosting"
-       - npm install -g npm@'>=6.13.3'
+       - npm install -g npm@'>=6.14.5'
        - dotnet --version
        - npm i -g prebuild
        - npm i --build-from-source
@@ -80,8 +82,11 @@ jobs:
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
            prebuild -t 12.13.1 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 12.15.0 --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 12.16.3 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 7.1.4 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 8.2.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 8.2.5 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
          fi
       script:
        - npm run build-testapp
@@ -102,7 +107,7 @@ jobs:
       install: 
        - choco install dotnetcore-sdk
        - "cd coreclr-hosting"
-       # - npm install -g npm@'>=6.9.0'
+       # - npm install -g npm@'>=6.14.5'
        - dotnet --version
        - npm i -g prebuild
        - npm i --build-from-source
@@ -110,8 +115,11 @@ jobs:
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
            prebuild -t 12.13.1 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 12.15.0 --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 12.16.3 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 7.1.4 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 8.2.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 8.2.5 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
          fi
       script:
        - npm run build-testapp

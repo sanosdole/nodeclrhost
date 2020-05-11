@@ -29,6 +29,7 @@
     "build-testapp": "dotnet build test/TestApp/TestApp.csproj",
     "test": "npm run build && npm run build-testapp && npm run mocha",
     "test-only": "npm run build-testapp && npm run mocha",
+    "benchmark": "dotnet build benchmark/Benchmark.csproj && node benchmark/index.js",
     "mocha": "mocha -s 0",
     "prepare": "npm run build",
     "install": "prebuild-install || npm run rebuild"
@@ -36,11 +37,13 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^7.1.1",
+    "mocha": "^7.1.2",
     "node-gyp": "^6.1.0"
   },
   "dependencies": {
-    "node-addon-api": "2.0.0",
+    "benchmark": "^2.1.4",
+    "benchr": "^4.3.0",
+    "node-addon-api": "3.0.0",
     "prebuild-install": "^5.3.3"
   }
 }

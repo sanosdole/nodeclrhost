@@ -78,8 +78,11 @@ namespace NodeHostEnvironment.NativeHost
 
          public IntPtr CallbackPtr { get; }
          public DotNetCallback Wrapped { get; }
+
+         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we want the GC Handle it brings
          private readonly CallbackSignature _wrapper;
          private readonly NativeNodeHost _parent;
+         private static readonly JsValue[] EmptyJsValues = new JsValue[0];
 
          public CallbackHolder(DotNetCallback toWrap, NativeNodeHost parent)
          {
@@ -97,7 +100,7 @@ namespace NodeHostEnvironment.NativeHost
             {
                result = (DotNetValue)_parent._scheduler.RunCallbackSynchronously(
                   state => Wrapped((JsValue[])state),
-                  argv ?? new JsValue[0]);
+                  argv ?? EmptyJsValues);
             }
             catch (Exception exception)
             {
