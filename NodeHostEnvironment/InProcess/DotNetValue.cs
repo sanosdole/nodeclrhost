@@ -32,6 +32,9 @@ namespace NodeHostEnvironment.InProcess
          if (obj is double @double)
             return FromDouble(@double);
 
+         if (obj is Task task)
+            return FromTask(task, host);
+
          // Objects & Functions
          if (obj is Delegate @delegate)
             return FromDelegate(@delegate, host);
@@ -41,11 +44,6 @@ namespace NodeHostEnvironment.InProcess
             return FromJsValue(value);
 
          // Specials
-         if (obj is Exception exception)
-            return FromException(exception);
-         if (obj is Task task)
-            return FromTask(task, host);
-
          if (obj is byte[] byteArray)
             return FromByteArray(byteArray);
          if (obj is NativeMemory nativeMemory)
@@ -53,6 +51,9 @@ namespace NodeHostEnvironment.InProcess
 
          if (obj is IReadOnlyCollection<object> collection)
             return FromReadOnlyCollection(collection, host);
+
+         if (obj is Exception exception)
+            return FromException(exception);
 
          throw new InvalidOperationException($"Unsupported object type for passing into JS: {obj.GetType().FullName}");
       }

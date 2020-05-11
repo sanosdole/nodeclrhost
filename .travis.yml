@@ -21,6 +21,8 @@ jobs:
       install: 
        - npm install -g npm@'>=6.14.5'
        - "cd coreclr-hosting"
+       - rm -rf node_modules
+       - rm -f package-lock.json
        - npm i -g prebuild
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
@@ -35,6 +37,8 @@ jobs:
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
+       - rm -rf node_modules
+       - rm -f package-lock.json
        - npm i       
       script:
        - cd ../coreclr-hosting

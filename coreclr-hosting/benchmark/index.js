@@ -30,6 +30,11 @@ global.dotnetCallbacks.jsTaskToTask = async function(promise) {
     await promise;
 }
 
+global.dotnetCallbacks.jsStringArrayToString = function (array) {
+    return array.join('|');
+};
+
+
 var promise = coreclrhosting.runCoreApp(__dirname + '/bin/Debug/netcoreapp3.1/Benchmark.dll');
 
 // Fire up runner

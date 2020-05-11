@@ -19,6 +19,7 @@
          host.Global.dotnetCallbacks.cbVoidToTaskYieldPromise = new Func<Task>(() => (Task)host.Global.Promise.resolve().then(new Action(() => {})));
          host.Global.dotnetCallbacks.cbVoidToTaskYieldPromiseAsync = new Func<Task>(async () => await ((Task)host.Global.Promise.resolve()));
          host.Global.dotnetCallbacks.cbTaskToTask = new Func<Task,Task>(async t => await t);
+         host.Global.dotnetCallbacks.cbStringArrayToString = new Func<string[],string>(array => string.Join("|", array));
 
          var tcs = new TaskCompletionSource<int>();
          host.Global.closeDotNet = new Action(() => tcs.SetResult(0));
