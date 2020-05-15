@@ -71,10 +71,9 @@ namespace NodeHostEnvironment.NativeHost
 
       {
          [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-         private delegate void CallbackSignature(int argc,
+         private delegate DotNetValue CallbackSignature(int argc,
                                                  [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct, SizeParamIndex = 0)]
-                                                 JsValue[] argv,
-                                                 out DotNetValue result);
+                                                 JsValue[] argv);
 
          public IntPtr CallbackPtr { get; }
          public DotNetCallback Wrapped { get; }
@@ -92,13 +91,13 @@ namespace NodeHostEnvironment.NativeHost
             _parent = parent;
          }
 
-         private void OnCalled(int argc, JsValue[] argv, out DotNetValue result)
+         private DotNetValue OnCalled(int argc, JsValue[] argv)
          {
             System.Diagnostics.Debug.Assert(argc == (argv?.Length ?? 0), "Marshalling is broken");
 
             try
             {
-               result = (DotNetValue)_parent._scheduler.RunCallbackSynchronously(
+               return (DotNetValue)_parent._scheduler.RunCallbackSynchronously(
                   state => Wrapped((JsValue[])state),
                   argv ?? EmptyJsValues);
             }
@@ -109,7 +108,7 @@ namespace NodeHostEnvironment.NativeHost
                if (exception is TargetInvocationException targetInvocationexception)
                   exception = targetInvocationexception.InnerException;
 
-               result = DotNetValue.FromException(exception);
+               return DotNetValue.FromException(exception);
             }
          }
       }

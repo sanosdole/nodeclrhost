@@ -9,6 +9,8 @@
 
 namespace {
 
+const size_t MAX_ARGUMENTS_ON_STACK = 6;
+
 Napi::Value Noop(const Napi::CallbackInfo& info) {
   return info.Env().Undefined();
 }
@@ -94,21 +96,17 @@ void Context::RegisterSchedulerCallbacks(void (*process_event_loop)(void*),
     // Napi::HandleScope handle_scope(env_);
     // Napi::AsyncContext async_context(env_, "dotnet scheduler");
 
-    // auto isolate = v8::Isolate::GetCurrent();
-
     // We use a new scope per callback, so microtasks can be run after
     // each callback (empty dotnet stack)
-    {
-      // Napi::CallbackScope cb_scope(env_, async_context);
-      (*process_event_loop)(data);
-    }
+    // Napi::CallbackScope cb_scope(env_, async_context);
+
+    (*process_event_loop)(data);
 
     // DM 25.04.2020: Running them manually was necessary when using libuv
-    // directly.
-    //                     Consider triggering a thread safe function to
-    //                     process dotnet macro tasks
-    // v8::MicrotasksScope::PerformCheckpoint(isolate); Does not run
-    // microtasks
+    // directly. But with ThreadSafeFunction this is no longer required
+    // auto isolate = v8::Isolate::GetCurrent();
+    // // v8::MicrotasksScope::PerformCheckpoint(isolate); Does not run
+    // // microtasks
     // isolate->RunMicrotasks();
   };
 
@@ -144,7 +142,6 @@ void Context::SignalEventLoopEntry(void* data) {
 }
 
 void Context::SignalMicroTask(void* data) {
-  Napi::HandleScope handle_scope(env_);
   /*auto bound_func = Napi::Function::New(env_, process_micro_task_,
                                         "invokeDotnetMicrotask", data);
   signal_micro_task_.Value().Call(env_.Global(), {bound_func});*/
@@ -254,10 +251,8 @@ JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
-  Napi::HandleScope handleScope(env_);
-
   auto owner = owner_handle.AsObject(env_);
-  auto owner_object = owner.ToObject();
+  auto owner_object = owner.As<Napi::Object>();
   auto result = owner_object.Get(name);
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
@@ -272,10 +267,8 @@ JsHandle Context::GetMemberByIndex(JsHandle& owner_handle, int index) {
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
-  Napi::HandleScope handleScope(env_);
-
   auto owner = owner_handle.AsObject(env_);
-  auto owner_object = owner.ToObject();
+  auto owner_object = owner.As<Napi::Object>();
   auto result = owner_object[index];
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
@@ -291,10 +284,8 @@ JsHandle Context::SetMember(JsHandle& owner_handle, const char* name,
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
-  Napi::HandleScope handleScope(env_);
-
   auto owner = owner_handle.AsObject(env_);
-  auto owner_object = owner.ToObject();
+  auto owner_object = owner.As<Napi::Object>();
   auto value =
       dotnet_handle.ToValue(env_, function_factory_, array_buffer_factory_);
   dotnet_handle.Release();
@@ -306,19 +297,31 @@ JsHandle Context::CreateObject(JsHandle& prototype_function, int argc,
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
-  Napi::HandleScope handleScope(env_);
-
   if (prototype_function.IsNotNullFunction()) {
-    std::vector<napi_value> arguments(argc);
-    for (int c = 0; c < argc; c++) {
-      arguments[c] =
-          argv[c].ToValue(env_, function_factory_, array_buffer_factory_);
-      argv[c].Release();
+    napi_value result;
+    napi_status status;
+    auto ctor = prototype_function.AsObject(env_);
+
+    if (argc == 0) {
+      status = napi_new_instance(env_, ctor, 0, nullptr, &result);
+    } else if (argc <= MAX_ARGUMENTS_ON_STACK) {
+      napi_value arguments[MAX_ARGUMENTS_ON_STACK];
+      for (int c = 0; c < argc; c++) {
+        arguments[c] =
+            argv[c].ToValue(env_, function_factory_, array_buffer_factory_);
+        argv[c].Release();
+      }
+      status = napi_new_instance(env_, ctor, argc, arguments, &result);
+    } else {
+      std::vector<napi_value> arguments(argc);
+      for (int c = 0; c < argc; c++) {
+        arguments[c] =
+            argv[c].ToValue(env_, function_factory_, array_buffer_factory_);
+        argv[c].Release();
+      }
+      status = napi_new_instance(env_, ctor, argc, arguments.data(), &result);
     }
 
-    napi_value result;
-    auto status = napi_new_instance(env_, prototype_function.AsObject(env_),
-                                    argc, arguments.data(), &result);
     if (status != napi_ok) {
       return JsHandle::Error("Could not create instance");
     }
@@ -335,8 +338,6 @@ JsHandle Context::Invoke(JsHandle& handle, JsHandle& receiver_handle, int argc,
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
-  Napi::HandleScope handleScope(env_);
-
   auto value = handle.AsObject(env_);
 
   return InvokeIntern(value, receiver_handle.AsObject(env_), argc, argv);
@@ -349,9 +350,7 @@ JsHandle Context::Invoke(const char* name, JsHandle& receiver_handle, int argc,
   if (!IsActiveContext())
     return JsHandle::Error("Must be called on node thread");
 
-  Napi::HandleScope handleScope(env_);
-
-  auto receiver_object = receiver_handle.AsObject(env_).ToObject();
+  auto receiver_object = receiver_handle.AsObject(env_).As<Napi::Object>();
   auto handle = receiver_object.Get(name);
 
   return InvokeIntern(handle, receiver_object, argc, argv);
@@ -367,14 +366,30 @@ JsHandle Context::InvokeIntern(Napi::Value handle, Napi::Value receiver,
 
   auto function = handle.As<Napi::Function>();
 
-  std::vector<napi_value> arguments(argc);
-  for (int c = 0; c < argc; c++) {
-    arguments[c] =
-        argv[c].ToValue(env_, function_factory_, array_buffer_factory_);
-    argv[c].Release();
+  Napi::Value result;
+
+  if (argc == 0) {
+    result = function.Call(receiver, 0, nullptr);
+  } else if (argc <= MAX_ARGUMENTS_ON_STACK) {
+    napi_value arguments[MAX_ARGUMENTS_ON_STACK];
+    for (int c = 0; c < argc; c++) {
+      auto dotnet_arg = argv[c];
+      arguments[c] =
+          dotnet_arg.ToValue(env_, function_factory_, array_buffer_factory_);
+      dotnet_arg.Release();
+    }
+    result = function.Call(receiver, argc, arguments);
+  } else {
+    std::vector<napi_value> arguments(argc);
+    for (int c = 0; c < argc; c++) {
+      auto dotnet_arg = argv[c];
+      arguments[c] =
+          dotnet_arg.ToValue(env_, function_factory_, array_buffer_factory_);
+      dotnet_arg.Release();
+    }
+    result = function.Call(receiver, arguments);
   }
 
-  auto result = function.Call(receiver, arguments);
   if (env_.IsExceptionPending()) {
     return JsHandle::Error(env_.GetAndClearPendingException().Message());
   }
@@ -382,8 +397,6 @@ JsHandle Context::InvokeIntern(Napi::Value handle, Napi::Value receiver,
 }
 
 void Context::CompletePromise(napi_deferred deferred, DotNetHandle& handle) {
-  Napi::HandleScope handleScope(env_);
-
   // TODO DM 29.11.2019: How to handle errors from napi calls here?
   if (handle.type_ == DotNetType::Exception) {
     auto error = Napi::Error::New(env_, handle.StringValue(env_));
@@ -405,14 +418,30 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   auto function = Napi::Function::New(
       env_, [this, function_value](const Napi::CallbackInfo& info) {
         ThreadInstance _(this);
-        auto argc = info.Length();
-        std::vector<JsHandle> arguments;
-        for (size_t c = 0; c < argc; c++) {
-          arguments.push_back(JsHandle::FromValue(info[c]));
-        }
-
         DotNetHandle resultIntern;
-        (*function_value)(argc, arguments.data(), resultIntern);
+        auto argc = info.Length();
+
+        // TODO DM 11.05.2020: Do not pack unused arguments, by marshalling
+        // argc from dotnet. The most efficient solution would be to use
+        // different function pointers per argc value
+        if (argc == 0) {
+          resultIntern = (*function_value)(0, nullptr);
+        } else if (argc <= MAX_ARGUMENTS_ON_STACK) {
+          JsHandle arguments[MAX_ARGUMENTS_ON_STACK];
+          for (size_t c = 0; c < argc; c++) {
+            arguments[c] = JsHandle::FromValue(info[c]);
+          }
+
+          resultIntern = (*function_value)(argc, arguments);
+
+        } else {
+          std::vector<JsHandle> arguments;
+          for (size_t c = 0; c < argc; c++) {
+            arguments.push_back(JsHandle::FromValue(info[c]));
+          }
+
+          resultIntern = (*function_value)(argc, arguments.data());
+        }
 
         auto napiResultValue = resultIntern.ToValue(
             info.Env(), this->function_factory_, this->array_buffer_factory_);

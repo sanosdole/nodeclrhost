@@ -4,12 +4,28 @@ module.exports = (suite, benchmark) => {
 
     suite('callback () -> ()', () => {
 
+        benchmark('noop', () => {
+        });
+
         benchmark('js', () => {
             dotnetCallbacks.jsVoidToVoid();
         });
 
         benchmark('dotnet', () => {
             dotnetCallbacks.cbVoidToVoid();
+        });
+    });
+
+    suite('callback (int,int) -> (int)', () => {
+
+        benchmark('js', () => {
+            let c = dotnetCallbacks.jsIntIntToInt(21015, 90518);
+            assert.strictEqual(c, 21015 + 90518);
+        });
+
+        benchmark('dotnet', () => {
+            let c = dotnetCallbacks.cbIntIntToInt(21015, 90518);
+            assert.strictEqual(c, 21015 + 90518);
         });
     });
 
@@ -24,18 +40,32 @@ module.exports = (suite, benchmark) => {
         });
     });
 
-    suite('callback (int) -> Task.Delay()', { promises: true }, () => {
+    suite('callback (int) -> Task.Delay(10)', { promises: true }, () => {
 
-        benchmark('js', () => {
+        benchmark('js 10', () => {
             return dotnetCallbacks.jsIntToTaskDelay(10);
         });
 
-        benchmark('dotnet', () => {
+        benchmark('dotnet 10', () => {
             return dotnetCallbacks.cbIntToTaskDelay(10);
         });
 
-        benchmark('dotnet async', () => {
+        benchmark('dotnet async 10', () => {
             return dotnetCallbacks.cbIntToTaskDelayAsync(10);
+        });
+    });
+
+    suite('callback (int) -> Task.Delay(100)', { promises: true }, () => {
+        benchmark('js 100', () => {
+            return dotnetCallbacks.jsIntToTaskDelay(100);
+        });
+
+        benchmark('dotnet 100', () => {
+            return dotnetCallbacks.cbIntToTaskDelay(100);
+        });
+
+        benchmark('dotnet async 100', () => {
+            return dotnetCallbacks.cbIntToTaskDelayAsync(100);
         });
     });
 
@@ -49,17 +79,21 @@ module.exports = (suite, benchmark) => {
             return dotnetCallbacks.jsVoidToTaskYield2();
         });
 
+        benchmark('js (queueMicrotask)', () => {
+            return dotnetCallbacks.jsVoidToTaskYield3();
+        });
+
         benchmark('dotnet', () => {
             return dotnetCallbacks.cbVoidToTaskYield();
         });
 
-        /*benchmark('dotnet Promise.resolve.then', () => {
+        benchmark('dotnet Promise.resolve.then', () => {
             return dotnetCallbacks.cbVoidToTaskYieldPromise();
         });
 
         benchmark('dotnet async Promise.resolve', () => {
             return dotnetCallbacks.cbVoidToTaskYieldPromiseAsync();
-        });*/
+        });
     });
 
     suite('callback (Task) -> Task', { promises: true }, () => {

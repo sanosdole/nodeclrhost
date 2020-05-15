@@ -39,10 +39,10 @@ struct JsHandle {
     Napi::Reference<Napi::Function>* function_value_;
   };
 
-  static JsHandle Undefined() { return { JsType::Undefined, nullptr }; }
-  static JsHandle Null() { return { JsType::Null, nullptr }; }
+  inline static JsHandle Undefined() { return { JsType::Undefined, nullptr }; }
+  inline static JsHandle Null() { return { JsType::Null, nullptr }; }
 
-  static JsHandle Error(std::string message) {
+  inline static JsHandle Error(std::string message) {
     JsHandle result = Undefined();
     auto buffer_size = message.size() + 1;
     result.u8_string_value_ = new char[buffer_size];
@@ -51,15 +51,14 @@ struct JsHandle {
     return result;
   }
 
-  // TODO DM 20.03.2020: Replace ctors with factory methods to remove UDT warning
-  static JsHandle FromObject(Napi::Object object) {
+  inline static JsHandle FromObject(const Napi::Object& object) {
     return { JsType::Object, new Napi::Reference<Napi::Object>(Napi::Persistent(object)) };
   }
   
-  static JsHandle FromFunction(Napi::Function func) {
+  inline static JsHandle FromFunction(const Napi::Function& func) {
     return { JsType::Function, new Napi::Reference<Napi::Function>(Napi::Persistent(func)) };
   }
-  static JsHandle FromString(Napi::String value) {
+  inline static JsHandle FromString(const Napi::String& value) {
     auto utf16 = value.Utf16Value();
     auto buffer_size = 2 * (utf16.size() + 1);
     auto string_value = new char16_t[buffer_size];
@@ -67,20 +66,43 @@ struct JsHandle {
     
     return { JsType::String, string_value };
   }
-  static JsHandle FromBoolean(Napi::Boolean boolean_value) {
+  inline static JsHandle FromBoolean(const Napi::Boolean& boolean_value) {
     return { JsType::Boolean, boolean_value.Value() ? (void*)1 : (void*)0 };
   }
-  static JsHandle FromDouble(double double_value) {    
+  inline static JsHandle FromDouble(double double_value) {    
     JsHandle result;
     result.type_ = JsType::Number;
     result.double_value_ = double_value;
     return result;
   }
-  static JsHandle Make(JsType::Enum type, void* value) {    
+  inline static JsHandle Make(JsType::Enum type, void* value) {    
     return { type, value };
   }
 
-  Napi::Value AsObject(const Napi::Env& env) const {
+  inline static JsHandle FromValue(Napi::Value value) {
+    auto type = value.Type();
+    switch (type) {
+      case napi_undefined: return Undefined();
+      case napi_null: return Null();
+      case napi_boolean: return FromBoolean(value.As<Napi::Boolean>());
+      case napi_number: {
+        auto number = value.As<Napi::Number>();
+        // TODO: How to handle 32bit processes...
+        auto doubleValue = number.DoubleValue();
+        return FromDouble(doubleValue);
+      }
+      case napi_string: return FromString(value.As<Napi::String>());
+      case napi_symbol: return Undefined();
+      case napi_object: return FromObject(value.As<Napi::Object>());
+      case napi_function: return FromFunction(value.As<Napi::Function>());
+      case napi_external: return Undefined();
+      case napi_bigint: return Undefined();
+      default:
+        return Undefined();
+    }
+  }
+
+  inline Napi::Value AsObject(const Napi::Env& env) const {
     if (type_ == JsType::Object) {
       if (nullptr == object_value_) return env.Global();
       return object_value_->Value();
@@ -98,39 +120,13 @@ struct JsHandle {
     return Napi::Value();
   }
 
-  static JsHandle FromValue(Napi::Value value) {
-    if (value.IsNull()) {
-      return Null();
-    }
-    if (value.IsString()) {
-      return FromString(value.ToString());
-    }
-    if (value.IsBoolean()) {
-      return FromBoolean(value.ToBoolean());
-    }
-    if (value.IsNumber()) {
-      auto number = value.ToNumber();
-      // TODO: How to handle 32bit processes...
-      auto doubleValue = number.DoubleValue();
-      return FromDouble(doubleValue);
-    }    
-    if (value.IsFunction()) {
-      return FromFunction(value.As<Napi::Function>());
-    }
-    if (value.IsObject()) {
-      return FromObject(value.ToObject());
-    }
-    
-    return Undefined();
-  }
+  inline bool SupportsMembers() const { return type_ == JsType::Object || type_ == JsType::Function; }
 
-  bool SupportsMembers() const { return type_ == JsType::Object || type_ == JsType::Function; }
-
-  bool IsNotNullFunction() const {
+  inline bool IsNotNullFunction() const {
     return type_ == JsType::Function && function_value_ != nullptr;
   }
 
-  void Release() {
+  inline void Release() {
     // printf("Releasing %d \n", Type);
     if (type_ == JsType::Object) {
       delete object_value_;

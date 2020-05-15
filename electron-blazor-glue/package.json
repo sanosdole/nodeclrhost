@@ -24,16 +24,16 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "dependencies": {
-    "@dotnet/jsinterop": "^3.1.3",
+    "@dotnet/jsinterop": "^3.1.4",
     "coreclr-hosting": "file:../coreclr-hosting",
-    "typescript": "^3.8.3"
+    "typescript": "^3.9.2"
   },
   "devDependencies": {
-    "@types/node": "^13.11.1",
-    "electron": "^8.2.2",
+    "@types/node": "^14.0.1",
+    "electron": "^8.3.0",
     "node-loader": "^0.6.0",
-    "ts-loader": "^7.0.0",
-    "webpack": "^4.42.1",
+    "ts-loader": "^7.0.4",
+    "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"
   },
   "keywords": [

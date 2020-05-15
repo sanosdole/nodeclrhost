@@ -6,6 +6,7 @@ const nativeDecoder = typeof TextDecoder === 'function'
   ? new TextDecoder('utf-8')
   : null;
 
+// DM 15.05.2020: The native decoder was hanging (for unknown reasons :( ), so we always use the custom implementation.
 /*export const decodeUtf8: (bytes: Uint8Array) => string
   = nativeDecoder ? nativeDecoder.decode.bind(nativeDecoder) : decodeImpl;*/
 

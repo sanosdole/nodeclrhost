@@ -6,6 +6,10 @@ global.dotnetCallbacks.jsVoidToVoid = function () {
 
 };
 
+global.dotnetCallbacks.jsIntIntToInt = function (a,b) {
+    return a + b;
+};
+
 global.dotnetCallbacks.jsVoidToTask = function () {
     return Promise.resolve();
 };
@@ -24,6 +28,12 @@ global.dotnetCallbacks.jsVoidToTaskYield1 = function () {
 
 global.dotnetCallbacks.jsVoidToTaskYield2 = function () {
     return Promise.resolve().then(() => {});
+};
+
+global.dotnetCallbacks.jsVoidToTaskYield3 = function () {
+    return new Promise(r => {
+        queueMicrotask(r);
+    });
 };
 
 global.dotnetCallbacks.jsTaskToTask = async function(promise) {

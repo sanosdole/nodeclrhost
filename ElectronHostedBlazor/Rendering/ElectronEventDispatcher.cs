@@ -26,13 +26,13 @@ namespace ElectronHostedBlazor.Rendering
         public Task DispatchEvent(dynamic eventDescriptor, string eventArgsJson)
         {
             EventFieldInfo fieldInfo = null;
-            var sourceFieldInfo = eventDescriptor.eventFieldInfo;
+            using var sourceFieldInfo = eventDescriptor.eventFieldInfo;
             if (sourceFieldInfo != null)
             {
                 fieldInfo = new EventFieldInfo
                 {
-                ComponentId = (int) eventDescriptor.eventFieldInfo.componentId,
-                FieldValue = eventDescriptor.eventFieldInfo.fieldValue
+                ComponentId = (int) sourceFieldInfo.componentId,
+                FieldValue = sourceFieldInfo.fieldValue
                 };
             }
             return DispatchEventOriginal(new WebEventDescriptor

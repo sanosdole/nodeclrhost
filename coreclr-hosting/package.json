@@ -29,7 +29,8 @@
     "build-testapp": "dotnet build test/TestApp/TestApp.csproj",
     "test": "npm run build && npm run build-testapp && npm run mocha",
     "test-only": "npm run build-testapp && npm run mocha",
-    "benchmark": "dotnet build benchmark/Benchmark.csproj && node benchmark/index.js",
+    "benchmark": "npm run build && dotnet build benchmark/Benchmark.csproj && node benchmark/index.js",
+    "benchmark-only": "node benchmark/index.js",
     "mocha": "mocha -s 0",
     "prepare": "npm run build",
     "install": "prebuild-install || npm run rebuild"
