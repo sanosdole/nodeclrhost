@@ -11,8 +11,9 @@ struct NativeApi {
   void* SetMember;
   void* Invoke;
   void* InvokeByName;
-  void* CreateObject;
+  void* CreateObject;  
   void* CompletePromise;
+  void* TryAccessArrayBuffer;
   void* Release;
 
   static NativeApi instance_;

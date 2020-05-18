@@ -26,6 +26,7 @@ namespace NodeHostEnvironment.NativeHost
       public InvokeByName InvokeByName;
       public CreateObject CreateObject;
       public CompletePromise CompletePromise;
+      public TryAccessArrayBuffer TryAccessArrayBuffer;
       public Release Release;
    }
 
@@ -75,4 +76,7 @@ namespace NodeHostEnvironment.NativeHost
    // Release a handle
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
    internal delegate void Release(JsValue handle);
+
+   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+   internal delegate bool TryAccessArrayBuffer(IntPtr context, JsValue handle, out IntPtr address, out int byteLength);
 }

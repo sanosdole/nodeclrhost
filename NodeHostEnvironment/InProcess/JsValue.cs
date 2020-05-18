@@ -36,7 +36,8 @@ namespace NodeHostEnvironment.InProcess
                         if (wasConverted)
                         {
                             // Prevent GC release of `asDynamic` by disposing it now
-                            if (!ReferenceEquals(asDynamic, result))
+                            // TODO DM 17.05.2020: The check for ArrayBuffer shows deeper design problems (conversion should be externalized?)
+                            if (!ReferenceEquals(asDynamic, result) && targetType != typeof(ArrayBuffer))
                                 asDynamic.Dispose();
                             return true; 
                         }

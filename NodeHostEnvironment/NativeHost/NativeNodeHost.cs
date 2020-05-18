@@ -279,6 +279,11 @@ namespace NodeHostEnvironment.NativeHost
          return result;
       }
 
+      public bool TryAccessArrayBuffer(JsValue handle, out IntPtr address, out int byteLength)
+      {
+         return NativeMethods.TryAccessArrayBuffer(_context, handle, out address, out byteLength);
+      }
+
       public void Release(JsValue handle)
       {
          // This should be callable from any thread

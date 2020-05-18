@@ -78,6 +78,7 @@ class Context {
   JsHandle Invoke(const char* name, JsHandle& receiver_handle, int argc,
                   DotNetHandle* argv);
   void CompletePromise(napi_deferred deferred, DotNetHandle& handle);
+  int TryAccessArrayBuffer(JsHandle& handle, void*& address, int& byte_length);
 };
 
 }  // namespace coreclrhosting

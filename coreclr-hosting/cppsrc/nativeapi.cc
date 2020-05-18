@@ -72,6 +72,11 @@ EXPORT_TO_DOTNET void CompletePromise(void* context_handle, void* deferred,
                                   dotnet_handle);
 }
 
+EXPORT_TO_DOTNET int TryAccessArrayBuffer(void* context_handle, JsHandle handle, void*& address, int& byte_length) {
+  auto context = reinterpret_cast<Context*>(context_handle);
+  return context->TryAccessArrayBuffer(handle, address, byte_length);
+}
+
 NativeApi NativeApi::instance_ = {
     reinterpret_cast<void*>(&::RegisterSchedulerCallbacks),
     reinterpret_cast<void*>(&::SignalEventLoopEntry),
@@ -83,4 +88,5 @@ NativeApi NativeApi::instance_ = {
     reinterpret_cast<void*>(&::InvokeByName),
     reinterpret_cast<void*>(&::CreateObject),
     reinterpret_cast<void*>(&::CompletePromise),
+    reinterpret_cast<void*>(&::TryAccessArrayBuffer),
     reinterpret_cast<void*>(&::Release)};

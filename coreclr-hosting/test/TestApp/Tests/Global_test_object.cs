@@ -187,7 +187,7 @@ namespace TestApp.Tests
 
         public async Task It_should_marshal_Task_with_VoidTaskResult()
         {
-            var task = new Func<Task>(async () => { await Task.Yield(); await Task.Yield(); })();
+            var task = new Func<Task>(async() => { await Task.Yield(); await Task.Yield(); }) ();
             ((bool) Global.testObject.isPromise(task)).Should().Be(true);
 
             await (Task) Global.testObject.awaitPromise(task);
@@ -247,7 +247,7 @@ namespace TestApp.Tests
             Marshal.WriteByte(ptr, 1, 2);
             Marshal.WriteByte(ptr, 2, 3);
             Marshal.WriteByte(ptr, 3, 4);
-            var memory = new NativeMemory(ptr, 4, m => Marshal.FreeHGlobal(m.Pointer));            
+            var memory = new NativeMemory(ptr, 4, m => Marshal.FreeHGlobal(m.Pointer));
             Global.testObject.assertByteArray(memory);
         }
 
@@ -269,6 +269,43 @@ namespace TestApp.Tests
             global.testObject.assertIntArray(new int[] { 1, 2 });
             global.testObject.assertIntArray(new List<int> { 1, 2 });                        
         }*/
+
+        public void It_should_directly_access_array_buffer()
+        {
+            var array = Global.Uint8ClampedArray.CreateNewInstance(512);
+            var buffer = (ArrayBuffer) array.buffer;
+            Marshal.Copy(new byte[] { 1, 2, 3, 4 }, 0, buffer.Address, 4);
+
+            buffer.ByteLength.Should().Be(512);
+            ((int) array[0]).Should().Be(1);
+            ((int) array[3]).Should().Be(4);
+
+            Marshal.Copy(new byte[] { 4, 3, 2, 1 }, 0, buffer.Address, 4);
+            ((int) array[0]).Should().Be(4);
+            ((int) array[3]).Should().Be(1);
+        }
+
+        public void It_should_directly_access_array_buffer_created_from_dotnet_memory()
+        {
+            var ptr = Marshal.AllocHGlobal(4);
+            Marshal.WriteByte(ptr, 0, 1);
+            Marshal.WriteByte(ptr, 1, 2);
+            Marshal.WriteByte(ptr, 2, 3);
+            Marshal.WriteByte(ptr, 3, 4);
+            var memory = new NativeMemory(ptr, 4, m => Marshal.FreeHGlobal(m.Pointer));
+            var jsArray = Global.Uint8Array.CreateNewInstance(memory);
+            var arrayBuffer = (ArrayBuffer) jsArray.buffer;
+
+            Global.testObject.assertByteArray(jsArray);
+            arrayBuffer.ByteLength.Should().Be(4);
+            Marshal.ReadByte(arrayBuffer.Address, 0).Should().Be(1);
+            Marshal.ReadByte(arrayBuffer.Address, 3).Should().Be(4);
+
+            // TODO: Why is this not true?
+            //Marshal.WriteByte(ptr, 0, 5);
+            //Marshal.ReadByte(arrayBuffer.Address, 0).Should().Be(5);            
+            //arrayBuffer.Address.Should().Be(ptr);
+        }
 
     }
 }

@@ -38,5 +38,6 @@ namespace NodeHostEnvironment.InProcess
 
         IntPtr MarshallTask(Task task, out ReleaseDotNetValue releaseCallback);
         JsValue[] GetArrayValues(JsValue handle);
+        bool TryAccessArrayBuffer(JsValue handle, out IntPtr address, out int byteLength);
     }
 }

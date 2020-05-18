@@ -21,6 +21,8 @@ namespace NodeHostEnvironment.InProcess
          _host = host;
       }
 
+      public bool WasDisposed => _disposed == 1;
+
       public void Dispose()
       {
          var wasDisposed = Interlocked.Exchange(ref _disposed, 1) == 1;
@@ -275,6 +277,19 @@ namespace NodeHostEnvironment.InProcess
                   return true;
             }
 
+            result = null;
+            return false;
+         }
+
+         // TODO DM 17.05.2020: This dependency is unwanted (circular), we should use opend/closed for type conversion
+         if (type == typeof(ArrayBuffer))
+         {
+            if (_host.TryAccessArrayBuffer(Handle, out var address, out var byteLength))
+            {
+               result = new ArrayBuffer(address, byteLength, this);
+               return true;
+            }
+            
             result = null;
             return false;
          }
