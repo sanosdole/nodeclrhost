@@ -52,7 +52,6 @@ namespace NodeHostEnvironment
             if (previous == null)
                 return;
             _jsObject = null;
-            JsObject.Dispose();
         }
     }
 }

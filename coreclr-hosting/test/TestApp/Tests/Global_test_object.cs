@@ -294,7 +294,7 @@ namespace TestApp.Tests
             Marshal.WriteByte(ptr, 3, 4);
             var memory = new NativeMemory(ptr, 4, m => Marshal.FreeHGlobal(m.Pointer));
             var jsArray = Global.Uint8Array.CreateNewInstance(memory);
-            var arrayBuffer = (ArrayBuffer) jsArray.buffer;
+            using var arrayBuffer = (ArrayBuffer) jsArray.buffer;
 
             Global.testObject.assertByteArray(jsArray);
             arrayBuffer.ByteLength.Should().Be(4);
