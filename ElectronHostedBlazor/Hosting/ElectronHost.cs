@@ -25,6 +25,8 @@ namespace ElectronHostedBlazor.Hosting
 
         public IServiceProvider Services { get; }
 
+        public event UnhandledExceptionEventHandler UnhandledException;
+
         public async Task RunAsync(CancellationToken cancellationToken = default)
         {            
             var scopeFactory = Services.GetRequiredService<IServiceScopeFactory>();
@@ -46,6 +48,7 @@ namespace ElectronHostedBlazor.Hosting
 
                 using(var _renderer = await builder.CreateRendererAsync())
                 {
+                    _renderer.UnhandledSynchronizationException += OnUnhandledRendererException;
                     var tcs = new TaskCompletionSource<object>();
                     _node.Global.window.addEventListener("unload",
                         new Action<dynamic>(e => tcs.SetResult(0)));
@@ -53,6 +56,11 @@ namespace ElectronHostedBlazor.Hosting
                 }
             }
             
+        }
+
+        private void OnUnhandledRendererException(object sender, UnhandledExceptionEventArgs e)
+        {
+            UnhandledException?.Invoke(this, e);
         }
 
         public void Dispose()

@@ -2,6 +2,7 @@ namespace NodeHostEnvironment.InProcess
 {
     using System.Threading.Tasks;
     using System;
+    using System.Threading;
 
     internal sealed class NodeBridge : IBridgeToNode
     {
@@ -23,9 +24,14 @@ namespace NodeHostEnvironment.InProcess
             return new JsDynamicObject(handle, _host);
         }
 
-        public Task<T> Run<T>(Func<T> func)
+        public Task<T> Run<T>(Func<T> func, CancellationToken cancellationToken)
         {
-            return _host.Factory.StartNew(func);
+            return _host.Factory.StartNew(func, cancellationToken);
+        }
+
+        public Task<T> Run<T>(Func<object, T> func, object state, CancellationToken cancellationToken)
+        {
+            return _host.Factory.StartNew(func, state, cancellationToken);
         }
 
         public bool CheckAccess()

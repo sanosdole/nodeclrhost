@@ -76,5 +76,10 @@ namespace ElectronHostedBlazor.Rendering
 
             return _node.RunAsync(workItem);
         }
+
+        internal void PublishRendererException(Exception exception)
+        {
+            OnUnhandledException(new UnhandledExceptionEventArgs(exception, false));
+        }
     }
 }

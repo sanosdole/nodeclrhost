@@ -29,5 +29,14 @@ namespace ElectronHostedBlazor.Hosting
                 return 0;
             }
         }
+
+        /// <summary>
+        /// Adds an handler for rendering exceptions.
+        /// </summary>
+        public static IElectronHost UseExceptionHandler(this IElectronHost host, UnhandledExceptionEventHandler handler)
+        {
+            host.UnhandledException += handler;
+            return host;
+        }
     }
 }

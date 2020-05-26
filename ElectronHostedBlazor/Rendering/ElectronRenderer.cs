@@ -4,11 +4,11 @@
 
 namespace ElectronHostedBlazor.Rendering
 {
-   using System;
    using System.Collections.Generic;
    using System.Threading.Tasks;
-   using Microsoft.AspNetCore.Components;
+   using System;
    using Microsoft.AspNetCore.Components.RenderTree;
+   using Microsoft.AspNetCore.Components;
    using Microsoft.Extensions.Logging;
    using NodeHostEnvironment;
 
@@ -33,8 +33,7 @@ namespace ElectronHostedBlazor.Rendering
       /// <param name="serviceProvider">The <see cref="IServiceProvider"/> to use when initializing components.</param>
       /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
       /// <param name="node">The bridge to use for JS interop</param>
-      public ElectronRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBridgeToNode node)
-         : base(serviceProvider, loggerFactory)
+      public ElectronRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBridgeToNode node) : base(serviceProvider, loggerFactory)
       {
          _node = node;
          _logger = loggerFactory.CreateLogger<ElectronRenderer>();
@@ -59,8 +58,7 @@ namespace ElectronHostedBlazor.Rendering
       /// want to await the rendering of the added component.
       /// </remarks>
       public Task AddComponentAsync<TComponent>(string domElementSelector)
-         where TComponent : IComponent
-         => AddComponentAsync(typeof(TComponent), domElementSelector);
+      where TComponent : IComponent => AddComponentAsync(typeof(TComponent), domElementSelector);
 
       /// <summary>
       /// Associates the <see cref="IComponent"/> with the <see cref="ElectronRenderer"/>,
@@ -89,7 +87,7 @@ namespace ElectronHostedBlazor.Rendering
              domElementSelector,
              componentId,
              _NodeRendererId); */
-         _blazorInternal.attachRootComponentToElement(domElementSelector, componentId, /*_NodeRendererId*/1);
+         _blazorInternal.attachRootComponentToElement(domElementSelector, componentId, /*_NodeRendererId*/ 1);
 
          return RenderRootComponentAsync(componentId);
       }
@@ -109,7 +107,7 @@ namespace ElectronHostedBlazor.Rendering
 
          _reusableMemoryStream.SetLength(0);
          _reusableMemoryStream.Position = 0;
-         using (var writer = new RenderBatchWriter(_reusableMemoryStream, true))
+         using(var writer = new RenderBatchWriter(_reusableMemoryStream, true))
             writer.Write(batch);
 
          // Prevent event dispatching while updating the DOM
@@ -118,7 +116,7 @@ namespace ElectronHostedBlazor.Rendering
 
          try
          {
-            _blazorInternalRenderBatch( /*_NodeRendererId*/1, _reusableMemoryStream.GetMemory());
+            _blazorInternalRenderBatch( /*_NodeRendererId*/ 1, _reusableMemoryStream.GetMemory());
          }
          finally
          {
@@ -153,6 +151,7 @@ namespace ElectronHostedBlazor.Rendering
          {
             _logger.LogError(exception, "Unhandled exception while rendering a component");
          }
+         _dispatcher.PublishRendererException(exception);
       }
 
       private bool _pendingRenderQueued;
@@ -170,11 +169,13 @@ namespace ElectronHostedBlazor.Rendering
          // In combination with the StateHasChanged implementation in ComponentBase this will prevent unnecessary
          // renderings from components that call StateHasChanged in fast succession synchronously.
          // Sadly the task has to be observed by the GC...
-         _node.Run(() =>
-                   {
-                      _pendingRenderQueued = false;
-                      base.ProcessPendingRender();
-                   });
+         _node.Run(Execute);
+
+         void Execute()
+         {
+            _pendingRenderQueued = false;
+            base.ProcessPendingRender();
+         }
       }
 
       /// <inheritdoc />

@@ -1,6 +1,7 @@
 namespace NodeHostEnvironment
 {
     using System.Threading.Tasks;
+    using System.Threading;
     using System;
 
     /// <summary>
@@ -28,7 +29,12 @@ namespace NodeHostEnvironment
         /// <summary>
         /// Run a delegate on the node thread.
         /// </summary>
-        Task<T> Run<T>(Func<T> func);
+        Task<T> Run<T>(Func<T> func, CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Run a delegate on the node thread.
+        /// </summary>
+        Task<T> Run<T>(Func<object, T> func, object state, CancellationToken cancellationToken = default);
     }
 
     /// <summary>
@@ -36,23 +42,40 @@ namespace NodeHostEnvironment
     /// </summary>
     public static class BridgeToNodeExtensions
     {
-        public static Task<T> RunAsync<T>(this IBridgeToNode thiz, Func<Task<T>> asyncFunc)
+        public static Task<T> RunAsync<T>(this IBridgeToNode thiz, Func<Task<T>> asyncFunc, CancellationToken cancellationToken = default)
         {
-            return thiz.Run(asyncFunc).Unwrap();
+            return thiz.Run(asyncFunc, cancellationToken).Unwrap();
         }
 
-        public static Task RunAsync(this IBridgeToNode thiz, Func<Task> asyncAction)
+        public static Task RunAsync(this IBridgeToNode thiz, Func<Task> asyncAction, CancellationToken cancellationToken = default)
         {
-            return thiz.Run(asyncAction).Unwrap();
+            return thiz.Run(asyncAction, cancellationToken).Unwrap();
         }
 
-        public static Task Run(this IBridgeToNode thiz, Action action)
+        public static Task Run(this IBridgeToNode thiz, Action action, CancellationToken cancellationToken = default)
         {
-            return thiz.Run(() =>
-            {
-                action();
-                return (object) null;
-            });
+            return thiz.Run(RunActionState, action, cancellationToken);
+        }
+
+        public static Task<T> RunAsync<T>(this IBridgeToNode thiz, Func<object, Task<T>> asyncFunc, object state, CancellationToken cancellationToken = default)
+        {
+            return thiz.Run(asyncFunc, state, cancellationToken).Unwrap();
+        }
+
+        public static Task RunAsync(this IBridgeToNode thiz, Func<object, Task> asyncAction, object state, CancellationToken cancellationToken = default)
+        {
+            return thiz.Run(asyncAction, state, cancellationToken).Unwrap();
+        }
+
+        public static Task Run(this IBridgeToNode thiz, Action<object> action, object state, CancellationToken cancellationToken = default)
+        {
+            return thiz.Run(RunActionState, new Action(() => action(state)), cancellationToken);
+        }
+
+        private static object RunActionState(object state)
+        {
+            ((Action) state) ();
+            return null;
         }
     }
 }

@@ -21,5 +21,12 @@ namespace ElectronHostedBlazor.Hosting
         /// <param name="cancellationToken">Used to abort program run.</param>
         /// <returns></returns>
         Task RunAsync(CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Will be raised on rendering exceptions.
+        /// The dispatcher is based on a node task scheduler,
+        /// so those exceptions can be handled using <see cref="TaskScheduler.UnobservedTaskException"/>
+        /// </summary>
+        event UnhandledExceptionEventHandler UnhandledException;
     }
 }
