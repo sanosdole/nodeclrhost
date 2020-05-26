@@ -210,6 +210,10 @@ string_t GetDirectoryFromFilePath(const string_t &assembly) {
 }
 #endif
 
+/*void HOSTFXR_CALLTYPE WriteTrace(const char_t *message) {
+  printf(StringUtf8FromT(message).c_str());
+}*/
+
 LibraryHandle LoadHostfxr(const std::string &assembly,
                           string_t &hostfxr_path_out) {
   auto base_path = GetDirectoryFromFilePath(assembly);
@@ -288,6 +292,10 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   auto lib = LoadHostfxr(assembly_path, hostfxr_path);
   if (nullptr == lib) return DotNetHostCreationResult::kCoreClrNotFound;
 
+  /*auto set_writer_fptr = GetFunction<hostfxr_set_error_writer_fn>(
+      lib, "hostfxr_set_error_writer");
+    set_writer_fptr(&WriteTrace);*/
+
   auto init_fptr = GetFunction<hostfxr_initialize_for_runtime_config_fn>(
       lib, "hostfxr_initialize_for_runtime_config");
   auto get_runtime_delegate_fptr = GetFunction<hostfxr_get_runtime_delegate_fn>(
@@ -300,9 +308,17 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   }
 
   // Load context
+  auto assembly_path_t = StringTFromUtf8(assembly_path);
+  auto base_path = GetDirectoryFromFilePath(assembly_path);
+  auto base_path_t = StringTFromUtf8(base_path);
+
   hostfxr_handle cxt = nullptr;
   auto runtime_config_t = StringTFromUtf8(runtime_config);
-  auto rc = init_fptr(runtime_config_t.c_str(), nullptr, &cxt);
+  hostfxr_initialize_parameters init_params;
+  init_params.size = sizeof(hostfxr_initialize_parameters);
+  init_params.host_path = base_path_t.c_str();
+  init_params.dotnet_root = nullptr;
+  auto rc = init_fptr(runtime_config_t.c_str(), &init_params, &cxt);
   if (rc != 0 || cxt == nullptr) {
     std::cerr << "Init '" << assembly_path << "' failed: " << std::hex
               << std::showbase << rc << std::endl;
@@ -310,6 +326,52 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
     free_library(lib);
     return DotNetHostCreationResult::kInitializeFailed;
   }
+
+  auto set_runtime_property_value_fptr = GetFunction<hostfxr_set_runtime_property_value_fn>(
+      lib, "hostfxr_set_runtime_property_value");  
+  /*auto get_runtime_property_value_fptr = GetFunction<hostfxr_get_runtime_property_value_fn>(
+      lib, "hostfxr_get_runtime_property_value");  */
+  const char_t* prop_buffer = nullptr; //new char_t[1024];
+  
+  /*rc = get_runtime_property_value_fptr(cxt, STR("APP_CONTEXT_BASE_DIRECTORY"), &prop_buffer);
+  if (rc != 0)
+    wprintf(STR("APP_CONTEXT_BASE_DIRECTORY: %s\n"), prop_buffer);*/
+  set_runtime_property_value_fptr(cxt,STR("APP_CONTEXT_BASE_DIRECTORY"),base_path_t.c_str());
+
+  /*rc = get_runtime_property_value_fptr(cxt, STR("APP_PATHS"), &prop_buffer);
+  if (rc != 0)
+    wprintf(STR("APP_PATHS: %s\n"), prop_buffer);*/
+  set_runtime_property_value_fptr(cxt,STR("APP_PATHS"),base_path_t.c_str());
+
+  /*rc = get_runtime_property_value_fptr(cxt, STR("APP_NI_PATHS"), &prop_buffer);
+  if (rc != 0)
+    wprintf(STR("APP_NI_PATHS: %s\n"), prop_buffer);*/
+  set_runtime_property_value_fptr(cxt,STR("APP_NI_PATHS"),base_path_t.c_str());
+
+  // TODO DM 27.05.2020: This is not set....
+  /*rc = get_runtime_property_value_fptr(cxt, STR("APP_CONTEXT_DEPS_FILES"), &prop_buffer);
+  if (rc != 0)
+    wprintf(STR("APP_CONTEXT_DEPS_FILES: %s\n"), prop_buffer);*/
+#ifdef WINDOWS
+  auto app_context_deps_file =
+      runtime_config.substr(0, dll_index - 3) + u8".deps.json";
+#else
+  auto app_context_deps_file =
+      runtime_config.substr(0, dll_index - 3) + ".deps.json";
+#endif
+  auto app_context_deps_file_t = StringTFromUtf8(app_context_deps_file);
+  set_runtime_property_value_fptr(cxt,STR("APP_CONTEXT_DEPS_FILES"), app_context_deps_file_t.c_str());
+
+  /*rc = get_runtime_property_value_fptr(cxt, STR("PLATFORM_RESOURCE_ROOTS"), &prop_buffer);
+  if (rc != 0)
+    wprintf(STR("PLATFORM_RESOURCE_ROOTS: %s\n"), prop_buffer);*/
+  //set_runtime_property_value_fptr(cxt,STR("PLATFORM_RESOURCE_ROOTS"),base_path_t.c_str());
+
+  /*rc = get_runtime_property_value_fptr(cxt, STR("NATIVE_DLL_SEARCH_DIRECTORIES"), &prop_buffer);
+  if (rc != 0)
+    wprintf(STR("NATIVE_DLL_SEARCH_DIRECTORIES: %s\n"), prop_buffer);*/
+  //set_runtime_property_value_fptr(cxt,STR("NATIVE_DLL_SEARCH_DIRECTORIES"),base_path_t.c_str());
+  
 
   // Get runtime delegate for resolving delegates
   load_assembly_and_get_function_pointer_fn
@@ -326,7 +388,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   }
 
   auto impl = std::make_unique<DotNetHost::Impl>();
-  impl->assembly_path_t_ = StringTFromUtf8(assembly_path);
+  impl->assembly_path_t_ = assembly_path_t;
   impl->load_assembly_and_get_function_ = load_assembly_and_get_function_fptr;
   impl->context_ = cxt;
   impl->close_fptr_ = close_fptr;
