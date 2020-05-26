@@ -11,56 +11,45 @@ namespace MvcApp
    {
       private static dynamic browserWindow;
 
-      public static async Task Main(string[] args)
+      public static async Task<int> Main(string[] args)
       {
          //if (args.Any(arg => arg.Equals("-debug")))
          // Debugger.Launch();
          //Console.WriteLine(AppDomain.CurrentDomain.BaseDirectory);
          //Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
          var node = NodeHost.Instance;
-         try
-         {
-            using var stopSource = new CancellationTokenSource();
-            var electron = node.Global.electron;
-            electron.app.on("ready",
-                            new Action<dynamic>((dynamic launchInfo) =>
-                                                {
-                                                   var options = node.New();
-                                                   options.title = ".NET rocks";
-                                                   options.backgroundColor = "#fff";
-                                                   options.useContentSize = true;
-                                                   //options.kiosk = true;
 
-                                                   var webPreferences = node.New();
-                                                   options.webPreferences = webPreferences;
-                                                   webPreferences.nodeIntegration = true;
-                                                   /*webPreferences.contextIsolation = false;
-                                                      webPreferences.sandbox = false;
-                                                      webPreferences.devTools = false;*/
+         using var stopSource = new CancellationTokenSource();
+         var electron = node.Global.require("electron");
+         electron.app.on("ready",
+                         new Action<dynamic>((dynamic launchInfo) =>
+                                             {
+                                                var options = node.New();
+                                                options.title = ".NET rocks";
+                                                options.backgroundColor = "#fff";
+                                                options.useContentSize = true;
 
-                                                   //console.log("options:", options);
+                                                var webPreferences = node.New();
+                                                options.webPreferences = webPreferences;
+                                                webPreferences.nodeIntegration = true;
 
-                                                   browserWindow = electron.BrowserWindow.CreateNewInstance(options);
+                                                browserWindow = electron.BrowserWindow.CreateNewInstance(options);
 
-                                                   browserWindow.loadURL("https://localhost:5001/");
-                                                }));
+                                                // TODO DM 27.05.2020: Get port, ensure trusted certificates
+                                                browserWindow.loadURL("https://localhost:5001/");
+                                             }));
 
-            electron.app.on("will-quit",
-                            new Action<dynamic>(e =>
-                                                {
-                                                   stopSource.Cancel();
-                                                   e.preventDefault();
-                                                }));
+         electron.app.on("will-quit",
+                         new Action<dynamic>(e =>
+                                             {
+                                                stopSource.Cancel();
+                                                e.preventDefault();
+                                             }));
 
-            var webHost = CreateHostBuilder(args).Build();
-            await webHost.RunAsync(token: stopSource.Token);
-         }
-         catch (Exception e)
-         {
-            Console.WriteLine(e);
-         }
+         var webHost = CreateHostBuilder(args).Build();
+         await webHost.RunAsync(token: stopSource.Token);
 
-         node.Global.process.exit();
+         return 0;
       }
 
       public static IHostBuilder CreateHostBuilder(string[] args) =>
