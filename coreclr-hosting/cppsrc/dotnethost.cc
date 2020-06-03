@@ -314,11 +314,11 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
 
   hostfxr_handle cxt = nullptr;
   auto runtime_config_t = StringTFromUtf8(runtime_config);
-  hostfxr_initialize_parameters init_params;
+  /*hostfxr_initialize_parameters init_params;
   init_params.size = sizeof(hostfxr_initialize_parameters);
   init_params.host_path = base_path_t.c_str();
-  init_params.dotnet_root = nullptr;
-  auto rc = init_fptr(runtime_config_t.c_str(), &init_params, &cxt);
+  init_params.dotnet_root = nullptr;*/
+  auto rc = init_fptr(runtime_config_t.c_str(), nullptr /*&init_params*/, &cxt);
   if (rc != 0 || cxt == nullptr) {
     std::cerr << "Init '" << assembly_path << "' failed: " << std::hex
               << std::showbase << rc << std::endl;

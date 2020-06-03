@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-mvcapp": "dotnet build MvcApp/MvcApp.csproj",
-    "start": "npm run build-mvcapp && electron ."
+    "start": "npm run build-mvcapp && electron .",
+    "electron": "electron ."
   },
   "author": "",
   "license": "MIT",
