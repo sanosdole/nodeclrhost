@@ -103,6 +103,33 @@ delegate IntPtr JsCall(int argc, JsValue[] argv, out DotNetType resultType)
 ```
 
 
+## Implementing an ASP.NET server
+
+The following services are required (copied from <https://github.com/dotnet/aspnetcore/blob/master/src/Servers/HttpSys/src/WebHostBuilderHttpSysExtensions.cs>):
+
+```cs
+services.AddSingleton<IServer>;
+services.AddSingleton<IServerIntegratedAuth>
+```
+
+Also `services.AddAuthenticationCore();` should be provided.
+
+### IServer interface
+
+See <https://github.com/dotnet/aspnetcore/blob/master/src/Hosting/Server.Abstractions/src/IServer.cs>
+
+Started with an `IHttpApplication<TContext>` and provides an `IFeatureCollection`.
+
+For each incoming request create a context from the `IHttpApplication.CreateContext(IFeatureCollection contextFeatures)` and call `IHttpApplication.ProcessRequestAsync(TContext context)`. After that dispose the context using `IHttpApplication.DisposeContext(TContext context, Exception exception)`.
+The type parameter can be worked around using a `IHttpApplication<object>` wrapper that casts properly on Process/Dispose.
+
+An example of how this is used can be seen in <https://github.com/dotnet/aspnetcore/blob/master/src/Servers/HttpSys/src/FeatureContext.cs>.
+It shows how to implement the `IFeatureCollection` for creating the context.
+
+
+
+
+
 
 
 
