@@ -26,13 +26,13 @@
   "dependencies": {
     "@dotnet/jsinterop": "^3.1.4",
     "coreclr-hosting": "file:../coreclr-hosting",
-    "typescript": "^3.9.2"
+    "typescript": "^3.9.5"
   },
   "devDependencies": {
-    "@types/node": "^14.0.1",
-    "electron": "^8.3.0",
+    "@types/node": "^14.0.11",
+    "electron": "^9.0.0",
     "node-loader": "^0.6.0",
-    "ts-loader": "^7.0.4",
+    "ts-loader": "^7.0.5",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11"
   },

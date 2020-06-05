@@ -21,6 +21,8 @@
         // This is required so omnisharp does not lock the folder and prevent builds with node-gyp
         "**/build/*.sln": true
     },
+    "npm.enableScriptExplorer": true,
+    "npm.fetchOnlinePackageInfo": true,
     "files.associations": {
         "cmath": "cpp",
         "cstddef": "cpp",
