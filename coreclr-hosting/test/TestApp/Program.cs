@@ -25,7 +25,8 @@
                      {
                         new Arguments(args),
                         new Global_test_object(),
-                        new Task_scheduler(mainCtx, mainScheduler)
+                        new Task_scheduler(mainCtx, mainScheduler),
+                        new LoadContext()
                      };
 
          var remainingTestCount = tests.Length;

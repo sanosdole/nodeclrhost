@@ -67,7 +67,8 @@ Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
       finalizer_mutex_(std::make_shared<std::mutex>()),
       host_(std::move(dotnet_host)),
       dotnet_thread_safe_callback_(Napi::ThreadSafeFunction::New(
-          env, Napi::Function::New(env, Noop, "invokeDotNetEventLoop"), "invokeDotNetEventLoop", 0, 1)),
+          env, Napi::Function::New(env, Noop, "invokeDotNetEventLoop"),
+          "invokeDotNetEventLoop", 0, 1)),
       process_event_loop_(nullptr),
       function_factory_(
           std::bind(&Context::CreateFunction, this, std::placeholders::_1)),
@@ -148,10 +149,10 @@ void Context::SignalMicroTask(void* data) {
   signal_micro_task_.Value().Call(env_.Global(), {process_micro_task_.Value()});
 }
 
-extern "C" typedef DotNetHandle (*EntryPointFunction)(Context* context,
-                                                      NativeApi nativeApi,
-                                                      int argc,
-                                                      const char* argv[]);
+extern "C" typedef void (*EntryPointFunction)(Context* context,
+                                              NativeApi& nativeApi, int argc,
+                                              const char* argv[],
+                                              DotNetHandle* resultValue);
 
 Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   Napi::Env env = info.Env();
@@ -218,10 +219,12 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
       "NodeHostEnvironment");
   auto entry_point = reinterpret_cast<EntryPointFunction>(entry_point_ptr);
 
-  auto return_value = entry_point(context, NativeApi::instance_,
-                                  arguments_c.size(), arguments_c.data())
-                          .ToValue(env, context->function_factory_,
-                                   context->array_buffer_factory_);
+  DotNetHandle return_handle;
+  entry_point(context, NativeApi::instance_, arguments_c.size(),
+              arguments_c.data(), &return_handle);
+
+  auto return_value = return_handle.ToValue(env, context->function_factory_,
+                                            context->array_buffer_factory_);
 
   if (return_value.IsPromise()) {
     return return_value.As<Napi::Promise>()
@@ -476,39 +479,44 @@ Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
       },
       finalizerData);
 
-
-  // This makes a non-transferable array buffer => crashes electron when rendering
-  /*auto array_buf = Napi::ArrayBuffer::New(env_, *reinterpret_cast<uint8_t**>(array_value_ptr + 1), length,
+  // This makes a non-transferable array buffer => crashes electron when
+  // rendering
+  /*auto array_buf = Napi::ArrayBuffer::New(env_,
+     *reinterpret_cast<uint8_t**>(array_value_ptr + 1), length,
       [](napi_env env, void* data, SynchronizedFinalizerCallback* hint) {
         hint->Call();
       },
       finalizerData);*/
 
-  // This creates a transferable array_buffer, but does not use external memory :(
+  // This creates a transferable array_buffer, but does not use external memory
+  // :(
   /*auto array_buf = Napi::ArrayBuffer::New(env_, length);
-  memcpy(array_buf.Data(), *reinterpret_cast<uint8_t**>(array_value_ptr + 1), length); */
+  memcpy(array_buf.Data(), *reinterpret_cast<uint8_t**>(array_value_ptr + 1),
+  length); */
 
-  // Do it manually without marking it as non-transferable (ATTENTION: New BackingStore API in newer v8 versions)
-  // This does not work either, we have many problems:
+  // Do it manually without marking it as non-transferable (ATTENTION: New
+  // BackingStore API in newer v8 versions) This does not work either, we have
+  // many problems:
   // - Different v8 Versions (Electron/Node)
   // - It looks like externalized buffers can not be shared with worker threads
   /*v8::Isolate* isolate = v8::Isolate::GetCurrent();
   v8::Local<v8::ArrayBuffer> buffer =
-      v8::ArrayBuffer::New(isolate, *reinterpret_cast<uint8_t**>(array_value_ptr + 1), length);
+      v8::ArrayBuffer::New(isolate, *reinterpret_cast<uint8_t**>(array_value_ptr
+  + 1), length);
 
-  napi_value array_buf =  reinterpret_cast<napi_value>(*buffer);// v8impl::JsValueFromV8LocalValue(buffer);
+  napi_value array_buf =  reinterpret_cast<napi_value>(*buffer);//
+  v8impl::JsValueFromV8LocalValue(buffer);
 
-  return Napi::Uint8Array::New(env_, length, Napi::ArrayBuffer(env_, array_buf), 0, napi_uint8_clamped_array);*/
+  return Napi::Uint8Array::New(env_, length, Napi::ArrayBuffer(env_, array_buf),
+  0, napi_uint8_clamped_array);*/
 }
 
-int Context::TryAccessArrayBuffer(JsHandle& handle, void*& address, int& byte_length) {
-  if (!IsActiveContext())
-    return 0;
-  if (handle.type_ != JsType::Object)
-    return 0;
+int Context::TryAccessArrayBuffer(JsHandle& handle, void*& address,
+                                  int& byte_length) {
+  if (!IsActiveContext()) return 0;
+  if (handle.type_ != JsType::Object) return 0;
   auto object = handle.AsObject(env_);
-  if (!object.IsArrayBuffer())
-    return 0;
+  if (!object.IsArrayBuffer()) return 0;
 
   auto array_buffer = object.As<Napi::ArrayBuffer>();
   address = array_buffer.Data();
