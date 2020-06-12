@@ -4,19 +4,6 @@
 
 _Latest release_ __v0.7.8__: [![Build status release](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=v0.7.8 )](https://travis-ci.com/sanosdole/nodeclrhost)
 
-_Prebuilt versions:_
-
-- Node
-  - 12.13.1
-  - 12.14.1
-  - 12.15.0
-  - 12.16.3
-- Electron
-  - 8.0.0
-  - 8.2.5
-  - 8.3.0
-  - 9.0.0
-
 This project enables writing node/electron applications with .NET core.
 This is achieved by a native node module (`coreclr-hosting`) that runs a .NET core application.
 The .NET application uses the `NodeHostEnvironment` library to interact with the node runtime.
@@ -66,3 +53,11 @@ Timeout from node
 .NET entry point returned: 5
 ```
 
+## Further examples
+
+The [examples folder](examples) contains examples for:
+
+- [node + dotnet](examples/sample)
+- [Running dotnet in Electron browser & renderer processes](examples/electron-sample)
+- [Using ElectronHostedBlazor to run a Blazor application in an Electron renderer process](examples/electron-blazor)
+- [Running a dotnet MVC app with server side blazor as an Electron application](examples/electron-mvc)

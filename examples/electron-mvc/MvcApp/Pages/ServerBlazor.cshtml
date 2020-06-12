@@ -1,0 +1,7 @@
+﻿@page
+@model ServerBlazorModel
+@{
+    ViewData["Title"] = "Blazor sample";
+}
+
+@(await Html.RenderComponentAsync<MvcApp.Components.Sample>(RenderMode.Server))

@@ -1,0 +1,15 @@
+<h1>Example of server side Blazor</h1>
+
+<p>Current: @current</p>
+
+<button class="btn btn-primary" @onclick="Increment">Click me</button>
+
+@code
+{
+    int current = 0;
+
+    void Increment()
+    {
+        current++;
+    }
+}
