@@ -38,13 +38,13 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "devDependencies": {
-    "mocha": "^7.2.0",
-    "node-gyp": "^6.1.0"
+    "mocha": "^8.1.3",
+    "node-gyp": "^7.1.0",
+    "benchmark": "^2.1.4",
+    "benchr": "^4.3.0"
   },
   "dependencies": {
-    "benchmark": "^2.1.4",
-    "benchr": "^4.3.0",
     "node-addon-api": "3.0.0",
-    "prebuild-install": "^5.3.4"
+    "prebuild-install": "^5.3.5"
   }
 }
