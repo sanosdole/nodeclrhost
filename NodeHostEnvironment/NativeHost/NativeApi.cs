@@ -28,6 +28,7 @@ namespace NodeHostEnvironment.NativeHost
       public CompletePromise CompletePromise;
       public TryAccessArrayBuffer TryAccessArrayBuffer;
       public Release Release;
+      public CloseContext CloseContext;
    }
 
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -41,7 +42,7 @@ namespace NodeHostEnvironment.NativeHost
 
    // Get a handle, ownerHandler == Zero => Global
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-   internal delegate JsValue GetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name); // A zero handle uses the global object.
+   internal delegate JsValue GetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)]string name); // A zero handle uses the global object.
 
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
    internal delegate JsValue GetMemberByIndex(IntPtr context, JsValue ownerHandle, int index); // A zero handle uses the global object.
@@ -50,7 +51,7 @@ namespace NodeHostEnvironment.NativeHost
 
    // Set a member
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-   internal delegate JsValue SetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name, DotNetValue value);
+   internal delegate JsValue SetMember(IntPtr context, JsValue ownerHandle, [MarshalAs(UnmanagedType.LPStr)] string name, in DotNetValue value);
 
    // Invoke handles that represent functions
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
@@ -79,4 +80,7 @@ namespace NodeHostEnvironment.NativeHost
 
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
    internal delegate bool TryAccessArrayBuffer(IntPtr context, JsValue handle, out IntPtr address, out int byteLength);
+
+   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+   internal delegate void CloseContext(IntPtr context);
 }

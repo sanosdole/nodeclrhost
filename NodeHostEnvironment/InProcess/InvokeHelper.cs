@@ -15,26 +15,31 @@ namespace NodeHostEnvironment.InProcess
                if (method.ReturnType == typeof(void))
                   return new InvokerVoid(@delegate, host).Callback;
                else
+                  // ReSharper disable once PossibleNullReferenceException
                   return ((AbstractInvoker)Activator.CreateInstance(typeof(Invoker<>).MakeGenericType(method.ReturnType),
                                                                     @delegate,
                                                                     host)).Callback;
             case 1:
                if (method.ReturnType == typeof(void))
+                  // ReSharper disable once PossibleNullReferenceException
                   return ((AbstractInvoker)Activator.CreateInstance(typeof(InvokerVoid<>).MakeGenericType(requiredParameters[0].ParameterType),
                                                                     @delegate,
                                                                     host)).Callback;
                else
+                  // ReSharper disable once PossibleNullReferenceException
                   return ((AbstractInvoker)Activator.CreateInstance(typeof(Invoker<,>).MakeGenericType(requiredParameters[0].ParameterType,
                                                                                                        method.ReturnType),
                                                                     @delegate,
                                                                     host)).Callback;
             case 2:
                if (method.ReturnType == typeof(void))
+                  // ReSharper disable once PossibleNullReferenceException
                   return ((AbstractInvoker)Activator.CreateInstance(typeof(InvokerVoid<,>).MakeGenericType(requiredParameters[0].ParameterType,
                                                                                                            requiredParameters[1].ParameterType),
                                                                     @delegate,
                                                                     host)).Callback;
                else
+                  // ReSharper disable once PossibleNullReferenceException
                   return ((AbstractInvoker)Activator.CreateInstance(typeof(Invoker<,,>).MakeGenericType(requiredParameters[0].ParameterType,
                                                                                                         requiredParameters[1].ParameterType,
                                                                                                         method.ReturnType),

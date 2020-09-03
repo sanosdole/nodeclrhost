@@ -24,9 +24,9 @@ namespace NodeHostEnvironment.InProcess
         void SetMember(JsValue ownerHandle, string name, DotNetValue value);
 
         // Invoke handles that represent functions
-        JsValue Invoke(JsValue handle, JsValue receiverHandle, int argc, DotNetValue[] argv);
+        JsValue Invoke(JsValue handle, JsValue receiverHandle, DotNetValue[] argv);
 
-        JsValue InvokeByName(string name, JsValue receiverHandle, int argc, DotNetValue[] argv);
+        JsValue InvokeByName(string name, JsValue receiverHandle, DotNetValue[] argv);
 
         JsValue CreateObject(JsValue constructor, DotNetValue[] arguments); // We use SetMember to define members
 

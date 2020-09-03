@@ -28,7 +28,7 @@ typedef enum {
 } Enum;
 }
 
-struct JsHandle {
+struct JsHandle final {
   JsType::Enum type_;
   union {
     void* value_;

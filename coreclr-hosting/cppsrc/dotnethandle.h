@@ -23,7 +23,7 @@ typedef enum {
 } Enum;
 }
 
-extern "C" struct DotNetHandle {
+extern "C" struct DotNetHandle final {
   DotNetType::Enum type_;
   union {
     void *value_;

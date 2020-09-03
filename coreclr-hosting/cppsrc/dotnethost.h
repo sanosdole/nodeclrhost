@@ -17,7 +17,7 @@ enum Enum {
 };
 }
 
-class DotNetHost {
+class DotNetHost final {
   class Impl;
   std::unique_ptr<Impl> impl_;
 

@@ -2,6 +2,7 @@ namespace NodeHostEnvironment.NativeHost
 {
    using System;
    using System.Collections.Generic;
+   using System.Diagnostics;
    using System.Linq;
    using System.Runtime.InteropServices;
    using System.Threading;
@@ -9,10 +10,8 @@ namespace NodeHostEnvironment.NativeHost
 
    internal sealed class NodeTaskScheduler : TaskScheduler
    {
-      private readonly IntPtr _context;
+      private readonly NativeContext _nativeContext;
       private readonly Context _synchronizationContext;
-      private readonly SignalEventLoopEntry _signalEventLoopEntry;
-      private readonly SignalMicroTask _signalMicroTask;
 
       // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we need it to stay alive
       private readonly ProcessJsEventLoopEntry _onProcessJsEventLoopEntry;
@@ -22,18 +21,18 @@ namespace NodeHostEnvironment.NativeHost
       private readonly ThreadLocal<bool> _isActive = new ThreadLocal<bool>();
 
       private readonly Queue<Task> _microTasks = new Queue<Task>();
+      private readonly HashSet<Task> _eventLoopTasks = new HashSet<Task>();
+      private volatile int _stopped;
 
-      public NodeTaskScheduler(IntPtr context, NativeApi nativeMethods)
+      public NodeTaskScheduler(NativeContext nativeContext)
       {
-         _context = context;
-         _signalEventLoopEntry = nativeMethods.SignalEventLoopEntry;
-         _signalMicroTask = nativeMethods.SignalMicroTask;
+         _nativeContext = nativeContext;
          Factory = new TaskFactory(this);
          _synchronizationContext = new Context(Factory);
 
          _onProcessJsEventLoopEntry = OnProcessJSEventLoopEntry;
          _onProcessMicroTask = OnProcessMicroTask;
-         nativeMethods.RegisterSchedulerCallbacks(context, _onProcessJsEventLoopEntry, _onProcessMicroTask);
+         _nativeContext.RegisterSchedulerCallbacks(_onProcessJsEventLoopEntry, _onProcessMicroTask);
       }
 
       public bool ContextIsActive => _isActive.Value;
@@ -69,21 +68,29 @@ namespace NodeHostEnvironment.NativeHost
       /// <param name="task">The task to be executed.</param>
       protected override void QueueTask(Task task)
       {
+         if (_stopped != 0)
+         {
+            // TODO DM 02.09.2020: Is it better to try execution?
+            throw new InvalidOperationException("Scheduler has been stopped!");
+         }
+
          if (ContextIsActive)
          {
             // If we are on the right thread we use a micro task.
             // It will be processed in order with JS micro tasks once the stack is empty.
             // TODO DM 27.04.2020: Profile if using a private queue is more efficient than creating a new JS func on every invocation
             _microTasks.Enqueue(task);
-            _signalMicroTask(_context, IntPtr.Zero);
+            _nativeContext.SignalMicroTask(IntPtr.Zero);
             return;
          }
 
          var handle = GCHandle.Alloc(task, GCHandleType.Normal);
          var handlePtr = GCHandle.ToIntPtr(handle);
+         lock (_eventLoopTasks)
+            _eventLoopTasks.Add(task);
 
          // Otherwise it will be queued to the event loop.
-         _signalEventLoopEntry(_context, handlePtr);
+         _nativeContext.SignalEventLoopEntry(handlePtr);
       }
 
       /// <summary>
@@ -106,27 +113,26 @@ namespace NodeHostEnvironment.NativeHost
       /// <returns>An enumerable of all tasks currently scheduled.</returns>
       protected override IEnumerable<Task> GetScheduledTasks()
       {
-         // TODO DM 27.04.2020: Support debugger in DEBUG builds
-         return Enumerable.Empty<Task>();
+         // TODO DM 02.09.2020: Add micro tasks for debugger support or skip debugger support and use a counter for queue size!
+         lock (_eventLoopTasks)
+            return _eventLoopTasks.ToList();
       }
 
       private void OnProcessMicroTask(IntPtr data)
       {
-         /*var handle = GCHandle.FromIntPtr(data);
-         var microTask = (Task)handle.Target;*/
          var microTask = _microTasks.Dequeue();
 
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
          _isActive.Value = true;
          TryExecuteTask(microTask);
          _isActive.Value = false;
-         //handle.Free();
       }
 
       private void OnProcessJSEventLoopEntry(IntPtr data)
       {
          var handle = GCHandle.FromIntPtr(data);
          var macroTask = (Task)handle.Target;
+         Debug.Assert(macroTask != null);
 
          // We need a synchronization context to prevent the async targeting pack
          // from in-lining thread pool continuations onto the Node thread. This works as it uses
@@ -138,6 +144,8 @@ namespace NodeHostEnvironment.NativeHost
          TryExecuteTask(macroTask);
          _isActive.Value = false;
          handle.Free();
+         lock (_eventLoopTasks)
+            _eventLoopTasks.Remove(macroTask);
       }
 
       private sealed class Context : SynchronizationContext
@@ -170,6 +178,43 @@ namespace NodeHostEnvironment.NativeHost
             // DM 28.o6.2o16: This ensures that the ATP does not drop the context!
             return this;
          }
+      }
+
+      public void StopAndWaitTillEmpty(Action onStopped)
+      {
+         async void WaitTillEmpty()
+         {
+            // TODO DM 02.09.2020: Is this really necessary?
+            // Attempt to remove as many dynamic objects as possible before disposing the context.
+            // This should minimize unreleasable object references to JS.
+            // Do it asynchronously as finalizers may require to access the scheduler!
+            await Task.Run(() =>
+                           {
+                              GC.Collect();
+                              GC.WaitForPendingFinalizers(); // This could schedule tasks to _eventLoopTasks
+                           });
+
+            lock (_eventLoopTasks)
+            {
+               if (_eventLoopTasks.Count < 2)
+                  _stopped = 1;
+            }
+
+            if (_stopped != 0)
+            {
+               onStopped();
+               return;
+            }
+
+#pragma warning disable 4014 // As we do not want to add another continuation to the scheduler
+            Factory.StartNew(WaitTillEmpty);
+#pragma warning restore 4014
+         }
+
+         Factory.StartNew(WaitTillEmpty);
+
+         while (_stopped == 0)
+         { }
       }
    }
 }

@@ -16,7 +16,7 @@
 
 namespace coreclrhosting {
 
-class Context {
+class Context final {
   class SynchronizedFinalizerCallback;
 
   Napi::Env env_;
@@ -34,9 +34,8 @@ class Context {
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;  // no self-assignments
   Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env);
-  ~Context();
-
-  class ThreadInstance {
+  
+  class ThreadInstance final {
     static thread_local Context* thread_instance_;
     Context* previous_;
 
@@ -57,8 +56,8 @@ class Context {
                         DotNetHandle* argv);
 
  public:
+  ~Context();
   static Napi::Value RunCoreApp(const Napi::CallbackInfo& info);
-  static Context* CurrentInstance() { return ThreadInstance::Current(); }
 
   void RegisterSchedulerCallbacks(void (*process_event_loop)(void*),
                                   void (*process_micro_task)(void*));

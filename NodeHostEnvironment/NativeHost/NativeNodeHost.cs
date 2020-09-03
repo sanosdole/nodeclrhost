@@ -2,39 +2,41 @@ namespace NodeHostEnvironment.NativeHost
 {
    using System;
    using System.Collections.Generic;
+   using System.Diagnostics;
    using System.Reflection;
    using System.Runtime.InteropServices;
    using System.Text;
    using System.Threading.Tasks;
    using InProcess;
 
-   internal sealed class NativeNodeHost : IHostInProcess
+   internal sealed class NativeNodeHost : IHostInProcess,
+                                          IDisposable
    {
-      private readonly IntPtr _context;
-      private readonly NodeTaskScheduler _scheduler;
+      // ReSharper disable once CollectionNeverQueried.Local as we need it to prevent GC
       private readonly Dictionary<IntPtr, CallbackHolder> _registry = new Dictionary<IntPtr, CallbackHolder>();
-      private readonly Dictionary<IntPtr, TaskHolder> _taskRegistry = new Dictionary<IntPtr, TaskHolder>();
-      private readonly ReleaseDotNetValue ReleaseCallback;
-      private readonly ReleaseDotNetValue ReleaseTaskCallback;
 
-      private NativeApi NativeMethods { get; }
+      // ReSharper disable once CollectionNeverQueried.Local as we need it to prevent GC
+      private readonly Dictionary<IntPtr, TaskHolder> _taskRegistry = new Dictionary<IntPtr, TaskHolder>();
+      private readonly ReleaseDotNetValue _releaseCallback;
+      private readonly ReleaseDotNetValue _releaseTaskCallback;
+
+      private NativeContext NativeContext { get; }
 
       public NativeNodeHost(IntPtr context, NativeApi nativeMethods)
       {
-         NativeMethods = nativeMethods;
-         _context = context;
-         ReleaseCallback = ReleaseCallbackIntern;
-         ReleaseTaskCallback = ReleaseTaskCallbackIntern;
-         _scheduler = new NodeTaskScheduler(context, nativeMethods);
+         NativeContext = new NativeContext(context, nativeMethods);
+         _releaseCallback = ReleaseCallbackIntern;
+         _releaseTaskCallback = ReleaseTaskCallbackIntern;
+         Scheduler = new NodeTaskScheduler(NativeContext);
       }
 
-      internal NodeTaskScheduler Scheduler => _scheduler;
+      internal NodeTaskScheduler Scheduler { get; }
 
-      public TaskFactory Factory => _scheduler.Factory;
+      public TaskFactory Factory => Scheduler.Factory;
 
       private void CheckInContext()
       {
-         if (!_scheduler.ContextIsActive)
+         if (!Scheduler.ContextIsActive)
             throw new InvalidOperationException("We are not on the node context!");
       }
 
@@ -42,7 +44,7 @@ namespace NodeHostEnvironment.NativeHost
       {
          var holder = new CallbackHolder(callback, this);
          _registry.Add(holder.CallbackPtr, holder);
-         releaseCallback = ReleaseCallback;
+         releaseCallback = _releaseCallback;
          return holder.CallbackPtr;
       }
 
@@ -50,7 +52,7 @@ namespace NodeHostEnvironment.NativeHost
       {
          var holder = new TaskHolder(task, this);
          _taskRegistry.Add(holder.CallbackPtr, holder);
-         releaseCallback = ReleaseTaskCallback;
+         releaseCallback = _releaseTaskCallback;
          return holder.CallbackPtr;
       }
 
@@ -72,11 +74,11 @@ namespace NodeHostEnvironment.NativeHost
       {
          [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
          private delegate DotNetValue CallbackSignature(int argc,
-                                                 [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct, SizeParamIndex = 0)]
-                                                 JsValue[] argv);
+                                                        [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.Struct, SizeParamIndex = 0)]
+                                                        JsValue[] argv);
 
          public IntPtr CallbackPtr { get; }
-         public DotNetCallback Wrapped { get; }
+         private DotNetCallback Wrapped { get; }
 
          // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we want the GC Handle it brings
          private readonly CallbackSignature _wrapper;
@@ -93,11 +95,11 @@ namespace NodeHostEnvironment.NativeHost
 
          private DotNetValue OnCalled(int argc, JsValue[] argv)
          {
-            System.Diagnostics.Debug.Assert(argc == (argv?.Length ?? 0), "Marshalling is broken");
+            Debug.Assert(argc == (argv?.Length ?? 0), "Marshalling is broken");
 
             try
             {
-               return (DotNetValue)_parent._scheduler.RunCallbackSynchronously(
+               return (DotNetValue)_parent.Scheduler.RunCallbackSynchronously(
                   state => Wrapped((JsValue[])state),
                   argv ?? EmptyJsValues);
             }
@@ -105,8 +107,8 @@ namespace NodeHostEnvironment.NativeHost
             {
                if (exception is AggregateException aggregateException)
                   exception = UnwrapAggregateException(aggregateException);
-               if (exception is TargetInvocationException targetInvocationexception)
-                  exception = targetInvocationexception.InnerException;
+               if (exception is TargetInvocationException targetInvocationException)
+                  exception = targetInvocationException.InnerException;
 
                return DotNetValue.FromException(exception);
             }
@@ -143,7 +145,7 @@ namespace NodeHostEnvironment.NativeHost
                   var value = exception == null
                                  ? DotNetValue.FromObject(GetResult(_task), _parent)
                                  : DotNetValue.FromException(exception);
-                  _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
+                  _parent.NativeContext.CompletePromise(deferred, value);
                }
                else
                {
@@ -153,9 +155,9 @@ namespace NodeHostEnvironment.NativeHost
                                         var value = exception == null
                                                        ? DotNetValue.FromObject(GetResult(t), _parent)
                                                        : DotNetValue.FromException(exception);
-                                        _parent.NativeMethods.CompletePromise(_parent._context, deferred, value);
+                                        _parent.NativeContext.CompletePromise(deferred, value);
                                      },
-                                     _parent._scheduler);
+                                     _parent.Scheduler);
                }
 
                return new DotNetValue
@@ -171,21 +173,20 @@ namespace NodeHostEnvironment.NativeHost
             }
          }
 
-         private object GetResult(Task t)
+         private static object GetResult(Task t)
          {
             var type = t.GetType();
             var resultType = GetTaskResultType(type);
-            if (resultType != null)
-            {
-               // TODO DM 29.11.2019: This is required to prevent failure for some .NET generated Task instances
-               if (resultType.Name == "VoidTaskResult")
-                  return null;
+            if (resultType == null)
+               return null;
+            // TODO DM 29.11.2019: This is required to prevent failure for some .NET generated Task instances
+            if (resultType.Name == "VoidTaskResult")
+               return null;
 
-               // DM 23.11.2019: This could be optimized if necessary
-               return type.GetProperty(nameof(Task<object>.Result)).GetValue(t);
-            }
-
-            return null;
+            // DM 23.11.2019: This could be optimized if necessary
+            var resultPropertyInfo = type.GetProperty(nameof(Task<object>.Result));
+            Debug.Assert(resultPropertyInfo != null, "Task<> always has this property!");
+            return resultPropertyInfo.GetValue(t);
          }
 
          private static Type GetTaskResultType(Type taskType)
@@ -217,13 +218,13 @@ namespace NodeHostEnvironment.NativeHost
       public JsValue GetMember(JsValue ownerHandle, string name)
       {
          CheckInContext();
-         return NativeMethods.GetMember(_context, ownerHandle, name);
+         return NativeContext.GetMember(ownerHandle, name);
       }
 
       public JsValue GetMemberByIndex(JsValue ownerHandle, int index)
       {
          CheckInContext();
-         return NativeMethods.GetMemberByIndex(_context, ownerHandle, index);
+         return NativeContext.GetMemberByIndex(ownerHandle, index);
       }
 
       // Convert handles to primitives can be done in managed code based on JsType
@@ -233,34 +234,34 @@ namespace NodeHostEnvironment.NativeHost
       public void SetMember(JsValue ownerHandle, string name, DotNetValue value)
       {
          CheckInContext();
-         var result = NativeMethods.SetMember(_context, ownerHandle, name, value);
+         var result = NativeContext.SetMember(ownerHandle, name, value);
          result.ThrowError(this);
       }
 
       // Invoke handles that represent functions
-      public JsValue Invoke(JsValue handle, JsValue receiverHandle, int argc, DotNetValue[] argv)
+      public JsValue Invoke(JsValue handle, JsValue receiverHandle, DotNetValue[] argv)
       {
          CheckInContext();
-         return NativeMethods.Invoke(_context, handle, receiverHandle, argc, argv);
+         return NativeContext.Invoke(handle, receiverHandle, argv);
       }
 
-      public JsValue InvokeByName(string name, JsValue receiverHandle, int argc, DotNetValue[] argv)
+      public JsValue InvokeByName(string name, JsValue receiverHandle, DotNetValue[] argv)
       {
          CheckInContext();
-         return NativeMethods.InvokeByName(_context, name, receiverHandle, argc, argv);
+         return NativeContext.InvokeByName(name, receiverHandle, argv);
       }
 
       public JsValue CreateObject(JsValue constructor, DotNetValue[] arguments)
       {
          CheckInContext();
-         return NativeMethods.CreateObject(_context, constructor, arguments?.Length ?? 0, arguments);
+         return NativeContext.CreateObject(constructor, arguments);
       }
 
       public JsValue[] GetArrayValues(JsValue handle)
       {
          CheckInContext();
 
-         var lengthHandle = NativeMethods.GetMember(_context, handle, "length");
+         var lengthHandle = NativeContext.GetMember(handle, "length");
          lengthHandle.ThrowError(this); // Maybe inner exception?
          if (lengthHandle.Type != JsType.Number)
             throw new InvalidOperationException("JsValue is not an array, as it has no 'length' member");
@@ -270,10 +271,10 @@ namespace NodeHostEnvironment.NativeHost
 
          // Allocating the array in managed code spares us releasing native array allocation
          var result = new JsValue[length];
-         for (int i = 0; i < length; i++)
+         for (var i = 0; i < length; i++)
          {
-            // DM 05.03.2020: Move loop to native code filling result could spare n pinvokes.
-            result[i] = NativeMethods.GetMemberByIndex(_context, handle, i);
+            // DM 05.03.2020: Move loop to native code filling result could spare n p-invokes.
+            result[i] = NativeContext.GetMemberByIndex(handle, i);
          }
 
          return result;
@@ -281,34 +282,47 @@ namespace NodeHostEnvironment.NativeHost
 
       public bool TryAccessArrayBuffer(JsValue handle, out IntPtr address, out int byteLength)
       {
-         return NativeMethods.TryAccessArrayBuffer(_context, handle, out address, out byteLength);
+         return NativeContext.TryAccessArrayBuffer(handle, out address, out byteLength);
       }
 
       public void Release(JsValue handle)
       {
          // This should be callable from any thread
-         if (!handle.RequiresContextForRelease || _scheduler.ContextIsActive)
+         if (!handle.RequiresContextForRelease || Scheduler.ContextIsActive)
          {
-            NativeMethods.Release(handle);
+            NativeContext.Release(handle);
          }
          else
          {
-            _scheduler.Factory.StartNew(() => NativeMethods.Release(handle));
+            Scheduler.Factory.StartNew(() => NativeContext.Release(handle));
          }
       }
 
       public string StringFromNativeUtf8(IntPtr nativeUtf8)
       {
-         int len = 0;
+         var len = 0;
          while (Marshal.ReadByte(nativeUtf8, len) != 0) ++len;
-         byte[] buffer = new byte[len];
+         var buffer = new byte[len];
          Marshal.Copy(nativeUtf8, buffer, 0, buffer.Length);
          return Encoding.UTF8.GetString(buffer);
       }
 
       public bool CheckAccess()
       {
-         return _scheduler.ContextIsActive;
+         return Scheduler.ContextIsActive;
+      }
+
+      public void Dispose()
+      {
+         Scheduler.StopAndWaitTillEmpty(() =>
+                                        {
+                                           // We want to do this on the proper JS thread!
+                                           NativeContext.Dispose();
+
+                                           // DM 02.09.2020: After disposal of the context those will never get removed!
+                                           _registry.Clear();
+                                           _taskRegistry.Clear();
+                                        });
       }
    }
 }

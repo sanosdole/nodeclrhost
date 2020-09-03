@@ -15,6 +15,7 @@ struct NativeApi {
   void* CompletePromise;
   void* TryAccessArrayBuffer;
   void* Release;
+  void* CloseContext;
 
   static NativeApi instance_;
 };

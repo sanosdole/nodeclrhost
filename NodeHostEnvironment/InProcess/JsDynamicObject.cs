@@ -114,7 +114,7 @@ namespace NodeHostEnvironment.InProcess
       {
          CheckDisposed();
 
-         var resultHandle = _host.InvokeByName(binder.Name, Handle, args.Length, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
+         var resultHandle = _host.InvokeByName(binder.Name, Handle, args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
          resultHandle.TryGetObject(_host, binder.ReturnType, out result);
          return true;
       }
@@ -125,7 +125,6 @@ namespace NodeHostEnvironment.InProcess
 
          var resultHandle = _host.Invoke(Handle,
                                          Handle,
-                                         args.Length,
                                          args.Select(a => DotNetValue.FromObject(a, _host)).ToArray());
          resultHandle.TryGetObject(_host, binder.ReturnType, out result);
          return true;
@@ -167,8 +166,7 @@ namespace NodeHostEnvironment.InProcess
          {
             var jsResult = _host.InvokeByName("String",
                                               JsValue.Global,
-                                              1,
-                                              new DotNetValue[]
+                                              new[]
                                               {
                                                  DotNetValue.FromJsValue(Handle)
                                               });
@@ -204,7 +202,6 @@ namespace NodeHostEnvironment.InProcess
                                                      });
                      var thenResult = _host.Invoke(thenHandle,
                                                    Handle,
-                                                   2,
                                                    new[]
                                                    {
                                                       DotNetValue.FromDelegate(resolve, _host),
@@ -221,8 +218,7 @@ namespace NodeHostEnvironment.InProcess
                      var tcs = new TaskCompletionSource<object>();
                      var thenResult = _host.Invoke(thenHandle,
                                                    Handle,
-                                                   2,
-                                                   new DotNetValue[]
+                                                   new[]
                                                    {
                                                       DotNetValue.FromDelegate(new Action(() => tcs.SetResult(null)), _host),
                                                       DotNetValue.FromDelegate(new Action<object>((error) => { tcs.SetException(GetExceptionFromPromiseRejection(error)); }), _host)
@@ -378,8 +374,7 @@ namespace NodeHostEnvironment.InProcess
          {
             var result = _host.InvokeByName("is",
                                             gObj,
-                                            2,
-                                            new DotNetValue[]
+                                            new[]
                                             {
                                                DotNetValue.FromJsValue(Handle),
                                                DotNetValue.FromJsValue(other.Handle)

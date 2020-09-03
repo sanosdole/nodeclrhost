@@ -77,6 +77,11 @@ EXPORT_TO_DOTNET int TryAccessArrayBuffer(void* context_handle, JsHandle handle,
   return context->TryAccessArrayBuffer(handle, address, byte_length);
 }
 
+EXPORT_TO_DOTNET void CloseContext(void* context_handle) {
+  auto context = reinterpret_cast<Context*>(context_handle);
+  delete context;
+}
+
 NativeApi NativeApi::instance_ = {
     reinterpret_cast<void*>(&::RegisterSchedulerCallbacks),
     reinterpret_cast<void*>(&::SignalEventLoopEntry),
@@ -89,4 +94,5 @@ NativeApi NativeApi::instance_ = {
     reinterpret_cast<void*>(&::CreateObject),
     reinterpret_cast<void*>(&::CompletePromise),
     reinterpret_cast<void*>(&::TryAccessArrayBuffer),
-    reinterpret_cast<void*>(&::Release)};
+    reinterpret_cast<void*>(&::Release),
+    reinterpret_cast<void*>(&::CloseContext)};

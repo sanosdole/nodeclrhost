@@ -19,7 +19,7 @@ Napi::Value Noop(const Napi::CallbackInfo& info) {
 
 namespace coreclrhosting {
 
-class Context::SynchronizedFinalizerCallback {
+class Context::SynchronizedFinalizerCallback final {
   Context* context_;
   std::shared_ptr<std::mutex> mutex_;
   std::function<void()> callback_;
@@ -226,25 +226,6 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
   auto return_value = return_handle.ToValue(env, context->function_factory_,
                                             context->array_buffer_factory_);
 
-  if (return_value.IsPromise()) {
-    return return_value.As<Napi::Promise>()
-        .Get("then")
-        .As<Napi::Function>()
-        .MakeCallback(
-            return_value,
-            {Napi::Function::New(env,
-                                 [context](const Napi::CallbackInfo& f_info) {
-                                   delete context;
-                                   return f_info[0];
-                                 }),
-             Napi::Function::New(env,
-                                 [context](const Napi::CallbackInfo& r_info) {
-                                   delete context;
-                                   return r_info[0];
-                                 })});
-  }
-
-  delete context;
   return return_value;
 }
 
