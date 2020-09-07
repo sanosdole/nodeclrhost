@@ -24,6 +24,12 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
 
   window['electron'] = require('electron');
 
+  // DM 07.09.2020: Server side blazor uses JSON.parse while WASM uses some Mono internal function. So reviving is probably broken.
+  //                We need this as the dotnet/jsinterop does not parse the result json directly.
+  DotNet.jsCallDispatcher['endInvokeDotNetFromJSWithJson'] = function (asyncCallId: string, success: boolean, resultOrExceptionMessage: any): void {
+    DotNet.jsCallDispatcher.endInvokeDotNetFromJS(asyncCallId, success, success ? JSON.parse(resultOrExceptionMessage) : resultOrExceptionMessage);
+  }
+
   setEventDispatcher((eventDescriptor, eventArgs) => window['Blazor']._internal.HandleRendererEvent(eventDescriptor, JSON.stringify(eventArgs)));
   //DotNet.invokeMethodAsync('Microsoft.AspNetCore.Blazor', 'DispatchEvent', eventDescriptor, JSON.stringify(eventArgs)));
 

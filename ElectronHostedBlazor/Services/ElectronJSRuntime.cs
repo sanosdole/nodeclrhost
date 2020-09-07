@@ -84,11 +84,11 @@ namespace ElectronHostedBlazor.Services
             return;
          }
 
-         _jsCallDispatcher.endInvokeDotNetFromJS(invocationInfo.CallId,
-                                                 invocationResult.Success,
-                                                 invocationResult.Success
-                                                    ? JsonSerializer.Serialize(invocationResult.Result, JsonSerializerOptions)
-                                                    : invocationResult.Exception.ToString());
+         _jsCallDispatcher.endInvokeDotNetFromJSWithJson(invocationInfo.CallId,
+                                                         invocationResult.Success,
+                                                         invocationResult.Success
+                                                            ? JsonSerializer.Serialize(invocationResult.Result, JsonSerializerOptions)
+                                                            : invocationResult.Exception.ToString());
       }
    }
 }
