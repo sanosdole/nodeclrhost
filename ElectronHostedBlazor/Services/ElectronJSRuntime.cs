@@ -75,11 +75,11 @@ namespace ElectronHostedBlazor.Services
             // TODO DM 27.04.2020: This seems to happen in electron, we should investigate how this is possible as dotnet uses TaskScheduler.Current
             // Exceptions do not propagate here
             var result = invocationResult;
-            _node.Run(() => _jsCallDispatcher.endInvokeDotNetFromJS(invocationInfo.CallId,
-                                                                    result.Success,
-                                                                    result.Success
-                                                                       ? JsonSerializer.Serialize(result.Result, JsonSerializerOptions)
-                                                                       : result.Exception.ToString()))
+            _node.Run(() => _jsCallDispatcher.endInvokeDotNetFromJSWithJson(invocationInfo.CallId,
+                                                                            result.Success,
+                                                                            result.Success
+                                                                               ? JsonSerializer.Serialize(result.Result, JsonSerializerOptions)
+                                                                               : result.Exception.ToString()))
                  .Wait();
             return;
          }
