@@ -97,6 +97,7 @@ namespace NodeHostEnvironment.NativeHost
                //                     Consider something like a static function that receives the bridge interface, a close callback & js args.
                //                     This may call a entry point or do whatever it wants.
                //                     This way we can even utilize ALCs and create a NativeContext per JS context (Although they all must share the dotnethost).
+               // TODO DM 03.09.2020: When completing the task on the `unload` event in a electron renderer, this crashes occasionally
                resultTask.ContinueWith(t =>
                                        {
                                           NodeHost.Instance = null;
