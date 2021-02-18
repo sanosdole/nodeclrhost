@@ -40,6 +40,54 @@ namespace NodeHostEnvironment.InProcess
                                                                                                         method.ReturnType),
                                                                     @delegate,
                                                                     host)).Callback;
+            case 3:
+               if (method.ReturnType == typeof(void))
+                  return ((AbstractInvoker)Activator.CreateInstance(typeof(InvokerVoid<,,>).MakeGenericType(requiredParameters[0].ParameterType,
+                                                                                                           requiredParameters[1].ParameterType,
+                                                                                                           requiredParameters[2].ParameterType),
+                                                                    @delegate,
+                                                                    host)).Callback;
+               else
+                  return ((AbstractInvoker)Activator.CreateInstance(typeof(Invoker<,,,>).MakeGenericType(requiredParameters[0].ParameterType,
+                                                                                                         requiredParameters[1].ParameterType,
+                                                                                                         requiredParameters[2].ParameterType,
+                                                                                                         method.ReturnType),
+                                                                    @delegate,
+                                                                    host)).Callback;
+            case 4:
+               if (method.ReturnType == typeof(void))
+                  return ((AbstractInvoker)Activator.CreateInstance(typeof(InvokerVoid<,,,>).MakeGenericType(requiredParameters[0].ParameterType,
+                                                                                                             requiredParameters[1].ParameterType,
+                                                                                                             requiredParameters[2].ParameterType,
+                                                                                                             requiredParameters[3].ParameterType),
+                                                                    @delegate,
+                                                                    host)).Callback;
+               else
+                  return ((AbstractInvoker)Activator.CreateInstance(typeof(Invoker<,,,,>).MakeGenericType(requiredParameters[0].ParameterType,
+                                                                                                          requiredParameters[1].ParameterType,
+                                                                                                          requiredParameters[2].ParameterType,
+                                                                                                          requiredParameters[3].ParameterType,
+                                                                                                          method.ReturnType),
+                                                                    @delegate,
+                                                                    host)).Callback;
+            case 5:
+               if (method.ReturnType == typeof(void))
+                  return ((AbstractInvoker)Activator.CreateInstance(typeof(InvokerVoid<,,,,>).MakeGenericType(requiredParameters[0].ParameterType,
+                                                                                                             requiredParameters[1].ParameterType,
+                                                                                                             requiredParameters[2].ParameterType,
+                                                                                                             requiredParameters[3].ParameterType,
+                                                                                                             requiredParameters[4].ParameterType),
+                                                                    @delegate,
+                                                                    host)).Callback;
+               else
+                  return ((AbstractInvoker)Activator.CreateInstance(typeof(Invoker<,,,,,>).MakeGenericType(requiredParameters[0].ParameterType,
+                                                                                                          requiredParameters[1].ParameterType,
+                                                                                                          requiredParameters[2].ParameterType,
+                                                                                                          requiredParameters[3].ParameterType,
+                                                                                                          requiredParameters[4].ParameterType,
+                                                                                                          method.ReturnType),
+                                                                    @delegate,
+                                                                    host)).Callback;
             default:
                // Fallback to reflection
                return argv => DynamicInvoke(@delegate, host, argv);
@@ -231,6 +279,195 @@ namespace NodeHostEnvironment.InProcess
             ReleaseRemainingArgs(argv, 2);
 
             return DotNetValue.FromObject(_func(a1, a2), Host);
+         }
+      }
+
+      private sealed class InvokerVoid<T1, T2, T3> : AbstractInvoker
+      {
+         private readonly Action<T1, T2, T3> _action;
+
+         public InvokerVoid(Delegate @delegate, IHostInProcess host) : base(host)
+         {
+            _action = @delegate as Action<T1, T2, T3>
+                      ?? (Action<T1, T2, T3>)Delegate.CreateDelegate(typeof(Action<T1, T2, T3>), @delegate.Target, @delegate.Method);
+         }
+
+         public override DotNetCallback Callback => InvokeDelegate;
+
+         private DotNetValue InvokeDelegate(JsValue[] argv)
+         {
+            if (argv.Length < 3)
+            {
+               ReleaseRemainingArgs(argv, 0);
+               throw new InvalidOperationException("We need at least 3 argument!");
+            }
+
+            var a1 = GetTypedArgument<T1>(argv, 0);
+            var a2 = GetTypedArgument<T2>(argv, 1);
+            var a3 = GetTypedArgument<T3>(argv, 2);
+
+            ReleaseRemainingArgs(argv, 3);
+
+            _action(a1, a2, a3);
+            return DotNetValue.NullValue;
+         }
+      }
+
+      private sealed class Invoker<T1, T2, T3, TResult> : AbstractInvoker
+      {
+         private readonly Func<T1, T2, T3, TResult> _func;
+
+         public Invoker(Delegate @delegate, IHostInProcess host) : base(host)
+         {
+            _func = @delegate as Func<T1, T2, T3, TResult>
+                    ?? (Func<T1, T2, T3, TResult>)Delegate.CreateDelegate(typeof(Func<T1, T2, T3, TResult>), @delegate.Target, @delegate.Method);
+         }
+
+         public override DotNetCallback Callback => InvokeDelegate;
+
+         private DotNetValue InvokeDelegate(JsValue[] argv)
+         {
+            if (argv.Length < 3)
+            {
+               ReleaseRemainingArgs(argv, 0);
+               throw new InvalidOperationException("We need at least 2 argument!");
+            }
+
+            var a1 = GetTypedArgument<T1>(argv, 0);
+            var a2 = GetTypedArgument<T2>(argv, 1);
+            var a3 = GetTypedArgument<T3>(argv, 2);
+
+            ReleaseRemainingArgs(argv, 3);
+
+            return DotNetValue.FromObject(_func(a1, a2, a3), Host);
+         }
+      }
+
+      private sealed class InvokerVoid<T1, T2, T3, T4> : AbstractInvoker
+      {
+         private readonly Action<T1, T2, T3, T4> _action;
+
+         public InvokerVoid(Delegate @delegate, IHostInProcess host) : base(host)
+         {
+            _action = @delegate as Action<T1, T2, T3, T4>
+                      ?? (Action<T1, T2, T3, T4>)Delegate.CreateDelegate(typeof(Action<T1, T2, T3, T4>), @delegate.Target, @delegate.Method);
+         }
+
+         public override DotNetCallback Callback => InvokeDelegate;
+
+         private DotNetValue InvokeDelegate(JsValue[] argv)
+         {
+            if (argv.Length < 4)
+            {
+               ReleaseRemainingArgs(argv, 0);
+               throw new InvalidOperationException("We need at least 3 argument!");
+            }
+
+            var a1 = GetTypedArgument<T1>(argv, 0);
+            var a2 = GetTypedArgument<T2>(argv, 1);
+            var a3 = GetTypedArgument<T3>(argv, 2);
+            var a4 = GetTypedArgument<T4>(argv, 3);
+
+            ReleaseRemainingArgs(argv, 4);
+
+            _action(a1, a2, a3, a4);
+            return DotNetValue.NullValue;
+         }
+      }
+
+      private sealed class Invoker<T1, T2, T3, T4, TResult> : AbstractInvoker
+      {
+         private readonly Func<T1, T2, T3, T4, TResult> _func;
+
+         public Invoker(Delegate @delegate, IHostInProcess host) : base(host)
+         {
+            _func = @delegate as Func<T1, T2, T3, T4, TResult>
+                    ?? (Func<T1, T2, T3, T4, TResult>)Delegate.CreateDelegate(typeof(Func<T1, T2, T3, T4, TResult>), @delegate.Target, @delegate.Method);
+         }
+
+         public override DotNetCallback Callback => InvokeDelegate;
+
+         private DotNetValue InvokeDelegate(JsValue[] argv)
+         {
+            if (argv.Length < 4)
+            {
+               ReleaseRemainingArgs(argv, 0);
+               throw new InvalidOperationException("We need at least 2 argument!");
+            }
+
+            var a1 = GetTypedArgument<T1>(argv, 0);
+            var a2 = GetTypedArgument<T2>(argv, 1);
+            var a3 = GetTypedArgument<T3>(argv, 2);
+            var a4 = GetTypedArgument<T4>(argv, 3);
+
+            ReleaseRemainingArgs(argv, 4);
+
+            return DotNetValue.FromObject(_func(a1, a2, a3, a4), Host);
+         }
+      }
+
+      private sealed class InvokerVoid<T1, T2, T3, T4, T5> : AbstractInvoker
+      {
+         private readonly Action<T1, T2, T3, T4, T5> _action;
+
+         public InvokerVoid(Delegate @delegate, IHostInProcess host) : base(host)
+         {
+            _action = @delegate as Action<T1, T2, T3, T4, T5>
+                      ?? (Action<T1, T2, T3, T4, T5>)Delegate.CreateDelegate(typeof(Action<T1, T2, T3, T4, T5>), @delegate.Target, @delegate.Method);
+         }
+
+         public override DotNetCallback Callback => InvokeDelegate;
+
+         private DotNetValue InvokeDelegate(JsValue[] argv)
+         {
+            if (argv.Length < 5)
+            {
+               ReleaseRemainingArgs(argv, 0);
+               throw new InvalidOperationException("We need at least 3 argument!");
+            }
+
+            var a1 = GetTypedArgument<T1>(argv, 0);
+            var a2 = GetTypedArgument<T2>(argv, 1);
+            var a3 = GetTypedArgument<T3>(argv, 2);
+            var a4 = GetTypedArgument<T4>(argv, 3);
+            var a5 = GetTypedArgument<T5>(argv, 4);
+
+            ReleaseRemainingArgs(argv, 5);
+
+            _action(a1, a2, a3, a4, a5);
+            return DotNetValue.NullValue;
+         }
+      }
+
+      private sealed class Invoker<T1, T2, T3, T4, T5, TResult> : AbstractInvoker
+      {
+         private readonly Func<T1, T2, T3, T4, T5, TResult> _func;
+
+         public Invoker(Delegate @delegate, IHostInProcess host) : base(host)
+         {
+            _func = @delegate as Func<T1, T2, T3, T4, T5, TResult>
+                    ?? (Func<T1, T2, T3, T4, T5, TResult>)Delegate.CreateDelegate(typeof(Func<T1, T2, T3, T4, T5, TResult>), @delegate.Target, @delegate.Method);
+         }
+
+         public override DotNetCallback Callback => InvokeDelegate;
+
+         private DotNetValue InvokeDelegate(JsValue[] argv)
+         {
+            if (argv.Length < 5)
+            {
+               ReleaseRemainingArgs(argv, 0);
+               throw new InvalidOperationException("We need at least 2 argument!");
+            }
+
+            var a1 = GetTypedArgument<T1>(argv, 0);
+            var a2 = GetTypedArgument<T2>(argv, 1);
+            var a3 = GetTypedArgument<T3>(argv, 2);
+            var a4 = GetTypedArgument<T4>(argv, 3);
+            var a5 = GetTypedArgument<T5>(argv, 4);
+
+            ReleaseRemainingArgs(argv, 5);
+
+            return DotNetValue.FromObject(_func(a1, a2, a3, a4, a5), Host);
          }
       }
 
