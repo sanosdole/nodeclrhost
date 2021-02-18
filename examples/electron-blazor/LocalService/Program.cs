@@ -29,6 +29,7 @@
                 var webPreferences = host.New();
                 options.webPreferences = webPreferences;
                 webPreferences.nodeIntegration = true;
+                webPreferences.enableRemoteModule = true; // Required for spectron tests, see https://github.com/electron-userland/spectron/pull/738
                 /*webPreferences.contextIsolation = false;
                 webPreferences.sandbox = false;
                 webPreferences.devTools = false;*/

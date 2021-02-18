@@ -27,7 +27,7 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 12.13.0 --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 12.16.3--include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 14.4.0 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 9.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
@@ -83,7 +83,7 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 12.13.0 --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 12.16.3 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 14.4.0 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 9.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
@@ -114,7 +114,7 @@ jobs:
        - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 12.13.0 --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 12.16.3 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 14.4.0 --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 8.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 9.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";

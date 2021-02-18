@@ -23,14 +23,13 @@ function initialiseSpectron() {
 
 const app = initialiseSpectron();
 
-const chaiAsPromised = require("chai-as-promised");
 const chai = require("chai");
 chai.should();
-chai.use(chaiAsPromised);
 
 describe("blazor-test-app", function () {
     this.timeout(20000);
     // CSS selectors
+    const header = "body > app > div.main > div.content.px-4 > h1";
     const counterNavBtn = "body > app > div.sidebar > div.collapse > ul > li:nth-child(2) > a";
     const currentCounterDisplay = "body > app > div.main > div.content.px-4 > p:nth-child(3)";
     const counterIncrementButton = "body > app > div.main > div.content.px-4 > button";
@@ -47,7 +46,6 @@ describe("blazor-test-app", function () {
 
     // Start spectron
     before(function () {
-        chaiAsPromised.transferPromiseness = app.transferPromiseness;
         return app.start();
     });
 
@@ -60,48 +58,54 @@ describe("blazor-test-app", function () {
 
     describe("Home", function () {
         // wait for Electron window to open
-        it('open window', function () {
-            return app.client.waitUntilWindowLoaded().getWindowCount().should.eventually.equal(1);
+        it('open window', async function () {
+            const client = app.client;
+            await client.waitUntilWindowLoaded();
+            (await (await client.$(header)).getText()).should.equal("Hello, world!");
+            (await client.getWindowCount()).should.equal(1);
         });
 
         // click on link in sidebar
         it("go to counter", async function () {
-            await app.client.element(counterNavBtn).click();
-            await app.client.getText(currentCounterDisplay).should.eventually.equal('Current count: 0')
-            await app.client.getText(counterInitializedDisplay).should.eventually.equal("OnInitializedAsync")
-            await app.client.element(counterIncrementButton).isEnabled().should.eventually.equal(false);
-            await app.client.waitUntilTextExists(counterInitializedDisplay, "OnInitializedAsync after delay");
+            const client = app.client;
 
+            await (await client.$(counterNavBtn)).click();
+            (await (await client.$(currentCounterDisplay)).getText()).should.equal('Current count: 0');
+            (await (await client.$(counterInitializedDisplay)).getText()).should.equal("OnInitializedAsync");
+            (await (await client.$(counterIncrementButton)).isEnabled()).should.equal(false);
 
-            return await app.client
-                .getText(currentCounterDisplay).should.eventually.equal('Current count: 5')
-                .element(counterIncrementButton).isEnabled().should.eventually.equal(true);
+            await client.waitUntilTextExists(counterInitializedDisplay, "OnInitializedAsync after delay");
+
+            (await (await client.$(currentCounterDisplay)).getText()).should.equal('Current count: 5');
+            (await (await client.$(counterIncrementButton)).isEnabled()).should.equal(true);
         });
 
-        it("increment counter", function () {
-            return app.client
-                .click(counterIncrementButton)
-                .waitUntilTextExists(currentCounterDisplay, 'Current count: 6');
+        it("increment counter", async function () {
+            const client = app.client;
+            await (await client.$(counterIncrementButton)).click();
+            await client.waitUntilTextExists(currentCounterDisplay, 'Current count: 6');
         });
 
         it ("go to jsinterop", async function () {
-            await app.client.element(jsInteropNavBtn).click();
-            await app.client.waitUntilTextExists(jsInteropTitle, "JavaScript Interop");
+            const client = app.client;
+            
+            await (await client.$(jsInteropNavBtn)).click();
+            await client.waitUntilTextExists(jsInteropTitle, "JavaScript Interop");
 
-            return await app.client.element(jsInteropButton).isEnabled().should.eventually.equal(true);
+            (await (await client.$(jsInteropButton)).isEnabled()).should.equal(true);
         });
 
-        it("execute dotnet-js interop", function () {
-            return app.client
-                .setValue(jsInteropInput, "testuser")
-                .click(jsInteropButton)
-                .waitUntilTextExists(jsInteropResult, 'Hello testuser! Welcome to Blazor!');
+        it("execute dotnet-js interop", async function () {
+            const client = app.client;
+            await (await client.$(jsInteropInput)).setValue("testuser");
+            await (await client.$(jsInteropButton)).click();
+            await client.waitUntilTextExists(jsInteropResult, 'Hello testuser! Welcome to Blazor!');
         });
 
-        it("execute js-dotnet interop", function () {
-            return app.client                
-                .click(dotnetInteropButton)
-                .waitUntilTextExists(dotnetInteropResult, '2');
+        it("execute js-dotnet interop", async function () {
+            const client = app.client;
+            await (await client.$(dotnetInteropButton)).click();
+            await client.waitUntilTextExists(dotnetInteropResult, '2');
         });
     });
 });

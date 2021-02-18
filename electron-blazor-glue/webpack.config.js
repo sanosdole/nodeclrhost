@@ -5,7 +5,7 @@ module.exports = (env, args) => ({
     target: 'electron-renderer',
     
     resolve: { extensions: ['.ts', '.js'] },
-    devtool: args.mode === 'development' ? 'source-map' : 'none',    
+    devtool: args.mode === 'development' ? 'source-map' : false,    
     externals: {
         "coreclr-hosting": 'coreclr-hosting'
       },
