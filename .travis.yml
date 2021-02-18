@@ -76,6 +76,7 @@ jobs:
           taps: isen-ng/dotnet-sdk-versions
           casks:
            - dotnet-sdk3-1-400
+           - dotnet-sdk
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.14.5'
