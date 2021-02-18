@@ -73,8 +73,7 @@ jobs:
       addons:
         homebrew:
           update: true
-          taps:
-           - isen-ng/dotnet-sdk-versions
+          taps: isen-ng/dotnet-sdk-versions
           casks:
            - dotnet-sdk3-1-400
       install: 
