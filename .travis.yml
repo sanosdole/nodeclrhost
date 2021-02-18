@@ -73,8 +73,10 @@ jobs:
       addons:
         homebrew:
           update: true
+          taps:
+           - isen-ng/dotnet-sdk-versions
           casks:
-           - dotnet-sdk
+           - dotnet-sdk3-1-400
       install: 
        - "cd coreclr-hosting"
        - npm install -g npm@'>=6.14.5'
