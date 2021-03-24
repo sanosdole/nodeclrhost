@@ -22,7 +22,8 @@
                 options.title = ".NET rocks";
                 var webPreferences = host.New();
                 options.webPreferences = webPreferences;
-                webPreferences.nodeIntegration = true;
+                webPreferences.contextIsolation = false;
+                webPreferences.preload = @"C:\Private\nodeclrhost\nodeclrhost\examples\electron-sample\preload.js";
                 /*webPreferences.contextIsolation = false;
                 webPreferences.sandbox = false;
                 webPreferences.devTools = false;*/

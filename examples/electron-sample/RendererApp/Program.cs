@@ -13,7 +13,7 @@
             var host = NodeHost.Instance;
             var console = host.Global.console;
 
-            console.log($"Running renderer app in {host.Global.process.pid}");
+            console.log($"Running renderer app in {host.Global.myApi.process.pid}");
 
             host.Global.window.addEventListener("unload", new Action<dynamic>(e =>
             {
