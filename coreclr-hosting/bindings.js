@@ -2,7 +2,6 @@ const path = require('path');
 const process = require('process');
 
 // Provide require function for coreclr when running on nodejs
-// Although this already exists in electron renderer, we just override it for simplicity
 global.require = require;
 
 var isDebug = "DEBUG" in process.env;
