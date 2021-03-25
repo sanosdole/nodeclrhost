@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using System;
+    using System.IO;
     using NodeHostEnvironment;
 
     class Program
@@ -22,7 +23,7 @@
                 options.title = ".NET rocks";
                 var webPreferences = host.New();
                 options.webPreferences = webPreferences;
-                webPreferences.preload = @"C:\Private\nodeclrhost\nodeclrhost\examples\electron-sample\preload.js";
+                webPreferences.preload = Path.Combine(host.Global.appRoot, "preload.js");
                 webPreferences.contextIsolation = false;
                 webPreferences.sandbox = false;
                 webPreferences.devTools = true;
