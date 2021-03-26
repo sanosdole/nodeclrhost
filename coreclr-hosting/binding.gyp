@@ -19,7 +19,7 @@
         'dependencies': [
             "<!(node -p \"require('node-addon-api').gyp\")"
         ],
-        'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS', 'NODE_ADDON_API_DISABLE_DEPRECATED', 'NAPI_EXPERIMENTAL' ],
+        'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS', 'NODE_ADDON_API_DISABLE_DEPRECATED' ],
         #'defines': [ 'NAPI_CPP_EXCEPTIONS' ],
 
         'conditions': [

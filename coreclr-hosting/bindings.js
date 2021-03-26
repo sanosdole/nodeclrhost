@@ -1,4 +1,4 @@
-const path = require('path');
+/*const path = require('path');
 const process = require('process');
 
 // Provide require function for coreclr when running on nodejs
@@ -12,4 +12,9 @@ if (isDebug)
 process.env.CORECLR_HOSTING_MODULE_PATH = nativeModulePath;
 var coreclrHosting = require(nativeModulePath);
 
-module.exports = coreclrHosting;
+module.exports = coreclrHosting;*/
+
+// Provide require function for coreclr when running on nodejs
+global.require = require;
+
+module.exports = require('bindings')('coreclr-hosting.node');

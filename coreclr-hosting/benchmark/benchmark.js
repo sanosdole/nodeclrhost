@@ -135,6 +135,32 @@ module.exports = (suite, benchmark) => {
             assert.strictEqual(r, joinedArray);
         });
     });
+
+    suite('callback (string) -> string[]', () => {
+
+        const array = [
+            "A",
+            "B",
+            "C",
+            "D",
+            " and sth. a little bit longer, so we do some real string joining",
+            " and sth. a little bit longer, so we do some real string joining"
+        ];
+        const joinedArray = array.join("|");
+
+        benchmark('js', () => {
+            var r = dotnetCallbacks.jsStringToStringArray(joinedArray);
+            assert.strictEqual(r.length, array.length);
+            assert.strictEqual(r[0], array[0]);
+            assert.strictEqual(r[5], array[5]);
+        });
+
+        benchmark('dotnet', () => {
+            var r = dotnetCallbacks.cbStringToStringArray(joinedArray);
+            assert.strictEqual(r[0], array[0]);
+            assert.strictEqual(r[5], array[5]);
+        });
+    });
 }
 
 

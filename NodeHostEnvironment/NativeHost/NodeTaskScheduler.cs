@@ -16,12 +16,15 @@ namespace NodeHostEnvironment.NativeHost
 
       // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we need it to stay alive
       private readonly ProcessJsEventLoopEntry _onProcessJsEventLoopEntry;
-
       // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we need it to stay alive
       private readonly ProcessMicroTask _onProcessMicroTask;
-      private readonly ThreadLocal<bool> _isActive = new ThreadLocal<bool>();
+      // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we need it to stay alive
+      private readonly ClosingRuntime _onClosingRuntime;
 
       private readonly Queue<Task> _microTasks = new Queue<Task>();
+      private readonly ManualResetEventSlim _closedEvent = new ManualResetEventSlim(false);
+
+      private volatile Thread _activeThread;
 
       public NodeTaskScheduler(IntPtr context, NativeApi nativeMethods)
       {
@@ -33,10 +36,11 @@ namespace NodeHostEnvironment.NativeHost
 
          _onProcessJsEventLoopEntry = OnProcessJSEventLoopEntry;
          _onProcessMicroTask = OnProcessMicroTask;
-         nativeMethods.RegisterSchedulerCallbacks(context, _onProcessJsEventLoopEntry, _onProcessMicroTask);
+         _onClosingRuntime = OnClosingRuntime;
+         nativeMethods.RegisterSchedulerCallbacks(context, _onProcessJsEventLoopEntry, _onProcessMicroTask, _onClosingRuntime);
       }
 
-      public bool ContextIsActive => _isActive.Value;
+      public bool ContextIsActive => _activeThread == Thread.CurrentThread;// _isActive.Value;
 
       public object RunCallbackSynchronously(Func<object, object> callback, object args)
       {
@@ -49,11 +53,10 @@ namespace NodeHostEnvironment.NativeHost
 
          // Ensure context
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
-         _isActive.Value = true;
+         _activeThread = Thread.CurrentThread;
          // Ensure TaskScheduler.Current
          var task = new Task<object>(callback, args);
          task.RunSynchronously(this);
-         _isActive.Value = false;
          return task.Result;
       }
 
@@ -69,6 +72,13 @@ namespace NodeHostEnvironment.NativeHost
       /// <param name="task">The task to be executed.</param>
       protected override void QueueTask(Task task)
       {
+         if (_closedEvent.IsSet)
+         {
+            // Throwing crashes the runtime and there is no way to fail the task :(
+            //throw new InvalidOperationException("The JS runtime has shut down!");
+            return;
+         }
+
          if (ContextIsActive)
          {
             // If we are on the right thread we use a micro task.
@@ -117,9 +127,8 @@ namespace NodeHostEnvironment.NativeHost
          var microTask = _microTasks.Dequeue();
 
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
-         _isActive.Value = true;
+         _activeThread = Thread.CurrentThread;
          TryExecuteTask(microTask);
-         _isActive.Value = false;
          //handle.Free();
       }
 
@@ -133,11 +142,20 @@ namespace NodeHostEnvironment.NativeHost
          // the synchronization context to detect whether a normal continuation
          // or a continuation with a specific TaskScheduler is used.
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
-         _isActive.Value = true;
+         _activeThread = Thread.CurrentThread;
 
          TryExecuteTask(macroTask);
-         _isActive.Value = false;
          handle.Free();
+      }
+
+      private void OnClosingRuntime()
+      {
+         Console.WriteLine("Closing runtime");
+         GC.Collect();
+         // TODO: DEAD-LOCKS
+         //GC.WaitForPendingFinalizers();
+         _closedEvent.Set();
+         // TODO: Callback host?
       }
 
       private sealed class Context : SynchronizationContext

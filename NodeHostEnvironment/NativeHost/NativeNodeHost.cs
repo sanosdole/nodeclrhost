@@ -12,10 +12,11 @@ namespace NodeHostEnvironment.NativeHost
    {
       private readonly IntPtr _context;
       private readonly NodeTaskScheduler _scheduler;
+      // ReSharper disable once CollectionNeverQueried.Local as it is used to prevent GC
       private readonly Dictionary<IntPtr, CallbackHolder> _registry = new Dictionary<IntPtr, CallbackHolder>();
+      // ReSharper disable once CollectionNeverQueried.Local as it is used to prevent GC
       private readonly Dictionary<IntPtr, TaskHolder> _taskRegistry = new Dictionary<IntPtr, TaskHolder>();
-      private readonly ReleaseDotNetValue ReleaseCallback;
-      private readonly ReleaseDotNetValue ReleaseTaskCallback;
+      private readonly ReleaseDotNetValue _releaseCallback;
 
       private NativeApi NativeMethods { get; }
 
@@ -23,8 +24,7 @@ namespace NodeHostEnvironment.NativeHost
       {
          NativeMethods = nativeMethods;
          _context = context;
-         ReleaseCallback = ReleaseCallbackIntern;
-         ReleaseTaskCallback = ReleaseTaskCallbackIntern;
+         _releaseCallback = ReleaseCallbackIntern;
          _scheduler = new NodeTaskScheduler(context, nativeMethods);
       }
 
@@ -42,26 +42,20 @@ namespace NodeHostEnvironment.NativeHost
       {
          var holder = new CallbackHolder(callback, this);
          _registry.Add(holder.CallbackPtr, holder);
-         releaseCallback = ReleaseCallback;
+         releaseCallback = _releaseCallback;
          return holder.CallbackPtr;
       }
 
-      public IntPtr MarshallTask(Task task, out ReleaseDotNetValue releaseCallback)
+      public IntPtr MarshallTask(Task task)
       {
          var holder = new TaskHolder(task, this);
          _taskRegistry.Add(holder.CallbackPtr, holder);
-         releaseCallback = ReleaseTaskCallback;
          return holder.CallbackPtr;
       }
 
       private void ReleaseCallbackIntern(DotNetType type, IntPtr value)
       {
          _registry.Remove(value);
-      }
-
-      private void ReleaseTaskCallbackIntern(DotNetType type, IntPtr value)
-      {
-         _taskRegistry.Remove(value);
       }
 
       /// <summary>
@@ -114,7 +108,7 @@ namespace NodeHostEnvironment.NativeHost
       }
 
       /// <summary>
-      /// This class keeps a Task alive until the node runtime garbage collects its usages.
+      /// This class keeps the callback to connect the node deferred alive until js runtime uses.
       /// </summary>
       private sealed class TaskHolder
       {
@@ -168,6 +162,10 @@ namespace NodeHostEnvironment.NativeHost
             catch (Exception e)
             {
                return DotNetValue.FromException(e);
+            }
+            finally
+            {
+               _parent._taskRegistry.Remove(CallbackPtr);
             }
          }
 
@@ -270,9 +268,9 @@ namespace NodeHostEnvironment.NativeHost
 
          // Allocating the array in managed code spares us releasing native array allocation
          var result = new JsValue[length];
-         for (int i = 0; i < length; i++)
+         for (var i = 0; i < length; i++)
          {
-            // DM 05.03.2020: Move loop to native code filling result could spare n pinvokes.
+            // DM 05.03.2020: Move loop to native code filling result could spare n p-invokes.
             result[i] = NativeMethods.GetMemberByIndex(_context, handle, i);
          }
 

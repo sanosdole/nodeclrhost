@@ -60,8 +60,7 @@ namespace NodeHostEnvironment.InProcess
 
       public static DotNetValue FromDelegate(Delegate @delegate, IHostInProcess host)
       {
-         ReleaseDotNetValue releaseCallback;
-         var value = host.MarshallCallback(InvokeHelper.CreateInvoker(@delegate, host), out releaseCallback);
+         var value = host.MarshallCallback(InvokeHelper.CreateInvoker(@delegate, host), out var releaseCallback);
 
          return new DotNetValue
                 {
@@ -73,7 +72,7 @@ namespace NodeHostEnvironment.InProcess
 
       public static DotNetValue FromJsValue(JsValue value)
       {
-         IntPtr ptr = Marshal.AllocHGlobal(Marshal.SizeOf(value));
+         var ptr = Marshal.AllocHGlobal(Marshal.SizeOf(value));
          Marshal.StructureToPtr(value, ptr, false);
          return new DotNetValue
                 {
@@ -184,12 +183,11 @@ namespace NodeHostEnvironment.InProcess
 
       public static DotNetValue FromTask(Task value, IHostInProcess host)
       {
-         ReleaseDotNetValue releaseDotNetCallback;
          return new DotNetValue
                 {
                    Type = DotNetType.Task,
-                   Value = host.MarshallTask(value, out releaseDotNetCallback),
-                   ReleaseFunc = releaseDotNetCallback
+                   Value = host.MarshallTask(value),
+                   ReleaseFunc = null
                 };
       }
 

@@ -7,6 +7,7 @@
 #include <iostream>
 #include <mutex>
 #include <set>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -30,11 +31,16 @@ class Context {
   Napi::FunctionReference process_micro_task_;
   Napi::FunctionReference signal_micro_task_;
   Napi::ThreadSafeFunction dotnet_thread_safe_callback_;
+  void (*closing_runtime_)(void);
+
+  std::map<uint8_t*, Napi::ObjectReference> buffers_;
 
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;  // no self-assignments
   Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env);
   ~Context();
+
+  static void DeleteContext(Napi::Env env, Context* context);
 
   class ThreadInstance {
     static thread_local Context* thread_instance_;
@@ -61,7 +67,8 @@ class Context {
   static Context* CurrentInstance() { return ThreadInstance::Current(); }
 
   void RegisterSchedulerCallbacks(void (*process_event_loop)(void*),
-                                  void (*process_micro_task)(void*));
+                                  void (*process_micro_task)(void*),
+                                  void (*closing_runtime)(void));
   void SignalEventLoopEntry(void* data);  // Must be thread safe
   void SignalMicroTask(void* data);
 

@@ -114,9 +114,11 @@ namespace ElectronHostedBlazor.Rendering
          var wasDispatchingEvent = _isDispatchingEvent;
          _isDispatchingEvent = true;
 
+         var nativeMemory = _reusableMemoryStream.GetMemory();
+
          try
          {
-            _blazorInternalRenderBatch( /*_NodeRendererId*/ 1, _reusableMemoryStream.GetMemory());
+            _blazorInternalRenderBatch( /*_NodeRendererId*/ 1, nativeMemory, _reusableMemoryStream.Length);
          }
          finally
          {

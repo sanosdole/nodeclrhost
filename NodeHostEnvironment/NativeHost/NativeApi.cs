@@ -13,6 +13,9 @@ namespace NodeHostEnvironment.NativeHost
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
    internal delegate DotNetValue SetupDeferred(IntPtr deferred);
 
+   [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+   internal delegate void ClosingRuntime();
+
    [StructLayout(LayoutKind.Sequential)]
    internal struct NativeApi
    {
@@ -31,7 +34,10 @@ namespace NodeHostEnvironment.NativeHost
    }
 
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-   internal delegate int RegisterSchedulerCallbacks(IntPtr context, ProcessJsEventLoopEntry processJsEventLoopEntry, ProcessMicroTask processMicroTask);
+   internal delegate int RegisterSchedulerCallbacks(IntPtr context,
+                                                    ProcessJsEventLoopEntry processJsEventLoopEntry,
+                                                    ProcessMicroTask processMicroTask,
+                                                    ClosingRuntime closingRuntime);
 
    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
    internal delegate void SignalEventLoopEntry(IntPtr context, IntPtr data);

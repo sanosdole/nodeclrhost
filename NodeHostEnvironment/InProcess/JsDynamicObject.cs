@@ -17,6 +17,7 @@ namespace NodeHostEnvironment.InProcess
 
       internal JsDynamicObject(JsValue handle, IHostInProcess host)
       {
+         // Only used for Objects
          Handle = handle;
          _host = host;
       }

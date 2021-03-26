@@ -14,7 +14,7 @@
       public NativeMemory GetMemory()
       {
          var bufferHandle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
-         return new NativeMemory(bufferHandle.AddrOfPinnedObject(), _length, _ => bufferHandle.Free());
+         return new NativeMemory(bufferHandle.AddrOfPinnedObject(), _buffer.Length, _ => bufferHandle.Free());
       }
 
       public override void Flush()

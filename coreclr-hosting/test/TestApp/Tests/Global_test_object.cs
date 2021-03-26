@@ -238,6 +238,8 @@ namespace TestApp.Tests
         {
             var a = new byte[] { 1, 2, 3, 4 };
             Global.testObject.assertByteArray(a);
+            // This tests the new ArrayBuffer limitation that prevents marshalling the same address twice
+            Global.testObject.assertByteArray(a);
         }
 
         public void It_should_marshal_native_memory_to_JS()

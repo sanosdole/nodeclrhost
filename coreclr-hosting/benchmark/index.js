@@ -44,6 +44,10 @@ global.dotnetCallbacks.jsStringArrayToString = function (array) {
     return array.join('|');
 };
 
+global.dotnetCallbacks.jsStringToStringArray = function (s) {
+    return s.split("|");
+};
+
 
 var promise = coreclrhosting.runCoreApp(__dirname + '/bin/Debug/netcoreapp3.1/Benchmark.dll');
 
