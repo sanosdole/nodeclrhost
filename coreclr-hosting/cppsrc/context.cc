@@ -80,7 +80,6 @@ Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
 }
 Context::~Context() {
   ThreadInstance _(this);
-  // dotnet_thread_safe_callback_.Release();
   std::lock_guard<std::mutex> lock(*finalizer_mutex_);
   for (auto finalizer_data : function_finalizers_) {
     finalizer_data->Cancel();
@@ -240,29 +239,24 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
                       {Napi::Function::New(
                            env,
                            [context](const Napi::CallbackInfo& f_info) {
-                             // delete context;
-                             // TODO: We need to cleanup the CLR here. Close
-                             // Scheduler, execute pending tasks, run GC. This
-                             // should be handled by the NodeHostEnvironment
-                             // which must ensure that no access to context is
-                             // possibly as it will be deleted.
-                             context->closing_runtime_();
-                             context->dotnet_thread_safe_callback_.Release();                             
+                             context->Close();
                              return f_info[0];
                            }),
                        Napi::Function::New(
                            env, [context](const Napi::CallbackInfo& r_info) {
-                             // delete context;
-                             context->closing_runtime_();
-                             context->dotnet_thread_safe_callback_.Release();
+                             context->Close();
                              return r_info[0];
                            })});
   }
 
-  context->closing_runtime_();
-  context->dotnet_thread_safe_callback_.Release();
-  // delete context;
+  context->Close();
   return return_value;
+}
+
+void Context::Close() {
+  ThreadInstance _(this);
+  if (closing_runtime_)  closing_runtime_();
+  dotnet_thread_safe_callback_.Release();
 }
 
 JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {

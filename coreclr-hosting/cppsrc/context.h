@@ -61,6 +61,7 @@ class Context {
   Napi::Value CreateArrayBuffer(DotNetHandle* handle);
   JsHandle InvokeIntern(Napi::Value handle, Napi::Value receiver, int argc,
                         DotNetHandle* argv);
+  void Close();
 
  public:
   static Napi::Value RunCoreApp(const Napi::CallbackInfo& info);
