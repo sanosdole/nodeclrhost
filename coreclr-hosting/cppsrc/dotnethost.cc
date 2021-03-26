@@ -268,9 +268,9 @@ class DotNetHost::Impl {
   bool initialization_done_;
 
  public:
-  LibraryHandle hostfxr_lib_;
-
   string_t assembly_path_t_;
+
+  LibraryHandle hostfxr_lib_;
   load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_;
   hostfxr_handle context_;
   hostfxr_close_fn close_fptr_;
@@ -341,7 +341,7 @@ class DotNetHost::Impl {
     std::lock_guard<std::mutex> guard(lock);
 
     // Get an existing instance from the weak reference, if possible.
-    if (auto instance = shared/*.lock()*/) {
+    if (auto instance = shared /*.lock()*/) {
       std::unique_lock<std::mutex> lock(instance->init_mutex_);
       instance->initialized_.wait(
           lock, [instance] { return instance->initialization_done_; });
@@ -565,8 +565,8 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
           lib, "hostfxr_set_runtime_property_value");
   /*auto get_runtime_property_value_fptr =
      GetFunction<hostfxr_get_runtime_property_value_fn>( lib,
-     "hostfxr_get_runtime_property_value");  */
-  const char_t *prop_buffer = nullptr;  // new char_t[1024];
+     "hostfxr_get_runtime_property_value");  
+  const char_t *prop_buffer = nullptr;  // new char_t[1024];*/
 
   /*rc = get_runtime_property_value_fptr(cxt, STR("APP_CONTEXT_BASE_DIRECTORY"),
   &prop_buffer); if (rc != 0) wprintf(STR("APP_CONTEXT_BASE_DIRECTORY: %s\n"),

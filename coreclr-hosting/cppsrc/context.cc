@@ -67,14 +67,14 @@ Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
     : env_(env),
       finalizer_mutex_(std::make_shared<std::mutex>()),
       host_(std::move(dotnet_host)),
-      dotnet_thread_safe_callback_(Napi::ThreadSafeFunction::New(
-          env, Napi::Function::New(env, Noop, "invokeDotNetEventLoop"),
-          "invokeDotNetEventLoop", 0, 1)),
-      process_event_loop_(nullptr),
       function_factory_(
           std::bind(&Context::CreateFunction, this, std::placeholders::_1)),
       array_buffer_factory_(
           std::bind(&Context::CreateArrayBuffer, this, std::placeholders::_1)),
+      process_event_loop_(nullptr),
+      dotnet_thread_safe_callback_(Napi::ThreadSafeFunction::New(
+          env, Napi::Function::New(env, Noop, "invokeDotNetEventLoop"),
+          "invokeDotNetEventLoop", 0, 1)),
       closing_runtime_(nullptr) {
   env.SetInstanceData<Context, Context::DeleteContext>(this);
 }
@@ -235,18 +235,18 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
     return return_value.As<Napi::Promise>()
         .Get("then")
         .As<Napi::Function>()
-        .MakeCallback(return_value,
-                      {Napi::Function::New(
-                           env,
-                           [context](const Napi::CallbackInfo& f_info) {
-                             context->Close();
-                             return f_info[0];
-                           }),
-                       Napi::Function::New(
-                           env, [context](const Napi::CallbackInfo& r_info) {
-                             context->Close();
-                             return r_info[0];
-                           })});
+        .MakeCallback(
+            return_value,
+            {Napi::Function::New(env,
+                                 [context](const Napi::CallbackInfo& f_info) {
+                                   context->Close();
+                                   return f_info[0];
+                                 }),
+             Napi::Function::New(env,
+                                 [context](const Napi::CallbackInfo& r_info) {
+                                   context->Close();
+                                   return r_info[0];
+                                 })});
   }
 
   context->Close();
@@ -255,7 +255,7 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
 
 void Context::Close() {
   ThreadInstance _(this);
-  if (closing_runtime_)  closing_runtime_();
+  if (closing_runtime_) closing_runtime_();
   dotnet_thread_safe_callback_.Release();
 }
 
