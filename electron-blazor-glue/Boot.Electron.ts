@@ -54,9 +54,8 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
   // DM 21.08.2019: Setting up the renderer
   window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddress: ArrayBuffer, batchLength: number) => {
     try {
-      //console.info("received batch of size " + batchLength + " and first byte " + batchAddress[0]);
-      var typedArray = new Uint8Array(batchAddress.slice(0, batchLength));
-      console.info("rendering batch of size " + typedArray.byteLength + " and first byte " + typedArray[0]);
+      var typedArray = new Uint8Array(batchAddress, 0, batchLength);
+      console.info(`rendering batch of size ${typedArray.length}/${typedArray.byteLength} and first byte ${typedArray[0]}`);
       renderBatch(browserRendererId, new OutOfProcessRenderBatch(typedArray));
     } catch (error) {
       console.error(error);

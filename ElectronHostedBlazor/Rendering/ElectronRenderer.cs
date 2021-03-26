@@ -24,7 +24,7 @@ namespace ElectronHostedBlazor.Rendering
       private readonly dynamic _blazorInternal;
       private readonly ElectronDispatcher _dispatcher;
       private readonly dynamic _blazorInternalRenderBatch;
-      private readonly ReusableMemoryStream _reusableMemoryStream = new ReusableMemoryStream();
+      private readonly ReusableArrayBufferStream _reusableArrayBufferStream;
       private readonly IBridgeToNode _node;
 
       /// <summary>
@@ -37,6 +37,7 @@ namespace ElectronHostedBlazor.Rendering
       {
          _node = node;
          _logger = loggerFactory.CreateLogger<ElectronRenderer>();
+         _reusableArrayBufferStream = new ReusableArrayBufferStream((ArrayBuffer)node.Global.ArrayBuffer.CreateNewInstance(16 * 1024));
          _blazorInternal = node.Global.window.Blazor._internal;
          _dispatcher = new ElectronDispatcher(node);
          var eventDispatcher = new ElectronEventDispatcher(this);
@@ -105,20 +106,18 @@ namespace ElectronHostedBlazor.Rendering
          // TODO DM 22.08.2019: Using out of process render batch is inefficient
          //var arrayBuilder = new ArrayBuilder<byte>(2048);
 
-         _reusableMemoryStream.SetLength(0);
-         _reusableMemoryStream.Position = 0;
-         using(var writer = new RenderBatchWriter(_reusableMemoryStream, true))
+         _reusableArrayBufferStream.SetLength(0);
+         _reusableArrayBufferStream.Position = 0;
+         using(var writer = new RenderBatchWriter(_reusableArrayBufferStream, true))
             writer.Write(batch);
 
          // Prevent event dispatching while updating the DOM
          var wasDispatchingEvent = _isDispatchingEvent;
          _isDispatchingEvent = true;
 
-         var nativeMemory = _reusableMemoryStream.GetMemory();
-
          try
          {
-            _blazorInternalRenderBatch( /*_NodeRendererId*/ 1, nativeMemory, _reusableMemoryStream.Length);
+            _blazorInternalRenderBatch( /*_NodeRendererId*/ 1, _reusableArrayBufferStream.Buffer.JsObject, _reusableArrayBufferStream.Length);
          }
          finally
          {

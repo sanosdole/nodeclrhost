@@ -31,7 +31,8 @@
     <RepositoryBranch>master</RepositoryBranch>
     <!-- <RepositoryCommit></RepositoryCommit> -->
 
-  </PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+</PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\NodeHostEnvironment\NodeHostEnvironment.csproj" />

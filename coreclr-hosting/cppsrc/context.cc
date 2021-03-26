@@ -485,17 +485,13 @@ Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
   auto length = *array_value_ptr;
   auto data_ptr = *reinterpret_cast<uint8_t**>(array_value_ptr + 1);
 
-  // TODO: This probably does not work if the length of the same data_ptr
-  // changes
-  //       So we probably need to either copy the data or create the buffer up
-  //       front (like remote display using TryAccessArrayBuffer)
   auto existing_buffer = buffers_.find(data_ptr);
-  if (existing_buffer != buffers_.end())
+  if (existing_buffer != buffers_.end())  {
+    // TODO: ReleaseCallback is not being called :(
     return existing_buffer->second
-        .Value();  // TODO: Add release callback in map
+        .Value();  
+        }
 
-  // TODO: Remove from map
-  // TODO: This requires wrapping the release_funcs
   auto finalizerData = new SynchronizedFinalizerCallback(
       this, [this, data_ptr, value_copy, release_array_func]() {
         buffers_.erase(data_ptr);
@@ -512,35 +508,6 @@ Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
 
   buffers_[data_ptr] = Napi::Persistent((Napi::Object)result);
   return result;
-
-  /*auto value_copy = handle->value_;
-  auto release_array_func = handle->release_func_;
-  handle->release_func_ = nullptr;  // We delay the release
-
-  // We have a pointer to a struct { int32_t, void* } and interpret it like a
-  // int32_t*
-  auto array_value_ptr = reinterpret_cast<int32_t*>(value_copy);
-  auto length = *array_value_ptr;
-  auto data_ptr = *reinterpret_cast<uint8_t**>(array_value_ptr + 1);
-
-  auto existing_buffer = buffers_.find(data_ptr);
-  if (existing_buffer != buffers_.end())
-    return existing_buffer->second.Value(); // TODO: Add release callback in map
-
-  // TODO: Remove from map
-  // TODO: This requires wrapping the release_funcs
-  auto finalizerData = new SynchronizedFinalizerCallback(
-      this, [=]() { release_array_func(DotNetType::ByteArray, value_copy); });
-
-  auto result = Napi::Buffer<uint8_t>::New(
-      env_, data_ptr, length,
-      [](napi_env env, void* data, SynchronizedFinalizerCallback* hint) {
-        hint->Call();
-      },
-      finalizerData);
-
-  buffers_[data_ptr] = Napi::Persistent((Napi::Object)result);
-  return result;*/
 
   // This makes a non-transferable array buffer => crashes electron when
   // rendering

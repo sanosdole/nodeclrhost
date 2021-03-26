@@ -1,21 +1,23 @@
 ﻿namespace ElectronHostedBlazor.Rendering
 {
    using System;
+   using System.Diagnostics;
    using System.IO;
-   using System.Runtime.InteropServices;
    using NodeHostEnvironment;
 
-   internal sealed class ReusableMemoryStream : Stream
+   internal sealed class ReusableArrayBufferStream : Stream
    {
       private int _length;
       private int _position;
-      private byte[] _buffer = new byte[16 * 1024];
+      private ArrayBuffer _buffer;
 
-      public NativeMemory GetMemory()
+      public ReusableArrayBufferStream(ArrayBuffer initialBuffer)
       {
-         var bufferHandle = GCHandle.Alloc(_buffer, GCHandleType.Pinned);
-         return new NativeMemory(bufferHandle.AddrOfPinnedObject(), _buffer.Length, _ => bufferHandle.Free());
+         Debug.Assert(initialBuffer != null);
+         _buffer = initialBuffer;
       }
+
+      public ArrayBuffer Buffer => _buffer;
 
       public override void Flush()
       {
@@ -53,7 +55,7 @@
       {
          if (value > int.MaxValue)
             throw new ArgumentException("Only integer sizes are supported");
-         if (value > _buffer.LongLength)
+         if (value > _buffer.ByteLength)
          {
             ResizeBuffer((int)value);
          }
@@ -63,16 +65,20 @@
             _position = _length;
       }
 
-      public override void Write(byte[] buffer, int offset, int count)
+      public override unsafe void Write(byte[] buffer, int offset, int count)
       {
          var endPosition = _position + count;
-         if (endPosition > _buffer.LongLength)
+         if (endPosition > _buffer.ByteLength)
          {
             ResizeBuffer(endPosition);
          }
 
-         //Buffer.MemoryCopy();
-         System.Buffer.BlockCopy(buffer, offset, _buffer, _position, count);
+         fixed (byte* srcPtr = buffer)
+            System.Buffer.MemoryCopy(srcPtr + offset,
+                                     (byte*)_buffer.Address.ToPointer() + _position,
+                                     _buffer.ByteLength - _position,
+                                     count);
+
          _position = endPosition;
          if (endPosition > _length)
             _length = endPosition;
@@ -80,13 +86,14 @@
 
       private void ResizeBuffer(in int requiredSize)
       {
-         var size = _buffer.Length;
+         var size = _buffer.ByteLength;
          while (size < requiredSize)
             size <<= 1;
 
-         var previous = _buffer;         
-         _buffer = new byte[size];
-         System.Buffer.BlockCopy(previous, 0, _buffer, 0, previous.Length);
+         /*var previous = _buffer;         
+         _buffer = CreateArrayBuffer(size);
+         System.Buffer.BlockCopy(previous, 0, _buffer, 0, previous.Length);*/
+         _buffer = _buffer.JsObject.transfer(size);
       }
 
       public override bool CanRead => false;
