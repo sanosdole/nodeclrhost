@@ -19,6 +19,7 @@ namespace coreclrhosting {
 
 class Context {
   class SynchronizedFinalizerCallback;
+  class BufferCache;
 
   Napi::Env env_;
   std::set<SynchronizedFinalizerCallback*> function_finalizers_;
@@ -33,7 +34,7 @@ class Context {
   Napi::ThreadSafeFunction dotnet_thread_safe_callback_;
   void (*closing_runtime_)(void);
 
-  std::map<uint8_t*, Napi::ObjectReference> buffers_;
+  std::map<uint8_t*, BufferCache*> buffers_;
 
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;  // no self-assignments

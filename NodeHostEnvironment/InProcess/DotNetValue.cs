@@ -46,7 +46,7 @@ namespace NodeHostEnvironment.InProcess
          // Specials
          if (obj is byte[] byteArray)
             return FromByteArray(byteArray);
-         if (obj is NativeMemory nativeMemory)
+         if (obj is NativeMemory.Handle nativeMemory)
             return FromNativeMemory(nativeMemory);
 
          if (obj is IReadOnlyCollection<object> collection)
@@ -143,8 +143,9 @@ namespace NodeHostEnvironment.InProcess
                 };
       }
 
-      public static DotNetValue FromNativeMemory(NativeMemory value)
+      public static DotNetValue FromNativeMemory(NativeMemory.Handle value)
       {
+         value = value.AddReference();
          var gcHandle = GCHandle.Alloc(value, GCHandleType.Normal);
 
          // Memory layout: |int size|IntPtr data|IntPtr gcHandle|
@@ -240,7 +241,7 @@ namespace NodeHostEnvironment.InProcess
       {
          var gcHandlePtr = Marshal.ReadIntPtr(value, sizeof(int) + IntPtr.Size);
          var gcHandle = GCHandle.FromIntPtr(gcHandlePtr);
-         var memory = (NativeMemory)gcHandle.Target;
+         var memory = (NativeMemory.Handle)gcHandle.Target;
          gcHandle.Free();
          Marshal.FreeHGlobal(value);
          memory.Dispose();

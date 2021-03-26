@@ -474,6 +474,30 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   return function;
 }
 
+class Context::BufferCache {
+  std::map<void*, void (*)(DotNetType::Enum, void*)> release_callbacks_;
+  Napi::ObjectReference buffer_ref_;
+
+ public:
+  BufferCache(Napi::Buffer<uint8_t> buffer, void* value,
+              void (*release)(DotNetType::Enum, void*))
+      : buffer_ref_(Napi::Weak((Napi::Object)buffer)) {
+    release_callbacks_[value] = release;
+  }
+
+  ~BufferCache() {
+    for (const auto& callback : release_callbacks_) {
+      callback.second(DotNetType::ByteArray, callback.first);
+    }
+    // release_callbacks_.clear();
+  }
+
+  Napi::Value UseValue(void* value, void (*release)(DotNetType::Enum, void*)) {
+    release_callbacks_[value] = release;
+    return buffer_ref_.Value();
+  }
+};
+
 Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
   auto value_copy = handle->value_;
   auto release_array_func = handle->release_func_;
@@ -486,16 +510,16 @@ Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
   auto data_ptr = *reinterpret_cast<uint8_t**>(array_value_ptr + 1);
 
   auto existing_buffer = buffers_.find(data_ptr);
-  if (existing_buffer != buffers_.end())  {
-    // TODO: ReleaseCallback is not being called :(
-    return existing_buffer->second
-        .Value();  
-        }
+  if (existing_buffer != buffers_.end()) {
+    return existing_buffer->second->UseValue(value_copy, release_array_func);
+  }
 
-  auto finalizerData = new SynchronizedFinalizerCallback(
-      this, [this, data_ptr, value_copy, release_array_func]() {
-        buffers_.erase(data_ptr);
-        release_array_func(DotNetType::ByteArray, value_copy);
+  auto finalizerData =
+      new SynchronizedFinalizerCallback(this, [this, data_ptr]() {
+        auto cache_node = buffers_.find(data_ptr);
+        auto cache = cache_node->second;
+        buffers_.erase(cache_node);
+        delete cache;
       });
 
   auto result = Napi::Buffer<uint8_t>::New(
@@ -506,7 +530,8 @@ Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
       },
       finalizerData);
 
-  buffers_[data_ptr] = Napi::Persistent((Napi::Object)result);
+  auto cache = new BufferCache(result, value_copy, release_array_func);
+  buffers_[data_ptr] = cache;
   return result;
 
   // This makes a non-transferable array buffer => crashes electron when

@@ -249,7 +249,7 @@ namespace TestApp.Tests
             Marshal.WriteByte(ptr, 1, 2);
             Marshal.WriteByte(ptr, 2, 3);
             Marshal.WriteByte(ptr, 3, 4);
-            var memory = new NativeMemory(ptr, 4, m => Marshal.FreeHGlobal(m.Pointer));
+            using var memory = NativeMemory.Create(ptr, 4, (pointer,_) => Marshal.FreeHGlobal(pointer));
             Global.testObject.assertByteArray(memory);
         }
 
@@ -294,7 +294,7 @@ namespace TestApp.Tests
             Marshal.WriteByte(ptr, 1, 2);
             Marshal.WriteByte(ptr, 2, 3);
             Marshal.WriteByte(ptr, 3, 4);
-            var memory = new NativeMemory(ptr, 4, m => Marshal.FreeHGlobal(m.Pointer));
+            using var memory = NativeMemory.Create(ptr, 4, (pointer,_) => Marshal.FreeHGlobal(pointer));
             var jsArray = Global.Uint8Array.CreateNewInstance(memory);
             using var arrayBuffer = (ArrayBuffer) jsArray.buffer;
 
