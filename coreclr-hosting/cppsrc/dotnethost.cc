@@ -324,13 +324,13 @@ class DotNetHost::Impl {
   }
 
   ~Impl() {
-    if (coreclr_lib_) {
+    /*if (coreclr_lib_) {
       coreclr_shutdown_(coreclr_host_handle_, coreclr_domain_id_);
       free_library(coreclr_lib_);
     }
 
     close_fptr_(context_);
-    free_library(hostfxr_lib_);
+    free_library(hostfxr_lib_);*/
   }
 
   static std::shared_ptr<Impl> Instance(string_t assembly_path_t,
