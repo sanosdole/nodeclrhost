@@ -150,12 +150,10 @@ namespace NodeHostEnvironment.NativeHost
 
       private void OnClosingRuntime()
       {
-         Console.WriteLine("Closing runtime");
          GC.Collect();
          // TODO: DEAD-LOCKS
          //GC.WaitForPendingFinalizers();
          _closedEvent.Set();
-         // TODO: Callback host?
       }
 
       private sealed class Context : SynchronizationContext
