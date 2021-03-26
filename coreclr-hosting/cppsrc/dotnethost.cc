@@ -251,7 +251,8 @@ namespace coreclrhosting {
 
 class DotNetHost::Impl {
   Impl(string_t assembly_path_t)
-      : assembly_path_t_(assembly_path_t),
+      : initialization_done_(false),
+        assembly_path_t_(assembly_path_t),
         hostfxr_lib_(nullptr),
         load_assembly_and_get_function_(nullptr),
         context_(nullptr),
@@ -260,8 +261,7 @@ class DotNetHost::Impl {
         coreclr_host_handle_(nullptr),
         coreclr_domain_id_(0),
         coreclr_create_delegate_(nullptr),
-        coreclr_shutdown_(nullptr),
-        initialization_done_(false) {}
+        coreclr_shutdown_(nullptr) {}
 
   std::condition_variable initialized_;
   std::mutex init_mutex_;
@@ -565,7 +565,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
           lib, "hostfxr_set_runtime_property_value");
   /*auto get_runtime_property_value_fptr =
      GetFunction<hostfxr_get_runtime_property_value_fn>( lib,
-     "hostfxr_get_runtime_property_value");  
+     "hostfxr_get_runtime_property_value");
   const char_t *prop_buffer = nullptr;  // new char_t[1024];*/
 
   /*rc = get_runtime_property_value_fptr(cxt, STR("APP_CONTEXT_BASE_DIRECTORY"),
