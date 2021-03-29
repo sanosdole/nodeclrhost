@@ -40,7 +40,7 @@ namespace NodeHostEnvironment.NativeHost
          nativeMethods.RegisterSchedulerCallbacks(context, _onProcessJsEventLoopEntry, _onProcessMicroTask, _onClosingRuntime);
       }
 
-      public bool ContextIsActive => _activeThread == Thread.CurrentThread;// _isActive.Value;
+      public bool ContextIsActive => _activeThread == Thread.CurrentThread;
 
       public object RunCallbackSynchronously(Func<object, object> callback, object args)
       {
@@ -57,6 +57,7 @@ namespace NodeHostEnvironment.NativeHost
          // Ensure TaskScheduler.Current
          var task = new Task<object>(callback, args);
          task.RunSynchronously(this);
+         _activeThread = null;
          return task.Result;
       }
 
@@ -129,6 +130,7 @@ namespace NodeHostEnvironment.NativeHost
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
          _activeThread = Thread.CurrentThread;
          TryExecuteTask(microTask);
+         _activeThread = null;
          //handle.Free();
       }
 
@@ -143,8 +145,8 @@ namespace NodeHostEnvironment.NativeHost
          // or a continuation with a specific TaskScheduler is used.
          SynchronizationContext.SetSynchronizationContext(_synchronizationContext);
          _activeThread = Thread.CurrentThread;
-
          TryExecuteTask(macroTask);
+         _activeThread = null;
          handle.Free();
       }
 
