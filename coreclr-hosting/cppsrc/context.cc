@@ -256,6 +256,10 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
 void Context::Close() {
   ThreadInstance _(this);
   if (closing_runtime_) closing_runtime_();
+  // Without we crash after a hang (due to callback being invoked after context
+  // is closed), with we sometimes have a hang after reload in electron
+  // renderer.
+  dotnet_thread_safe_callback_.Abort();
   dotnet_thread_safe_callback_.Release();
 }
 
