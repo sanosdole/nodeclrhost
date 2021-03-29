@@ -69,7 +69,8 @@ jobs:
           tags: true
 
     - name: prebuild coreclr-hosting osx
-      os: osx   
+      os: osx  
+      osx_image: xcode12.2 
       addons:
         homebrew:
           update: true
