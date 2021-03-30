@@ -4,7 +4,6 @@
 
 namespace ElectronHostedBlazor.Hosting
 {
-
     public static class BlazorElectronHost
     {
         /// <summary>

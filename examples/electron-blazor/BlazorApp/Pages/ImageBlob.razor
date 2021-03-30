@@ -1,6 +1,6 @@
-@using NodeHostEnvironment
-@using System.IO;
 @page "/ImageBlob"
+@using NodeHostEnvironment
+@using System.IO
 
 <img src="@_source"/>
 
@@ -16,8 +16,8 @@
 
         var bytes = File.ReadAllBytes(@"BlazorApp/wwwroot/exampleImage.gif");
 
-        //var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
-        //return URL.createObjectURL(new Blob([ ab ], { type: mime }));
+    //var ab = b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength);
+    //return URL.createObjectURL(new Blob([ ab ], { type: mime }));
 
         var opts = Node.New();
         opts.type = "image/jpeg";

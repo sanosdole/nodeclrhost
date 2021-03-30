@@ -9,7 +9,7 @@ namespace ElectronHostedBlazor.Hosting
     using System.Linq;
     using System.Reflection;
     using System.Runtime.ExceptionServices;
-    using ElectronHostedBlazor.Builder;
+    using Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
@@ -46,8 +46,8 @@ namespace ElectronHostedBlazor.Hosting
                 {
                     var parameter = parameters[i];
                     arguments[i] = parameter.ParameterType == typeof(IComponentsApplicationBuilder)
-                        ? app
-                        : services.GetRequiredService(parameter.ParameterType);
+                                       ? app
+                                       : services.GetRequiredService(parameter.ParameterType);
                 }
 
                 method.Invoke(Instance, arguments);
@@ -66,9 +66,9 @@ namespace ElectronHostedBlazor.Hosting
         internal MethodInfo GetConfigureMethod()
         {
             var methods = Instance.GetType()
-                .GetMethods(BindingFlags.Instance | BindingFlags.Public)
-                .Where(m => string.Equals(m.Name, "Configure", StringComparison.Ordinal))
-                .ToArray();
+                                  .GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                                  .Where(m => string.Equals(m.Name, "Configure", StringComparison.Ordinal))
+                                  .ToArray();
 
             if (methods.Length == 1)
             {
@@ -91,7 +91,7 @@ namespace ElectronHostedBlazor.Hosting
                 var method = GetConfigureServicesMethod();
                 if (method != null)
                 {
-                     method.Invoke(Instance, new object[] { services });
+                    method.Invoke(Instance, new object[] { services });
                 }
             }
             catch (Exception ex)
@@ -112,7 +112,7 @@ namespace ElectronHostedBlazor.Hosting
                 var method = GetConfigureLoggingMethod();
                 if (method != null)
                 {
-                     method.Invoke(Instance, new object[] { loggingBuilder });
+                    method.Invoke(Instance, new object[] { loggingBuilder });
                 }
             }
             catch (Exception ex)
@@ -129,23 +129,23 @@ namespace ElectronHostedBlazor.Hosting
         internal MethodInfo GetConfigureServicesMethod()
         {
             return Instance.GetType()
-                .GetMethod(
-                    "ConfigureServices",
-                    BindingFlags.Public | BindingFlags.Instance,
-                    null,
-                    new Type[] { typeof(IServiceCollection), },
-                    Array.Empty<ParameterModifier>());
+                           .GetMethod(
+                               "ConfigureServices",
+                               BindingFlags.Public | BindingFlags.Instance,
+                               null,
+                               new Type[] { typeof(IServiceCollection), },
+                               Array.Empty<ParameterModifier>());
         }
 
         internal MethodInfo GetConfigureLoggingMethod()
         {
             return Instance.GetType()
-                .GetMethod(
-                    "ConfigureLogging",
-                    BindingFlags.Public | BindingFlags.Instance,
-                    null,
-                    new Type[] { typeof(ILoggingBuilder), },
-                    Array.Empty<ParameterModifier>());
+                           .GetMethod(
+                               "ConfigureLogging",
+                               BindingFlags.Public | BindingFlags.Instance,
+                               null,
+                               new Type[] { typeof(ILoggingBuilder), },
+                               Array.Empty<ParameterModifier>());
         }
     }
 }

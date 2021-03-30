@@ -4,8 +4,8 @@
 
 namespace ElectronHostedBlazor.Hosting
 {
-    using System.Threading.Tasks;
     using System;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Extension methods for <see cref="IElectronHost"/>.
@@ -23,7 +23,7 @@ namespace ElectronHostedBlazor.Hosting
         /// </remarks>
         public static async Task<int> Run(this IElectronHost host)
         {
-            using(host)
+            using (host)
             {
                 await host.RunAsync();
                 return 0;

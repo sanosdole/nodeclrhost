@@ -5,7 +5,7 @@
 namespace ElectronHostedBlazor.Hosting
 {
     using System;
-    using ElectronHostedBlazor.Builder;
+    using Builder;
     using Microsoft.Extensions.DependencyInjection;
 
     internal interface IBlazorStartup

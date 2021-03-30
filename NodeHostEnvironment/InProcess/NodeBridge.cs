@@ -1,8 +1,8 @@
-namespace NodeHostEnvironment.InProcess
+﻿namespace NodeHostEnvironment.InProcess
 {
-    using System.Threading.Tasks;
     using System;
     using System.Threading;
+    using System.Threading.Tasks;
 
     internal sealed class NodeBridge : IBridgeToNode
     {
@@ -15,6 +15,7 @@ namespace NodeHostEnvironment.InProcess
         }
 
         public dynamic Global { get; }
+
         public dynamic New()
         {
             var handle = _host.CreateObject(JsValue.Global, null);

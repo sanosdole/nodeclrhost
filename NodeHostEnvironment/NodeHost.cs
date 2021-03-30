@@ -1,4 +1,4 @@
-namespace NodeHostEnvironment
+﻿namespace NodeHostEnvironment
 {
     public static class NodeHost
     {

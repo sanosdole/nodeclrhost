@@ -37,6 +37,7 @@ namespace ElectronHostedBlazor.Hosting
                     throw new InvalidOperationException("The resolver returned a null IServiceProviderFactory");
                 }
             }
+
             return _serviceProviderFactory.CreateBuilder(services);
         }
 

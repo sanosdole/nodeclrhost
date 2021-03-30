@@ -2,16 +2,16 @@
 
 <!-- <p>Hallo Blazor</p>
 <CascadingAuthenticationState> -->
-    <Router AppAssembly="typeof(Startup).Assembly">
-        <Found Context="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" />
-        </Found>
-        <NotFound>
-            <h1>Page not found</h1>
-            <p>Sorry, but there's nothing here!</p>
-        </NotFound>
-    </Router>
-    <!--
+<Router AppAssembly="typeof(Startup).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)"/>
+    </Found>
+    <NotFound>
+        <h1>Page not found</h1>
+        <p>Sorry, but there's nothing here!</p>
+    </NotFound>
+</Router>
+<!--
 </CascadingAuthenticationState>
 -->
 
@@ -24,7 +24,7 @@
 
     protected override void OnInitialized()
     {
-        /*UriHelper.OnLocationChanged += OnLocationChanged;
+    /*UriHelper.OnLocationChanged += OnLocationChanged;
         _baseUri = UriHelper.GetBaseUri();
         _locationAbsolute = UriHelper.GetAbsoluteUri();
         LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
@@ -35,16 +35,17 @@
     {
         var firstIndex = str.IndexOfAny(chars);
         return firstIndex < 0
-            ? str
-            : str.Substring(0, firstIndex);
+                   ? str
+                   : str.Substring(0, firstIndex);
     }
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {
-        /*_baseUri = UriHelper.GetBaseUri();
+    /*_baseUri = UriHelper.GetBaseUri();
         _locationAbsolute = UriHelper.GetAbsoluteUri();
         LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);  */      
+        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);  */
         StateHasChanged();
     }
+
 }

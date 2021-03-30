@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-using System;
-using System.Buffers;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-
 namespace ElectronHostedBlazor.Rendering
 {
-        /// <summary>
+    using System;
+    using System.Buffers;
+    using System.Diagnostics;
+    using System.Runtime.CompilerServices;
+
+    /// <summary>
     /// Implements a list that uses an array of objects to store the elements.
     /// 
     /// This differs from a <see cref="System.Collections.Generic.List{T}"/> in that

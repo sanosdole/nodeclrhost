@@ -1,8 +1,8 @@
 namespace ElectronHostedBlazor.Logging
 {
+    using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System;
     using Microsoft.Extensions.Logging;
     using NodeHostEnvironment;
 
@@ -28,17 +28,15 @@ namespace ElectronHostedBlazor.Logging
             }
 
             var entry = Tuple.Create(logLevel, finalMessage);
-            lock(_syncObject)
+            lock (_syncObject)
             {
                 if (_queuedEntries != null)
                 {
                     _queuedEntries.Add(entry);
                     return;
                 }
-                _queuedEntries = new List<Tuple<LogLevel, string>>
-                {
-                    entry
-                };
+
+                _queuedEntries = new List<Tuple<LogLevel, string>> { entry };
             }
 
             _node.Run(WriteQueuedEntries);
@@ -71,7 +69,7 @@ namespace ElectronHostedBlazor.Logging
         private void WriteQueuedEntries()
         {
             List<Tuple<LogLevel, string>> entries;
-            lock(_syncObject)
+            lock (_syncObject)
             {
                 entries = _queuedEntries;
                 _queuedEntries = null;

@@ -2,15 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-using System;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.RenderTree;
-using Microsoft.AspNetCore.Components.Web;
-
 namespace ElectronHostedBlazor.Rendering
 {
+    using System;
+    using System.Text.Json;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Components;
+    using Microsoft.AspNetCore.Components.RenderTree;
+    using Microsoft.AspNetCore.Components.Web;
+
     /// <summary>
     /// Provides mechanisms for dispatching events to components in a <see cref="Renderer"/>.
     /// </summary>
@@ -29,21 +29,18 @@ namespace ElectronHostedBlazor.Rendering
             using var sourceFieldInfo = eventDescriptor.eventFieldInfo;
             if (sourceFieldInfo != null)
             {
-                fieldInfo = new EventFieldInfo
-                {
-                ComponentId = (int) sourceFieldInfo.componentId,
-                FieldValue = sourceFieldInfo.fieldValue
-                };
+                fieldInfo = new EventFieldInfo { ComponentId = (int)sourceFieldInfo.componentId, FieldValue = sourceFieldInfo.fieldValue };
             }
+
             return DispatchEventOriginal(new WebEventDescriptor
-                {
-                    // TODO DM 26.08.2019: Replace those casts once we support proper number handling
-                    BrowserRendererId = (int) eventDescriptor.browserRendererId,
-                        EventHandlerId = (ulong) eventDescriptor.eventHandlerId,
-                        EventArgsType = eventDescriptor.eventArgsType,
-                        EventFieldInfo = fieldInfo
-                },
-                eventArgsJson);
+                                         {
+                                             // TODO DM 26.08.2019: Replace those casts once we support proper number handling
+                                             BrowserRendererId = (int)eventDescriptor.browserRendererId,
+                                             EventHandlerId = (ulong)eventDescriptor.eventHandlerId,
+                                             EventArgsType = eventDescriptor.eventArgsType,
+                                             EventFieldInfo = fieldInfo
+                                         },
+                                         eventArgsJson);
         }
 
         /// <summary>
@@ -52,7 +49,7 @@ namespace ElectronHostedBlazor.Rendering
         //[JSInvokable(nameof(DispatchEvent))]
         private Task DispatchEventOriginal(WebEventDescriptor eventDescriptor, string eventArgsJson)
         {
-            var webEvent = WebEventData.Parse(eventDescriptor, eventArgsJson);            
+            var webEvent = WebEventData.Parse(eventDescriptor, eventArgsJson);
             return _renderer.DispatchEventAsync(
                 webEvent.EventHandlerId,
                 webEvent.EventFieldInfo,
@@ -158,17 +155,9 @@ namespace ElectronHostedBlazor.Rendering
                     {
                         case JsonValueKind.True:
                         case JsonValueKind.False:
-                            return new EventFieldInfo
-                            {
-                                ComponentId = fieldInfo.ComponentId,
-                                    FieldValue = attributeValueJsonElement.GetBoolean()
-                            };
+                            return new EventFieldInfo { ComponentId = fieldInfo.ComponentId, FieldValue = attributeValueJsonElement.GetBoolean() };
                         default:
-                            return new EventFieldInfo
-                            {
-                                ComponentId = fieldInfo.ComponentId,
-                                    FieldValue = attributeValueJsonElement.GetString()
-                            };
+                            return new EventFieldInfo { ComponentId = fieldInfo.ComponentId, FieldValue = attributeValueJsonElement.GetString() };
                     }
                 }
 
@@ -178,7 +167,7 @@ namespace ElectronHostedBlazor.Rendering
             private static ChangeEventArgs DeserializeChangeEventArgs(string eventArgsJson)
             {
                 var changeArgs = Deserialize<ChangeEventArgs>(eventArgsJson);
-                var jsonElement = (JsonElement) changeArgs.Value;
+                var jsonElement = (JsonElement)changeArgs.Value;
                 switch (jsonElement.ValueKind)
                 {
                     case JsonValueKind.Null:
@@ -194,18 +183,14 @@ namespace ElectronHostedBlazor.Rendering
                     default:
                         throw new ArgumentException($"Unsupported {nameof(ChangeEventArgs)} value {jsonElement}.");
                 }
+
                 return changeArgs;
             }
         }
 
         internal static class JsonSerializerOptionsProvider
         {
-            public static readonly JsonSerializerOptions Options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                PropertyNameCaseInsensitive = true,
-            };
+            public static readonly JsonSerializerOptions Options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true, };
         }
-
     }
 }

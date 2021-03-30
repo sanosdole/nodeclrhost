@@ -2,13 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components;
-using NodeHostEnvironment;
-
 namespace ElectronHostedBlazor.Rendering
 {
+    using System;
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Components;
+    using NodeHostEnvironment;
+
     internal sealed class ElectronDispatcher : Dispatcher
     {
         private readonly IBridgeToNode _node;

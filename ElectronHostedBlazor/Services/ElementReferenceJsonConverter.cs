@@ -2,13 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-using System;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Components;
-
 namespace ElectronHostedBlazor.Services
 {
+    using System;
+    using System.Text.Json;
+    using System.Text.Json.Serialization;
+    using Microsoft.AspNetCore.Components;
+
     internal sealed class ElementReferenceJsonConverter : JsonConverter<ElementReference>
     {
         private static readonly JsonEncodedText IdProperty = JsonEncodedText.Encode("__internalId");

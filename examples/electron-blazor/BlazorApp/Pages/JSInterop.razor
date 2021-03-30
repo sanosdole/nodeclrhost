@@ -5,19 +5,19 @@
 
 <h2>Invoke JavaScript functions from .NET methods</h2>
 
-<input @ref="_entryInput" id="jsInteropInput" />
+<input @ref="_entryInput" id="jsInteropInput"/>
 
 <button id="triggerjsfromdotnet" type="button" class="btn btn-primary" @onclick="TriggerJsPrompt">
     Trigger JavaScript Prompt
 </button>
 
-<h3 id="welcome" style="color:green;font-style:italic"></h3>
+<h3 id="welcome" style="color: green; font-style: italic"></h3>
 
 <button id="triggerdotnetfromjs" type="button" class="btn btn-primary" @onclick="TriggerNetInstanceMethod">
     Trigger .NET instance method HelloHelper.SayHello
 </button>
 
-<h3 id="dotnetinvocationcount" style="color:green;font-style:italic">@_invokeCounter</h3>
+<h3 id="dotnetinvocationcount" style="color: green; font-style: italic">@_invokeCounter</h3>
 
 
 @code {
@@ -25,14 +25,14 @@
     private int _invokeCounter;
 
     public async Task TriggerNetInstanceMethod()
-    {        
+    {
         await JSRuntime.InvokeAsync<string>(
             "exampleJsFunctions.sayHello",
             DotNetObjectReference.Create(this));
     }
 
     [JSInvokable]
-    public string SayHello() 
+    public string SayHello()
     {
         _invokeCounter++;
         StateHasChanged();
@@ -40,7 +40,7 @@
     }
 
     [JSInvokable]
-    public static async Task AsyncVoidTest(DotNetObjectReference<JSInterop> instanceRef) 
+    public static async Task AsyncVoidTest(DotNetObjectReference<JSInterop> instanceRef)
     {
         var instance = instanceRef.Value;
         instance._invokeCounter--;
@@ -57,11 +57,12 @@
     public async Task TriggerJsPrompt()
     {
         var name = await JSRuntime.InvokeAsync<string>(
-                "exampleJsFunctions.getInputValue",
-                _entryInput);
+            "exampleJsFunctions.getInputValue",
+            _entryInput);
 
         await JSRuntime.InvokeVoidAsync(
-                "exampleJsFunctions.displayWelcome",
-                $"Hello {name}! Welcome to Blazor!");
+            "exampleJsFunctions.displayWelcome",
+            $"Hello {name}! Welcome to Blazor!");
     }
+
 }

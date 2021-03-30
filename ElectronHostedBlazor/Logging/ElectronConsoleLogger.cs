@@ -17,6 +17,7 @@ namespace ElectronHostedBlazor.Logging
             _writer = writer;
             _categoryName = categoryName;
         }
+
         public IDisposable BeginScope<TState>(TState state)
         {
             return NoOpDisposable.Instance;
@@ -33,9 +34,7 @@ namespace ElectronHostedBlazor.Logging
                 return;
 
             var formattedMessage = formatter(state, exception);
-            var exceptionString = null != exception ?
-                $"\n{exception}" :
-                string.Empty;
+            var exceptionString = null != exception ? $"\n{exception}" : string.Empty;
             var finalMessage = $"{_categoryName}[{eventId.Id}]:\n{formattedMessage}{exceptionString}";
             _writer.Write(logLevel, finalMessage);
         }

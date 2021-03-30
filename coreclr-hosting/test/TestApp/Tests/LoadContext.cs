@@ -1,10 +1,10 @@
-using System.Reflection;
-using System.Runtime.Loader;
-using FluentAssertions;
-using NodeHostEnvironment;
-
 namespace TestApp.Tests
 {
+    using System.Reflection;
+    using System.Runtime.Loader;
+    using FluentAssertions;
+    using NodeHostEnvironment;
+
     public sealed class LoadContext : MochaTest
     {
         public void It_should_not_reload_assembly()
@@ -20,7 +20,7 @@ namespace TestApp.Tests
             var nheAlc = AssemblyLoadContext.GetLoadContext(typeof(IBridgeToNode).Assembly);
             var myAlc = AssemblyLoadContext.GetLoadContext(typeof(LoadContext).Assembly);
             var defaultAlc = AssemblyLoadContext.Default;
-            
+
             nheAlc.Should().BeSameAs(defaultAlc);
             myAlc.Should().BeSameAs(defaultAlc);
         }

@@ -1,12 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
-using FluentAssertions;
-using NodeHostEnvironment;
-
-namespace TestApp.Tests
+﻿namespace TestApp.Tests
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
+    using FluentAssertions;
+    using NodeHostEnvironment;
+
     public sealed class Global_test_object : MochaTest
     {
         public void Before()
@@ -16,7 +16,7 @@ namespace TestApp.Tests
 
         public void It_should_have_integerValue_42()
         {
-            ((int) Global.testObject.integerValue).Should().Be(42);
+            ((int)Global.testObject.integerValue).Should().Be(42);
 
             // TODO DM 05.03.2020: This does not work as DLR binds an `object`, which will be a double for number types :(
             /*int i = global.testObject.integerValue;
@@ -25,58 +25,56 @@ namespace TestApp.Tests
 
         public void It_should_have_doubleValue_3_1415()
         {
-            ((double) Global.testObject.doubleValue).Should().Be(3.1415);
+            ((double)Global.testObject.doubleValue).Should().Be(3.1415);
         }
 
         public void It_should_have_stringValue_Hello_world()
         {
-            ((string) Global.testObject.stringValue).Should().Be("Hello world");
+            ((string)Global.testObject.stringValue).Should().Be("Hello world");
         }
 
         public void It_should_have_objectValue_nestedStringValue_Nested_hello_()
         {
-            ((string) Global.testObject.objectValue.nestedStringValue).Should().Be("Nested hello");
+            ((string)Global.testObject.objectValue.nestedStringValue).Should().Be("Nested hello");
         }
 
         public void It_should_have_nullValue_null()
         {
-            ((object) Global.testObject.nullValue).Should().Be(null);
+            ((object)Global.testObject.nullValue).Should().Be(null);
         }
 
         public void It_should_have_boolean_values()
         {
-            ((bool) Global.testObject.trueValue).Should().Be(true);
-            ((bool) Global.testObject.falseValue).Should().Be(false);
+            ((bool)Global.testObject.trueValue).Should().Be(true);
+            ((bool)Global.testObject.falseValue).Should().Be(false);
         }
 
         public void It_should_have_string_array_values()
         {
-            ((string[]) Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
-            ((IReadOnlyCollection<string>) Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
-            ((IEnumerable<string>) Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+            ((string[])Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+            ((IReadOnlyCollection<string>)Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+            ((IEnumerable<string>)Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
 
-            ((object[]) Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
-            ((IReadOnlyCollection<object>) Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
-            ((IEnumerable<object>) Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
-
+            ((object[])Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+            ((IReadOnlyCollection<object>)Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
+            ((IEnumerable<object>)Global.testObject.stringArray).Should().Equal(new string[] { "A", "B" });
         }
 
         public void It_should_have_mixed_array_values()
         {
-            var mixedObjArray = (object[]) Global.testObject.mixedArray;
+            var mixedObjArray = (object[])Global.testObject.mixedArray;
             mixedObjArray.Length.Should().Be(3);
-            ((string) mixedObjArray[0]).Should().Be("A");
-            ((double) mixedObjArray[1]).Should().Be(42); // TODO DM 05.03.2020: Casting to (int) should_be supported
-            ((int) ((dynamic) mixedObjArray[2]).iValue).Should().Be(42);
-            ((string) ((dynamic) mixedObjArray[2]).strValue).Should().Be("strValue");
+            ((string)mixedObjArray[0]).Should().Be("A");
+            ((double)mixedObjArray[1]).Should().Be(42); // TODO DM 05.03.2020: Casting to (int) should_be supported
+            ((int)((dynamic)mixedObjArray[2]).iValue).Should().Be(42);
+            ((string)((dynamic)mixedObjArray[2]).strValue).Should().Be("strValue");
 
-            var mixedDynArray = (IReadOnlyCollection<dynamic>) Global.testObject.mixedArray;
+            var mixedDynArray = (IReadOnlyCollection<dynamic>)Global.testObject.mixedArray;
             mixedDynArray.Count.Should().Be(3);
             /*((string)mixedDynArray[0]).Should().Be("A");
             ((int)mixedDynArray[1]).Should().Be(42);
             ((int)((dynamic)mixedDynArray[2]).iValue).Should().Be(42);
             ((string)((dynamic)mixedDynArray[2]).strValue).Should().Be("strValue");*/
-
         }
 
         public void It_should_support_indexer()
@@ -91,7 +89,7 @@ namespace TestApp.Tests
 
         public void It_should_accept_dynamic_numbers_back()
         {
-            var result = (int) Global.testObject.addIntegerValue(Global.testObject.integerValue);
+            var result = (int)Global.testObject.addIntegerValue(Global.testObject.integerValue);
             result.Should().Be(84);
         }
 
@@ -120,22 +118,22 @@ namespace TestApp.Tests
         public void It_should_pass_exceptions_from_passed_callback()
         {
             var shouldPassException = new Action(() =>
-                Global.testObject.invokeCallback("Ping",
-                    new Action<string>(_ =>
-                    {
-                        throw new InvalidOperationException("Test error message");
-                    })));
+                                                     Global.testObject.invokeCallback("Ping",
+                                                                                      new Action<string>(_ =>
+                                                                                                         {
+                                                                                                             throw new InvalidOperationException("Test error message");
+                                                                                                         })));
             shouldPassException.Should().Throw<InvalidOperationException>();
         }
 
         public void It_should_get_Task_passed_as_Promise()
         {
-            ((bool) Global.testObject.isPromise(Task.FromResult(5))).Should().Be(true);
+            ((bool)Global.testObject.isPromise(Task.FromResult(5))).Should().Be(true);
         }
 
         public async Task It_should_return_Task_from_createPromise()
         {
-            var result = await (Task<string>) Global.testObject.createPromise(true);
+            var result = await (Task<string>)Global.testObject.createPromise(true);
             result.Should().Be("Resolved");
         }
 
@@ -152,57 +150,62 @@ namespace TestApp.Tests
             var didThrow = false;
             try
             {
-                await (Task) Global.testObject.createPromise(false);
+                await (Task)Global.testObject.createPromise(false);
             }
             catch (Exception e)
             {
                 didThrow = true;
                 e.Message.Should().Contain("Error: As requested");
             }
-            didThrow.Should().Be(true);
 
+            didThrow.Should().Be(true);
         }
 
-        private sealed class UnsupportedType { }
+        private sealed class UnsupportedType
+        { }
 
         public async Task It_should_marshal_Task_with_unsupported_result_type_as_exception()
         {
             var task = Task.FromResult(new UnsupportedType());
-            ((bool) Global.testObject.isPromise(task)).Should().Be(true);
+            ((bool)Global.testObject.isPromise(task)).Should().Be(true);
 
             // DM 27.11.2019: We need the try/catch as FluentAssertions waits on the threadpool :(
             var didThrow = false;
             try
             {
-                await (Task) Global.testObject.awaitPromise(task);
+                await (Task)Global.testObject.awaitPromise(task);
             }
             catch (Exception e)
             {
                 didThrow = true;
                 e.Message.Should().Contain("Error: InvalidOperationException: Unsupported object type for passing into JS: TestApp.Tests.Global_test_object+UnsupportedType");
             }
-            didThrow.Should().Be(true);
 
+            didThrow.Should().Be(true);
         }
 
         public async Task It_should_marshal_Task_with_VoidTaskResult()
         {
-            var task = new Func<Task>(async() => { await Task.Yield(); await Task.Yield(); }) ();
-            ((bool) Global.testObject.isPromise(task)).Should().Be(true);
+            var task = new Func<Task>(async () =>
+                                      {
+                                          await Task.Yield();
+                                          await Task.Yield();
+                                      })();
+            ((bool)Global.testObject.isPromise(task)).Should().Be(true);
 
-            await (Task) Global.testObject.awaitPromise(task);
+            await (Task)Global.testObject.awaitPromise(task);
         }
 
         public void It_should_instantiate_TestClass()
         {
             var inst = Global.testObject.TestClass.CreateNewInstance(42);
-            ((int) inst.value).Should().Be(42);
+            ((int)inst.value).Should().Be(42);
         }
 
         public void It_should_call_TestClass_staticFunc()
         {
             var result = Global.testObject.TestClass.staticFunc(42);
-            ((int) result).Should().Be(42 + 42);
+            ((int)result).Should().Be(42 + 42);
         }
 
         public void It_should_support_require()
@@ -229,7 +232,6 @@ namespace TestApp.Tests
             AssertionExtensions.Should(Global.testObject == Global.testObject).Be(true);
             AssertionExtensions.Should(Global.testObject == Global.it).Be(false);
             AssertionExtensions.Should(Global.it == Global.it).Be(true);
-
         }
 
         // TODO: Test hash code
@@ -249,7 +251,7 @@ namespace TestApp.Tests
             Marshal.WriteByte(ptr, 1, 2);
             Marshal.WriteByte(ptr, 2, 3);
             Marshal.WriteByte(ptr, 3, 4);
-            using var memory = NativeMemory.Create(ptr, 4, (pointer,_) => Marshal.FreeHGlobal(pointer));
+            using var memory = NativeMemory.Create(ptr, 4, (pointer, _) => Marshal.FreeHGlobal(pointer));
             Global.testObject.assertByteArray(memory);
         }
 
@@ -275,16 +277,16 @@ namespace TestApp.Tests
         public void It_should_directly_access_array_buffer()
         {
             var array = Global.Uint8ClampedArray.CreateNewInstance(512);
-            var buffer = (ArrayBuffer) array.buffer;
+            var buffer = (ArrayBuffer)array.buffer;
             Marshal.Copy(new byte[] { 1, 2, 3, 4 }, 0, buffer.Address, 4);
 
             buffer.ByteLength.Should().Be(512);
-            ((int) array[0]).Should().Be(1);
-            ((int) array[3]).Should().Be(4);
+            ((int)array[0]).Should().Be(1);
+            ((int)array[3]).Should().Be(4);
 
             Marshal.Copy(new byte[] { 4, 3, 2, 1 }, 0, buffer.Address, 4);
-            ((int) array[0]).Should().Be(4);
-            ((int) array[3]).Should().Be(1);
+            ((int)array[0]).Should().Be(4);
+            ((int)array[3]).Should().Be(1);
         }
 
         public void It_should_directly_access_array_buffer_created_from_dotnet_memory()
@@ -294,9 +296,9 @@ namespace TestApp.Tests
             Marshal.WriteByte(ptr, 1, 2);
             Marshal.WriteByte(ptr, 2, 3);
             Marshal.WriteByte(ptr, 3, 4);
-            using var memory = NativeMemory.Create(ptr, 4, (pointer,_) => Marshal.FreeHGlobal(pointer));
+            using var memory = NativeMemory.Create(ptr, 4, (pointer, _) => Marshal.FreeHGlobal(pointer));
             var jsArray = Global.Uint8Array.CreateNewInstance(memory);
-            using var arrayBuffer = (ArrayBuffer) jsArray.buffer;
+            using var arrayBuffer = (ArrayBuffer)jsArray.buffer;
 
             Global.testObject.assertByteArray(jsArray);
             arrayBuffer.ByteLength.Should().Be(4);
@@ -308,6 +310,5 @@ namespace TestApp.Tests
             //Marshal.ReadByte(arrayBuffer.Address, 0).Should().Be(5);            
             //arrayBuffer.Address.Should().Be(ptr);
         }
-
     }
 }
