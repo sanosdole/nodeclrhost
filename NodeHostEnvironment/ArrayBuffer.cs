@@ -1,9 +1,9 @@
-using System;
-using System.Diagnostics;
-using NodeHostEnvironment.InProcess;
-
-namespace NodeHostEnvironment
+﻿namespace NodeHostEnvironment
 {
+    using System;
+    using System.Diagnostics;
+    using InProcess;
+
     /// <summary>
     /// This class wraps a <see cref="JsDynamicObject"/> of a JS `ArrayBuffer` 
     /// to provide direct access to the underlying backing store memory.
@@ -16,7 +16,7 @@ namespace NodeHostEnvironment
         /// The JavaScript `ArrayBuffer` object.
         /// </summary>
         public dynamic JsObject => _jsObject;
-        
+
         /// <summary>
         /// Address of the underlying backing store memory.
         /// </summary>

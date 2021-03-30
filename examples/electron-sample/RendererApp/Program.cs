@@ -12,8 +12,9 @@
             var tcs = new TaskCompletionSource<int>();
             var host = NodeHost.Instance;
             var console = host.Global.console;
+            var process = host.Global.require("process");
 
-            console.log($"Running renderer app in {host.Global.process.pid}");
+            console.log($"Running renderer app in {process.pid}");
 
             host.Global.window.addEventListener("unload", new Action<dynamic>(e =>
             {
@@ -22,7 +23,7 @@
 
             await host.Run(async() =>
             {
-                var div = host.Global.window.document.getElementById("AnimateDiv");
+                var div = host.Global.window.ToReplace;// document.getElementById("AnimateDiv");
                 for (var c = 0; c < 30; c++)
                 {
                     await Task.Delay(1000);

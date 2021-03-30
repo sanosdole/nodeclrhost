@@ -1,7 +1,7 @@
-namespace NodeHostEnvironment.InProcess
+﻿namespace NodeHostEnvironment.InProcess
 {
-    using System.Runtime.InteropServices;
     using System;
+    using System.Runtime.InteropServices;
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct JsValue
@@ -9,11 +9,7 @@ namespace NodeHostEnvironment.InProcess
         public JsType Type;
         public IntPtr Value;
 
-        public static readonly JsValue Global = new JsValue
-        {
-            Type = JsType.Object,
-            Value = IntPtr.Zero
-        };
+        public static readonly JsValue Global = new JsValue { Type = JsType.Object, Value = IntPtr.Zero };
 
         public bool RequiresContextForRelease => Type == JsType.Object || Type == JsType.Function;
 
@@ -30,7 +26,7 @@ namespace NodeHostEnvironment.InProcess
                         return true;
                     case JsType.Object:
                     case JsType.Function:
-                        releaseHandle = false;                        
+                        releaseHandle = false;
                         var asDynamic = new JsDynamicObject(this, host);
                         var wasConverted = asDynamic.TryConvertIntern(targetType, out result);
                         if (wasConverted)
@@ -39,20 +35,21 @@ namespace NodeHostEnvironment.InProcess
                             // TODO DM 17.05.2020: The check for ArrayBuffer shows deeper design problems (conversion should be externalized?)
                             if (!ReferenceEquals(asDynamic, result) && targetType != typeof(ArrayBuffer))
                                 asDynamic.Dispose();
-                            return true; 
+                            return true;
                         }
+
                         result = asDynamic;
                         return true;
                     case JsType.String:
-                        result = Marshal.PtrToStringUni(Value);                        
+                        result = Marshal.PtrToStringUni(Value);
                         return true;
                     case JsType.Number:
                         // TODO: This will break on 32 bit systems!
                         releaseHandle = false;
-                        var numberValue = BitConverter.Int64BitsToDouble((long) Value);
-                        if (targetType == typeof(int))                        
+                        var numberValue = BitConverter.Int64BitsToDouble((long)Value);
+                        if (targetType == typeof(int))
                             result = (int)numberValue;
-                        else if (targetType == typeof(long))                        
+                        else if (targetType == typeof(long))
                             result = (long)numberValue;
                         else
                             result = numberValue;
@@ -71,7 +68,6 @@ namespace NodeHostEnvironment.InProcess
                         return false;
                     default:
                         throw new InvalidOperationException($"Unsupported JsType '{Type}'");
-
                 }
             }
             finally
@@ -79,7 +75,6 @@ namespace NodeHostEnvironment.InProcess
                 if (releaseHandle)
                     host.Release(this);
             }
-
         }
 
         public void ThrowError(IHostInProcess host)

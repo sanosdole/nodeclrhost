@@ -29,7 +29,7 @@ class Context::SynchronizedFinalizerCallback {
                                 std::function<void()> callback);
   void Call();
   void Cancel();
-  static void Wrapper(napi_env env, void* finalize_data, void* finalize_hint);
+  static void Wrapper(napi_env env, void* finalize_data);
 };
 
 Context::SynchronizedFinalizerCallback::SynchronizedFinalizerCallback(
@@ -41,8 +41,7 @@ Context::SynchronizedFinalizerCallback::SynchronizedFinalizerCallback(
 }
 
 void Context::SynchronizedFinalizerCallback::Wrapper(napi_env env,
-                                                     void* finalize_data,
-                                                     void* finalize_hint) {
+                                                     void* finalize_data) {
   auto data = (SynchronizedFinalizerCallback*)finalize_data;
   data->Call();
   delete data;
@@ -58,25 +57,35 @@ void Context::SynchronizedFinalizerCallback::Call() {
   }
 }
 
-void Context::SynchronizedFinalizerCallback::Cancel() { context_ = nullptr; }
+void Context::SynchronizedFinalizerCallback::Cancel() {
+  // This must be called while mutex is locked
+  if (context_) {
+    context_ = nullptr;
+    callback_();
+  }
+}
 
 thread_local Context* Context::ThreadInstance::thread_instance_;
+
+void Context::DeleteContext(Napi::Env env, Context* context) { delete context; }
 
 Context::Context(std::unique_ptr<DotNetHost> dotnet_host, Napi::Env env)
     : env_(env),
       finalizer_mutex_(std::make_shared<std::mutex>()),
       host_(std::move(dotnet_host)),
+      function_factory_(
+          std::bind(&Context::CreateFunction, this, std::placeholders::_1)),
+      array_buffer_factory_(
+          std::bind(&Context::CreateArrayBuffer, this, std::placeholders::_1)),
+      process_event_loop_(nullptr),
       dotnet_thread_safe_callback_(Napi::ThreadSafeFunction::New(
           env, Napi::Function::New(env, Noop, "invokeDotNetEventLoop"),
           "invokeDotNetEventLoop", 0, 1)),
-      process_event_loop_(nullptr),
-      function_factory_(
-          std::bind(&Context::CreateFunction, this, std::placeholders::_1)),
-      array_buffer_factory_(std::bind(&Context::CreateArrayBuffer, this,
-                                      std::placeholders::_1)) {}
+      closing_runtime_(nullptr) {
+  env.SetInstanceData<Context, Context::DeleteContext>(this);
+}
 Context::~Context() {
   ThreadInstance _(this);
-  dotnet_thread_safe_callback_.Release();
   std::lock_guard<std::mutex> lock(*finalizer_mutex_);
   for (auto finalizer_data : function_finalizers_) {
     finalizer_data->Cancel();
@@ -85,7 +94,9 @@ Context::~Context() {
 }
 
 void Context::RegisterSchedulerCallbacks(void (*process_event_loop)(void*),
-                                         void (*process_micro_task)(void*)) {
+                                         void (*process_micro_task)(void*),
+                                         void (*closing_runtime)(void)) {
+  closing_runtime_ = closing_runtime;
   Napi::HandleScope handle_scope(env_);
 
   process_event_loop_ = [this, process_event_loop](Napi::Env env,
@@ -234,18 +245,28 @@ Napi::Value Context::RunCoreApp(const Napi::CallbackInfo& info) {
             return_value,
             {Napi::Function::New(env,
                                  [context](const Napi::CallbackInfo& f_info) {
-                                   delete context;
+                                   context->Close();
                                    return f_info[0];
                                  }),
              Napi::Function::New(env,
                                  [context](const Napi::CallbackInfo& r_info) {
-                                   delete context;
+                                   context->Close();
                                    return r_info[0];
                                  })});
   }
 
-  delete context;
+  context->Close();
   return return_value;
+}
+
+void Context::Close() {
+  ThreadInstance _(this);
+  if (closing_runtime_) closing_runtime_();
+  // Without we crash after a hang (due to callback being invoked after context
+  // is closed), with we sometimes have a hang after reload in electron
+  // renderer.
+  dotnet_thread_safe_callback_.Abort();
+  dotnet_thread_safe_callback_.Release();
 }
 
 JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
@@ -452,32 +473,76 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
         return napiResultValue;
       });
 
-  auto finalizer_data = new SynchronizedFinalizerCallback(this, [=]() {
-    release_func(DotNetType::Function, reinterpret_cast<void*>(function_value));
-  });
-  napi_add_finalizer(env_, function, static_cast<void*>(finalizer_data),
-                     SynchronizedFinalizerCallback::Wrapper, nullptr, nullptr);
+  auto finalizer_data =
+      new SynchronizedFinalizerCallback(this, [release_func, function_value]() {
+        release_func(DotNetType::Function,
+                     reinterpret_cast<void*>(function_value));
+      });
+
+  function.AddFinalizer(SynchronizedFinalizerCallback::Wrapper, finalizer_data);
 
   return function;
 }
+
+class Context::BufferCache {
+  std::map<void*, void (*)(DotNetType::Enum, void*)> release_callbacks_;
+  Napi::ObjectReference buffer_ref_;
+
+ public:
+  BufferCache(Napi::Buffer<uint8_t> buffer, void* value,
+              void (*release)(DotNetType::Enum, void*))
+      : buffer_ref_(Napi::Weak((Napi::Object)buffer)) {
+    release_callbacks_[value] = release;
+  }
+
+  ~BufferCache() {
+    for (const auto& callback : release_callbacks_) {
+      callback.second(DotNetType::ByteArray, callback.first);
+    }
+    // release_callbacks_.clear();
+  }
+
+  Napi::Value UseValue(void* value, void (*release)(DotNetType::Enum, void*)) {
+    release_callbacks_[value] = release;
+    return buffer_ref_.Value();
+  }
+};
 
 Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
   auto value_copy = handle->value_;
   auto release_array_func = handle->release_func_;
   handle->release_func_ = nullptr;  // We delay the release
 
-  auto finalizerData = new SynchronizedFinalizerCallback(
-      this, [=]() { release_array_func(DotNetType::ByteArray, value_copy); });
   // We have a pointer to a struct { int32_t, void* } and interpret it like a
   // int32_t*
   auto array_value_ptr = reinterpret_cast<int32_t*>(value_copy);
   auto length = *array_value_ptr;
-  return Napi::Buffer<uint8_t>::New(
-      env_, *reinterpret_cast<uint8_t**>(array_value_ptr + 1), length,
+  auto data_ptr = *reinterpret_cast<uint8_t**>(array_value_ptr + 1);
+
+  auto existing_buffer = buffers_.find(data_ptr);
+  if (existing_buffer != buffers_.end()) {
+    return existing_buffer->second->UseValue(value_copy, release_array_func);
+  }
+
+  auto finalizerData =
+      new SynchronizedFinalizerCallback(this, [this, data_ptr]() {
+        auto cache_node = buffers_.find(data_ptr);
+        auto cache = cache_node->second;
+        buffers_.erase(cache_node);
+        delete cache;
+      });
+
+  auto result = Napi::Buffer<uint8_t>::New(
+      env_, data_ptr, length,
       [](napi_env env, void* data, SynchronizedFinalizerCallback* hint) {
         hint->Call();
+        delete hint;
       },
       finalizerData);
+
+  auto cache = new BufferCache(result, value_copy, release_array_func);
+  buffers_[data_ptr] = cache;
+  return result;
 
   // This makes a non-transferable array buffer => crashes electron when
   // rendering

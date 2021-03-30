@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace ElectronHostedBlazor.Rendering
 {
+    using System;
+    using System.IO;
+    using System.Runtime.CompilerServices;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     /// Writeable memory stream backed by a an <see cref="ArrayBuilder{T}"/>.
     /// </summary>
@@ -89,7 +89,6 @@ namespace ElectronHostedBlazor.Rendering
 
         /// <inheritdoc />
         //public override ValueTask DisposeAsync() => default;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ValidateArguments(byte[] buffer, int offset, int count)
         {

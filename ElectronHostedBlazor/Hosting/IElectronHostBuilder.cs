@@ -11,7 +11,7 @@ namespace ElectronHostedBlazor.Hosting
 
     public interface IElectronHostBuilder
     {
-         /// <summary>
+        /// <summary>
         /// A central location for sharing state between components during the host building process.
         /// </summary>
         IDictionary<object, object> Properties { get; }

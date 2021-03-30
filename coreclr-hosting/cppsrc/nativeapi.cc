@@ -12,9 +12,9 @@ using namespace coreclrhosting;
 
 /* MUST BE C-STYLE FUNCTION */
 EXPORT_TO_DOTNET void RegisterSchedulerCallbacks(void* context_handle, void (*process_event_loop)(void*),
-                                   void (*process_micro_task)(void*)) {
+                                   void (*process_micro_task)(void*), void (*closing_runtime)(void)) {
   auto context = reinterpret_cast<Context*>(context_handle);
-  context->RegisterSchedulerCallbacks(process_event_loop, process_micro_task);
+  context->RegisterSchedulerCallbacks(process_event_loop, process_micro_task, closing_runtime);
 }
 
 EXPORT_TO_DOTNET void SignalEventLoopEntry(void* context_handle, void* data) {

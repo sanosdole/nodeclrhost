@@ -4,7 +4,7 @@ const coreclrhosting = require('coreclr-hosting');
 console.log('hosting:', coreclrhosting);
 console.log('hosting:', BrowserWindow);
 global.electron = require('electron');
-
+global.appRoot = __dirname;
 /*
 global.createBrowserWindow = function(options) {
     //return new BrowserWindow(options);

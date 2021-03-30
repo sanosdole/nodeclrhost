@@ -4,16 +4,16 @@
 
 namespace ElectronHostedBlazor.Hosting
 {
-    using System.Collections.Generic;
     using System;
-    using ElectronHostedBlazor.Logging;
-    using ElectronHostedBlazor.Services;
-    using Microsoft.AspNetCore.Components.Routing;
+    using System.Collections.Generic;
+    using Logging;
     using Microsoft.AspNetCore.Components;
+    using Microsoft.AspNetCore.Components.Routing;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Microsoft.JSInterop;
     using NodeHostEnvironment;
+    using Services;
 
     internal sealed class ElectronHostBuilder : IElectronHostBuilder
     {
@@ -37,14 +37,14 @@ namespace ElectronHostedBlazor.Hosting
         public IElectronHostBuilder ConfigureServices(Action<ElectronHostBuilderContext, IServiceCollection> configureDelegate)
         {
             _configureServicesActions.Add(configureDelegate ??
-                throw new ArgumentNullException(nameof(configureDelegate)));
+                                          throw new ArgumentNullException(nameof(configureDelegate)));
             return this;
         }
 
         public IElectronHostBuilder ConfigureLogging(Action<ElectronHostBuilderContext, ILoggingBuilder> configureDelegate)
         {
             _configureLoggingActions.Add(configureDelegate ??
-                throw new ArgumentNullException(nameof(configureDelegate)));
+                                         throw new ArgumentNullException(nameof(configureDelegate)));
             return this;
         }
 
@@ -55,7 +55,7 @@ namespace ElectronHostedBlazor.Hosting
         public IElectronHostBuilder UseServiceProviderFactory<TContainerBuilder>(IServiceProviderFactory<TContainerBuilder> factory)
         {
             _serviceProviderFactory = new ElectronServiceFactoryAdapter<TContainerBuilder>(factory ??
-                throw new ArgumentNullException(nameof(factory)));
+                                                                                           throw new ArgumentNullException(nameof(factory)));
             return this;
         }
 
@@ -65,8 +65,9 @@ namespace ElectronHostedBlazor.Hosting
         /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
         public IElectronHostBuilder UseServiceProviderFactory<TContainerBuilder>(Func<ElectronHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
         {
-            _serviceProviderFactory = new ElectronServiceFactoryAdapter<TContainerBuilder>(() => _BrowserHostBuilderContext, factory ??
-                throw new ArgumentNullException(nameof(factory)));
+            _serviceProviderFactory = new ElectronServiceFactoryAdapter<TContainerBuilder>(() => _BrowserHostBuilderContext,
+                                                                                           factory ??
+                                                                                           throw new ArgumentNullException(nameof(factory)));
             return this;
         }
 
@@ -80,6 +81,7 @@ namespace ElectronHostedBlazor.Hosting
             {
                 throw new InvalidOperationException("Build can only be called once.");
             }
+
             _hostBuilt = true;
 
             CreateBrowserHostBuilderContext();
@@ -133,11 +135,11 @@ namespace ElectronHostedBlazor.Hosting
 
             // Add Logging and apply user customizations to it
             services.AddLogging(loggingBuilder =>
-            {
-                loggingBuilder.AddElectronConsole();
-                foreach (var configureLoggingAction in _configureLoggingActions)
-                    configureLoggingAction(_BrowserHostBuilderContext, loggingBuilder);
-            });
+                                {
+                                    loggingBuilder.AddElectronConsole();
+                                    foreach (var configureLoggingAction in _configureLoggingActions)
+                                        configureLoggingAction(_BrowserHostBuilderContext, loggingBuilder);
+                                });
 
             var builder = _serviceProviderFactory.CreateBuilder(services);
             _appServices = _serviceProviderFactory.CreateServiceProvider(builder);

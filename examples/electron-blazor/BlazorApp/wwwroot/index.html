@@ -12,17 +12,17 @@
   <body>
     <app>
       <h1>Hello World!</h1>
-      We are using node <script>document.write(process.versions.node)</script>,
-      Chrome <script>document.write(process.versions.chrome)</script>,
-      and Electron <script>document.write(process.versions.electron)</script>.
+      We are using node <script>document.write(require('process').versions.node)</script>,
+      Chrome <script>document.write(require('process').versions.chrome)</script>,
+      and Electron <script>document.write(require('process').versions.electron)</script>.
       <br/>
-      We are in process <script>document.write(process.pid)</script>.
+      We are in process <script>document.write(require('process').pid)</script>.
       <br/>
       Loading coreclr and blazor app...
     </app>
     <script>
-      const glue = require('electron-blazor-glue');
-      glue.runBlazorApp(__dirname + "/../bin/Debug/netcoreapp3.1/BlazorApp.dll");
+        const glue = require('electron-blazor-glue');
+        glue.runBlazorApp(window.appRoot + "/BlazorApp/bin/Debug/netcoreapp3.1/BlazorApp.dll");
     </script>
     <script src="exampleJsInterop.js"></script>
     

@@ -1,44 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <Project ToolsVersion="14.0"
          xmlns="http://schemas.microsoft.com/developer/msbuild/2003"
          Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
 
-<PropertyGroup>
-    <PackageId>ElectronHostedBlazor</PackageId>
-    <Version Condition="'$(TRAVIS_TAG)' == ''">0.7.9</Version>
-    <Version Condition="'$(TRAVIS_TAG)' != ''">$(TRAVIS_TAG.Substring(1))</Version>
-    <Authors>sanosdole2</Authors>
-    <Company>nodeclrhost</Company>
+    <PropertyGroup>
+        <PackageId>ElectronHostedBlazor</PackageId>
+        <Version Condition="'$(TRAVIS_TAG)' == ''">0.8.0</Version>
+        <Version Condition="'$(TRAVIS_TAG)' != ''">$(TRAVIS_TAG.Substring(1))</Version>
+        <Authors>sanosdole2</Authors>
+        <Company>nodeclrhost</Company>
 
-    <Title>Hosting ASP blazor components in electron renderer</Title>
-    <Description>This library implements a electron renderer host for blazor components using the `NodeHostEnvironment`.</Description>
-    <Copyright>Daniel Martin 2019</Copyright>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <MinClientVersion>4.3.0</MinClientVersion>
-    <!-- <PackageIconUrl></PackageIconUrl> -->
-    <!-- <PackageReleaseNotes></PackageReleaseNotes> -->
-    <PackageTags>node;javascript;interop;electron;components;blazor</PackageTags>
-    <IncludeSymbols>true</IncludeSymbols>
-    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <IncludeSource>false</IncludeSource>
-    <IsTool>false</IsTool>
-    <RepositoryUrl>https://github.com/sanosdole/nodeclrhost.git</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryBranch>master</RepositoryBranch>
-    <!-- <RepositoryCommit></RepositoryCommit> -->
+        <Title>Hosting ASP blazor components in electron renderer</Title>
+        <Description>This library implements a electron renderer host for blazor components using the `NodeHostEnvironment`.</Description>
+        <Copyright>Daniel Martin 2019</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <MinClientVersion>4.3.0</MinClientVersion>
+        <!-- <PackageIconUrl></PackageIconUrl> -->
+        <!-- <PackageReleaseNotes></PackageReleaseNotes> -->
+        <PackageTags>node;javascript;interop;electron;components;blazor</PackageTags>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <IncludeSource>false</IncludeSource>
+        <IsTool>false</IsTool>
+        <RepositoryUrl>https://github.com/sanosdole/nodeclrhost.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryBranch>master</RepositoryBranch>
+        <!-- <RepositoryCommit></RepositoryCommit> -->
 
-  </PropertyGroup>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\NodeHostEnvironment\NodeHostEnvironment.csproj" />
+    </ItemGroup>
 
-  <ItemGroup>
-      <FrameworkReference Include="Microsoft.AspNetCore.App" />
-   </ItemGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
 
 </Project>

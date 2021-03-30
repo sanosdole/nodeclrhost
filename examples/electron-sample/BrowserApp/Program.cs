@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using System;
+    using System.IO;
     using NodeHostEnvironment;
 
     class Program
@@ -13,7 +14,7 @@
             var host = NodeHost.Instance;
             var console = host.Global.console;
 
-            console.log($"Running broswer app in {host.Global.process.pid}");
+            console.log($"Running broswer app2 in {host.Global.process.pid}");
             var electron = host.Global.electron;
             electron.app.on("ready", new Action<dynamic>((dynamic launchInfo) =>
             {
@@ -22,10 +23,10 @@
                 options.title = ".NET rocks";
                 var webPreferences = host.New();
                 options.webPreferences = webPreferences;
-                webPreferences.nodeIntegration = true;
-                /*webPreferences.contextIsolation = false;
+                webPreferences.preload = Path.Combine(host.Global.appRoot, "preload.js");
+                webPreferences.contextIsolation = false;
                 webPreferences.sandbox = false;
-                webPreferences.devTools = false;*/
+                webPreferences.devTools = true;
 
                 //console.log("options:", options);
 

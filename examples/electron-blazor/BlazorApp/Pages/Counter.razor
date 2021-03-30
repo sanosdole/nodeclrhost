@@ -10,23 +10,23 @@
 <p>@text</p>
 <br/>
 <fieldset>
-      <p>
-         <input type="radio"
-                name="import"
-                value="on"
-                checked="@(_import)"
-                @onchange="ImportChanged" />
-         Option 1
-      </p>
-      <p>
-         <input type="radio"
-                name="noImport"
-                value="off"
-                checked="@(!_import)"
-                @onchange="ImportChanged" />
-         Option 2
-      </p>
-   </fieldset>
+    <p>
+        <input type="radio"
+               name="import"
+               value="on"
+               checked="@(_import)"
+               @onchange="ImportChanged"/>
+        Option 1
+    </p>
+    <p>
+        <input type="radio"
+               name="noImport"
+               value="off"
+               checked="@(!_import)"
+               @onchange="ImportChanged"/>
+        Option 2
+    </p>
+</fieldset>
 
 @code {
     string text = "Initial";
@@ -36,7 +36,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        //System.Diagnostics.Debugger.Launch();
+    //System.Diagnostics.Debugger.Launch();
         text = "OnInitializedAsync";
         await Task.Delay(500);
         currentCount = 5;
@@ -50,9 +50,10 @@
         currentCount++;
         Log.LogInformation("Counter INC");
     }
- 
+
     void ImportChanged(ChangeEventArgs args)
     {
         _import = args.Value.ToString() == "on";
     }
+
 }

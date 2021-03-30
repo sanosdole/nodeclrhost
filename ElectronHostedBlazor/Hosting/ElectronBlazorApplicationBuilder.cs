@@ -7,11 +7,11 @@ namespace ElectronHostedBlazor.Hosting
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using ElectronHostedBlazor.Builder;
-    using ElectronHostedBlazor.Rendering;
+    using Builder;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using NodeHostEnvironment;
+    using Rendering;
 
     internal class ElectronBlazorApplicationBuilder : IComponentsApplicationBuilder
     {

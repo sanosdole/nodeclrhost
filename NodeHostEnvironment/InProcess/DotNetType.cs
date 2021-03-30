@@ -1,4 +1,4 @@
-namespace NodeHostEnvironment.InProcess
+﻿namespace NodeHostEnvironment.InProcess
 {
     internal enum DotNetType
     {

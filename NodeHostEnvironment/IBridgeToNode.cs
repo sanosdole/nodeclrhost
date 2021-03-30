@@ -1,8 +1,8 @@
 namespace NodeHostEnvironment
 {
-    using System.Threading.Tasks;
-    using System.Threading;
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Interface for accessing the node host environment.
@@ -74,7 +74,7 @@ namespace NodeHostEnvironment
 
         private static object RunActionState(object state)
         {
-            ((Action) state) ();
+            ((Action)state)();
             return null;
         }
     }

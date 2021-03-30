@@ -34,8 +34,8 @@ namespace ElectronHostedBlazor.Services
             */
 
             _navigationManager.listenForNavigationEvents(new Action<string, bool>(NotifyLocationChangedFromJs));
-            var baseUri = (string) _navigationManager.getBaseURI();
-            var uri = (string) _navigationManager.getLocationHref();
+            var baseUri = (string)_navigationManager.getBaseURI();
+            var uri = (string)_navigationManager.getLocationHref();
             /*string uri = window.location.href;
             string baseUri = window.location.origin;*/
 
@@ -48,6 +48,7 @@ namespace ElectronHostedBlazor.Services
             {
                 throw new ArgumentNullException(nameof(uri));
             }
+
             _blazorInternal.navigateTo(uri, forceLoad);
             //WebAssemblyJSRuntime.Instance.Invoke<object>(Interop.NavigateTo, uri, forceLoad);
         }
@@ -66,13 +67,11 @@ namespace ElectronHostedBlazor.Services
             Uri = uri;
             NotifyLocationChanged(isInterceptedLink);
         }
+
         private static string StringUntilAny(string str, char[] chars)
         {
             var firstIndex = str.IndexOfAny(chars);
-            return firstIndex < 0 ?
-                str :
-                str.Substring(0, firstIndex);
+            return firstIndex < 0 ? str : str.Substring(0, firstIndex);
         }
-
     }
 }

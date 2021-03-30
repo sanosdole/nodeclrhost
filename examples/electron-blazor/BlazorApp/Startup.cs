@@ -1,4 +1,4 @@
-namespace BlazorApp
+﻿namespace BlazorApp
 {
     using ElectronHostedBlazor.Builder;
     using Microsoft.Extensions.DependencyInjection;
@@ -11,9 +11,9 @@ namespace BlazorApp
         public void ConfigureLogging(ILoggingBuilder loggingBuilder)
         {
             loggingBuilder.AddDebug()
-                .AddFilter("Microsoft", LogLevel.Debug)
-                .AddFilter("System", LogLevel.Warning)
-                .AddFilter("BlazorApp", LogLevel.Debug);
+                          .AddFilter("Microsoft", LogLevel.Debug)
+                          .AddFilter("System", LogLevel.Warning)
+                          .AddFilter("BlazorApp", LogLevel.Debug);
         }
 
         public void Configure(IComponentsApplicationBuilder app)

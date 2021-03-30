@@ -4,10 +4,10 @@
 
 namespace ElectronHostedBlazor.Rendering
 {
+    using System;
     using System.Collections.Generic;
     using System.IO;
     using System.Text;
-    using System;
     using Microsoft.AspNetCore.Components.RenderTree;
 
     // TODO: We should consider *not* having this type of infrastructure in the .Server
@@ -159,6 +159,7 @@ namespace ElectronHostedBlazor.Rendering
                         var attributeValueString = frame.AttributeValue as string;
                         WriteString(attributeValueString, allowDeduplication: string.IsNullOrEmpty(attributeValueString));
                     }
+
                     _binaryWriter.Write(frame.AttributeEventHandlerId); // 8 bytes
                     break;
                 case RenderTreeFrameType.Component:
@@ -299,5 +300,4 @@ namespace ElectronHostedBlazor.Rendering
             _binaryWriter.Dispose();
         }
     }
-
 }

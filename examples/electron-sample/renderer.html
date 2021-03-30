@@ -6,20 +6,23 @@
   </head>
   <body>
     <h1>Hello World!</h1>
-    We are using node <script>document.write(process.versions.node)</script>,
-    Chrome <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
+    We are using node <script>document.write(require('process').versions.node)</script>,
+    Chrome <script>document.write(require('process').versions.chrome)</script>,
+    and Electron <script>document.write(require('process').versions.electron)</script>.
     <br/>
-    We are in process <script>document.write(process.pid)</script>.
+    We are in process <script>document.write(require('process').pid)</script>.
     <br/>
     <div id="AnimateDiv">WILL BE REPLACED</div>
 
     Result from .Net = 
     <script>
-        global.ToReplace = global.window.document.getElementById("AnimateDiv");
-        console.log('TATA: ', global.ToReplace);
-        const coreclrhosting = require('coreclr-hosting');
-        var result = coreclrhosting.runCoreApp(__dirname + '/RendererApp/bin/Debug/netcoreapp3.1/RendererApp.dll');
+        window.ToReplace = window.document.getElementById("AnimateDiv");
+        
+        //const coreclrhosting = window.myApi.coreclrhosting; // require('coreclr-hosting')
+        const path = require('path');
+        const coreclrhosting = require(path.join(window.nodeModulesPath, 'coreclr-hosting'));
+
+        var result = coreclrhosting.runCoreApp(window.appRoot + '/RendererApp/bin/Debug/netcoreapp3.1/RendererApp.dll');
         document.write(result);
     </script>
     

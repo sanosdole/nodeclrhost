@@ -1,7 +1,7 @@
-namespace NodeHostEnvironment.InProcess
+﻿namespace NodeHostEnvironment.InProcess
 {
-    using System.Threading.Tasks;
     using System;
+    using System.Threading.Tasks;
 
     internal delegate DotNetValue DotNetCallback(JsValue[] argv);
 
@@ -11,10 +11,12 @@ namespace NodeHostEnvironment.InProcess
     internal interface IHostInProcess
     {
         bool CheckAccess();
+
         TaskFactory Factory { get; }
 
         // Get a handle, ownerHandler == Zero + Object => Global
         JsValue GetMember(JsValue ownerHandle, string name);
+
         JsValue GetMemberByIndex(JsValue ownerHandle, int index);
 
         // Convert handles to primitives can be done in managed code based on JsType
@@ -36,8 +38,10 @@ namespace NodeHostEnvironment.InProcess
 
         IntPtr MarshallCallback(DotNetCallback callback, out ReleaseDotNetValue releaseCallback);
 
-        IntPtr MarshallTask(Task task, out ReleaseDotNetValue releaseCallback);
+        IntPtr MarshallTask(Task task);
+
         JsValue[] GetArrayValues(JsValue handle);
+
         bool TryAccessArrayBuffer(JsValue handle, out IntPtr address, out int byteLength);
     }
 }

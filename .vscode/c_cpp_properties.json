@@ -3,15 +3,15 @@
         {
             "name": "Win32",
             "includePath": [
-                "${workspaceFolder}/**",
-                "C:\\Users/Daniel/AppData/Local/node-gyp/Cache/10.15.3/**"
+                "${workspaceFolder}/coreclr-hosting/**",
+                "C:\\Users/Daniel/AppData/Local/node-gyp/Cache/12.16.3/**"
             ],
             "defines": [
                 "WINDOWS",
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
-                "NAPI_EXPERIMENTAL",
+                "NAPI_VERSION=6",
                 "NODE_ADDON_API_DISABLE_DEPRECATED",
                 "NAPI_DISABLE_CPP_EXCEPTIONS"
             ],
@@ -24,11 +24,11 @@
         {
             "name": "Mac",
             "includePath": [
-                "${workspaceFolder}/**",
-                "/Users/danielmartin/.node-gyp/10.16.3/include/node"
+                "${workspaceFolder}/coreclr-hosting/**",
+                "/Users/danielmartin/.node-gyp/12.16.3/include/node"
             ],
             "defines": [
-                "NAPI_EXPERIMENTAL",
+                "NAPI_VERSION=6",
                 "NODE_ADDON_API_DISABLE_DEPRECATED",
                 "NAPI_DISABLE_CPP_EXCEPTIONS"
             ],

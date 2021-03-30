@@ -13,15 +13,16 @@ enum Enum {
   kAssemblyNotFound,
   kCoreClrNotFound,
   kInvalidCoreClr,
-  kInitializeFailed
+  kInitializeFailed,
+  kReinitializationNotSupported
 };
 }
 
 class DotNetHost {
   class Impl;
-  std::unique_ptr<Impl> impl_;
+  std::shared_ptr<Impl> impl_;
 
-  DotNetHost(std::unique_ptr<Impl> impl);
+  DotNetHost(std::shared_ptr<Impl> impl);
 
   DotNetHost(const DotNetHost&) = delete;
   DotNetHost& operator=(const DotNetHost&) = delete;  // no self-assignments

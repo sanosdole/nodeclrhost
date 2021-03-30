@@ -1,8 +1,8 @@
 namespace BlazorApp
 {
+    using System.Threading.Tasks;
     using ElectronHostedBlazor.Hosting;
     using Microsoft.Extensions.Logging;
-    using System.Threading.Tasks;
 
     public class Program
     {
@@ -14,7 +14,7 @@ namespace BlazorApp
 
         public static IElectronHostBuilder CreateHostBuilder(string[] args) =>
             BlazorElectronHost.CreateDefaultBuilder()
-            .ConfigureLogging(loggingBuilder => loggingBuilder.AddConsole())
-            .UseBlazorStartup<Startup>();
+                              .ConfigureLogging(loggingBuilder => loggingBuilder.AddConsole())
+                              .UseBlazorStartup<Startup>();
     }
 }

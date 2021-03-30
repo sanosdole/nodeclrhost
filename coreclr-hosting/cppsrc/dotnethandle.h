@@ -103,6 +103,7 @@ extern "C" struct DotNetHandle {
         for (int32_t inx = 0; inx < length; inx++) {
           array.Set(inx, values[inx].ToValue(env, function_factory,
                                              array_buffer_factory));
+          values[inx].Release();                                   
         }
         return array;
       }

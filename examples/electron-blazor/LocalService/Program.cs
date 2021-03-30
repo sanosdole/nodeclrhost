@@ -1,12 +1,13 @@
 ﻿namespace LocalService
 {
-    using System.Threading.Tasks;
     using System;
+    using System.Threading.Tasks;
     using NodeHostEnvironment;
 
     class Program
     {
         static dynamic browserWindow;
+
         static Task<int> Main(string[] args)
         {
             var host = NodeHost.Instance;
@@ -17,36 +18,36 @@
 
             console.log($"Running broswer app in {host.Global.process.pid}");
             var electron = host.Global.electron;
-            electron.app.on("ready", new Action<dynamic>((dynamic launchInfo) =>
-            {
-                console.log("app is ready");
-                var options = host.New();
-                options.title = ".NET rocks";
-                options.backgroundColor = "#fff";
-                options.useContentSize = true;
-                //options.kiosk = true;
+            electron.app.on("ready",
+                            new Action<dynamic>((dynamic launchInfo) =>
+                                                {
+                                                    console.log("app is ready");
+                                                    var options = host.New();
+                                                    options.title = ".NET rocks";
+                                                    options.backgroundColor = "#fff";
+                                                    options.useContentSize = true;
+                                                    //options.kiosk = true;
 
-                var webPreferences = host.New();
-                options.webPreferences = webPreferences;
-                webPreferences.nodeIntegration = true;
-                webPreferences.enableRemoteModule = true; // Required for spectron tests, see https://github.com/electron-userland/spectron/pull/738
-                /*webPreferences.contextIsolation = false;
-                webPreferences.sandbox = false;
-                webPreferences.devTools = false;*/
+                                                    var webPreferences = host.New();
+                                                    options.webPreferences = webPreferences;
+                                                    webPreferences.enableRemoteModule = true; // Required for spectron tests, see https://github.com/electron-userland/spectron/pull/738
+                                                    webPreferences.contextIsolation = false;
+                                                    webPreferences.sandbox = false;
 
-                //console.log("options:", options);
+                                                    webPreferences.preload = host.Global.preloadScriptPath;
 
-                browserWindow = electron.BrowserWindow.CreateNewInstance(options);
+                                                    //console.log("options:", options);
 
-                browserWindow.loadFile("BlazorApp/wwwroot/index.html");
+                                                    browserWindow = electron.BrowserWindow.CreateNewInstance(options);
 
-            }));
+                                                    browserWindow.loadFile("BlazorApp/wwwroot/index.html");
+                                                }));
 
-            electron.app.on("will-quit", new Action<dynamic>(e =>
-            {
-                tcs.SetResult(5);
-
-            }));
+            electron.app.on("will-quit",
+                            new Action<dynamic>(e =>
+                                                {
+                                                    tcs.SetResult(5);
+                                                }));
 
             return tcs.Task;
         }

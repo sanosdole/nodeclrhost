@@ -8,9 +8,11 @@
 #include <string.h>
 
 #include <algorithm>
+#include <condition_variable>
 #include <fstream>
 #include <iostream>
 #include <limits>
+#include <mutex>
 #include <vector>
 
 // Provided by the AppHost NuGet package and installed as an SDK pack
@@ -248,10 +250,27 @@ LibraryHandle LoadHostfxr(const std::string &assembly,
 namespace coreclrhosting {
 
 class DotNetHost::Impl {
- public:
-  LibraryHandle hostfxr_lib_;
+  Impl(string_t assembly_path_t)
+      : initialization_done_(false),
+        assembly_path_t_(assembly_path_t),
+        hostfxr_lib_(nullptr),
+        load_assembly_and_get_function_(nullptr),
+        context_(nullptr),
+        close_fptr_(nullptr),
+        coreclr_lib_(nullptr),
+        coreclr_host_handle_(nullptr),
+        coreclr_domain_id_(0),
+        coreclr_create_delegate_(nullptr),
+        coreclr_shutdown_(nullptr) {}
 
+  std::condition_variable initialized_;
+  std::mutex init_mutex_;
+  bool initialization_done_;
+
+ public:
   string_t assembly_path_t_;
+
+  LibraryHandle hostfxr_lib_;
   load_assembly_and_get_function_pointer_fn load_assembly_and_get_function_;
   hostfxr_handle context_;
   hostfxr_close_fn close_fptr_;
@@ -266,6 +285,7 @@ class DotNetHost::Impl {
                            std::string signature_delegate_name) {
     void *result = nullptr;
     if (load_assembly_and_get_function_) {
+      // Installed FX using hostfx
       auto type_name_t = StringTFromUtf8(type_name);
       auto method_name_t = StringTFromUtf8(method_name);
       auto signature_delegate_name_t = StringTFromUtf8(signature_delegate_name);
@@ -280,6 +300,7 @@ class DotNetHost::Impl {
       }
 
     } else if (coreclr_create_delegate_) {
+      // SCD use case
       auto split_pos = type_name.find(',');
       auto short_type_name = type_name.substr(0, split_pos);
       auto assembly_name =
@@ -302,7 +323,9 @@ class DotNetHost::Impl {
     return result;
   }
 
-  ~Impl() {
+  ~Impl() {    
+    // TODO DM 26.03.2021: Cleanup crashes on nix ci server in tests :(
+#ifdef WINDOWS
     if (coreclr_lib_) {
       coreclr_shutdown_(coreclr_host_handle_, coreclr_domain_id_);
       free_library(coreclr_lib_);
@@ -310,10 +333,41 @@ class DotNetHost::Impl {
 
     close_fptr_(context_);
     free_library(hostfxr_lib_);
+#endif
+  }
+
+  static std::shared_ptr<Impl> Instance(string_t assembly_path_t,
+                                        bool &created) {
+    static std::mutex lock;
+    static std::shared_ptr<Impl> shared;
+
+    std::lock_guard<std::mutex> guard(lock);
+
+    // Get an existing instance from the weak reference, if possible.
+    if (auto instance = shared /*.lock()*/) {
+      std::unique_lock<std::mutex> lock(instance->init_mutex_);
+      instance->initialized_.wait(
+          lock, [instance] { return instance->initialization_done_; });
+      created = false;
+      return instance;
+    }
+
+    // Create a new instance and keep a weak reference.
+    // Global state will be cleaned up when last thread exits.
+    auto instance = std::shared_ptr<Impl>(new Impl(assembly_path_t));
+    shared = instance;
+    created = true;
+    return instance;
+  }
+
+  void SetInitialized() {
+    std::lock_guard<std::mutex> lock(init_mutex_);
+    initialization_done_ = true;
+    initialized_.notify_all();
   }
 };
 
-DotNetHost::DotNetHost(std::unique_ptr<Impl> impl) : impl_(std::move(impl)) {}
+DotNetHost::DotNetHost(std::shared_ptr<Impl> impl) : impl_(impl) {}
 DotNetHost::~DotNetHost() {}
 
 DotNetHostCreationResult::Enum DotNetHost::Create(
@@ -343,6 +397,16 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   if (!FileExists(assembly_path) || !FileExists(runtime_config))
     return DotNetHostCreationResult::kAssemblyNotFound;
 
+  auto assembly_path_t = StringTFromUtf8(assembly_path);
+  bool created;
+  auto impl = Impl::Instance(assembly_path_t, created);
+  if (impl->assembly_path_t_ != assembly_path_t)
+    return DotNetHostCreationResult::kReinitializationNotSupported;
+  if (!created) {
+    host = std::unique_ptr<DotNetHost>(new DotNetHost(impl));
+    return DotNetHostCreationResult::kOK;
+  }
+
   string_t hostfxr_path;
   auto lib = LoadHostfxr(assembly_path, hostfxr_path);
   if (nullptr == lib) return DotNetHostCreationResult::kCoreClrNotFound;
@@ -365,7 +429,6 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   }
 
   // Load context
-  auto assembly_path_t = StringTFromUtf8(assembly_path);
   auto base_path = GetDirectoryFromFilePath(assembly_path);
   auto base_path_t = StringTFromUtf8(base_path);
 
@@ -379,6 +442,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   if (rc != 0 || cxt == nullptr) {
     // See
     // <https://github.com/dotnet/runtime/blob/master/docs/design/features/host-error-codes.md>
+    // why this signals self-contained deployment
     if (rc == 0x80008093) {
       auto coreclr_path = base_path + DIR_SEPARATOR + CORECLR_FILE_NAME;
       if (FileExists(coreclr_path)) {
@@ -475,8 +539,6 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
           return DotNetHostCreationResult::kInvalidCoreClr;
         }
 
-        auto impl = std::make_unique<DotNetHost::Impl>();
-        impl->assembly_path_t_ = assembly_path_t;
         impl->load_assembly_and_get_function_ = nullptr;
         impl->context_ = cxt;
         impl->close_fptr_ = close_fptr;
@@ -486,9 +548,10 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
         impl->coreclr_domain_id_ = domain_id;
         impl->coreclr_create_delegate_ = coreclr_create_delegate;
         impl->coreclr_shutdown_ = coreclr_shutdown;
+        impl->SetInitialized();
 
         // As there is no public ctor, we need this instead of std::make_unique:
-        host = std::unique_ptr<DotNetHost>(new DotNetHost(std::move(impl)));
+        host = std::unique_ptr<DotNetHost>(new DotNetHost(impl));
         return DotNetHostCreationResult::kOK;
       }
     }
@@ -505,8 +568,8 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
           lib, "hostfxr_set_runtime_property_value");
   /*auto get_runtime_property_value_fptr =
      GetFunction<hostfxr_get_runtime_property_value_fn>( lib,
-     "hostfxr_get_runtime_property_value");  */
-  const char_t *prop_buffer = nullptr;  // new char_t[1024];
+     "hostfxr_get_runtime_property_value");
+  const char_t *prop_buffer = nullptr;  // new char_t[1024];*/
 
   /*rc = get_runtime_property_value_fptr(cxt, STR("APP_CONTEXT_BASE_DIRECTORY"),
   &prop_buffer); if (rc != 0) wprintf(STR("APP_CONTEXT_BASE_DIRECTORY: %s\n"),
@@ -563,15 +626,14 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
     return DotNetHostCreationResult::kInitializeFailed;
   }
 
-  auto impl = std::make_unique<DotNetHost::Impl>();
-  impl->assembly_path_t_ = assembly_path_t;
   impl->load_assembly_and_get_function_ = load_assembly_and_get_function_fptr;
   impl->context_ = cxt;
   impl->close_fptr_ = close_fptr;
   impl->hostfxr_lib_ = lib;
+  impl->SetInitialized();
 
   // As there is no public ctor, we need this instead of std::make_unique:
-  host = std::unique_ptr<DotNetHost>(new DotNetHost(std::move(impl)));
+  host = std::unique_ptr<DotNetHost>(new DotNetHost(impl));
   return DotNetHostCreationResult::kOK;
 }
 
