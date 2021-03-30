@@ -37,7 +37,7 @@ namespace ElectronHostedBlazor.Rendering
         {
             _node = node;
             _logger = loggerFactory.CreateLogger<ElectronRenderer>();
-            _reusableArrayBufferStream = new ReusableArrayBufferStream((ArrayBuffer)node.Global.ArrayBuffer.CreateNewInstance(16 * 1024));
+            _reusableArrayBufferStream = new ReusableArrayBufferStream(node);
             _blazorInternal = node.Global.window.Blazor._internal;
             _dispatcher = new ElectronDispatcher(node);
             var eventDispatcher = new ElectronEventDispatcher(this);

@@ -10,11 +10,13 @@
         private int _length;
         private int _position;
         private ArrayBuffer _buffer;
-
-        public ReusableArrayBufferStream(ArrayBuffer initialBuffer)
+        private readonly dynamic _arrayBufferClass;
+        
+        public ReusableArrayBufferStream(IBridgeToNode node)
         {
-            Debug.Assert(initialBuffer != null);
-            _buffer = initialBuffer;
+            Debug.Assert(node != null);
+            _arrayBufferClass = node.Global.ArrayBuffer;
+            _buffer = (ArrayBuffer)_arrayBufferClass.CreateNewInstance(64*1024);
         }
 
         public ArrayBuffer Buffer => _buffer;
@@ -84,16 +86,19 @@
                 _length = endPosition;
         }
 
-        private void ResizeBuffer(in int requiredSize)
+        private unsafe void ResizeBuffer(in int requiredSize)
         {
             var size = _buffer.ByteLength;
             while (size < requiredSize)
                 size <<= 1;
 
-            /*var previous = _buffer;         
-            _buffer = CreateArrayBuffer(size);
-            System.Buffer.BlockCopy(previous, 0, _buffer, 0, previous.Length);*/
-            _buffer = _buffer.JsObject.transfer(size);
+            var previous = _buffer;         
+            _buffer = (ArrayBuffer)_arrayBufferClass.CreateNewInstance(size);
+            System.Buffer.MemoryCopy(previous.Address.ToPointer(),
+                                         _buffer.Address.ToPointer(),
+                                         _buffer.ByteLength,
+                                         previous.ByteLength);
+            //_buffer = _buffer.JsObject.transfer(size);
         }
 
         public override bool CanRead => false;
