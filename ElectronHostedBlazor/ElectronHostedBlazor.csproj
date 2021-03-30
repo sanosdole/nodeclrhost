@@ -10,7 +10,7 @@
 
     <PropertyGroup>
         <PackageId>ElectronHostedBlazor</PackageId>
-        <Version Condition="'$(TRAVIS_TAG)' == ''">0.8.1</Version>
+        <Version Condition="'$(TRAVIS_TAG)' == ''">0.8.2</Version>
         <Version Condition="'$(TRAVIS_TAG)' != ''">$(TRAVIS_TAG.Substring(1))</Version>
         <Authors>sanosdole2</Authors>
         <Company>nodeclrhost</Company>
