@@ -82,7 +82,7 @@ jobs:
        - npm install -g npm@'>=6.14.5'
        - dotnet --version
        - npm i -g prebuild
-       - npm ci --build-from-source
+       - npm i --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
            prebuild -t 12.17.0 --include-regex "\.(node|a|dll|so|dylib)$";

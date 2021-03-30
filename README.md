@@ -2,7 +2,7 @@
 
 [![Build status master](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=master)](https://travis-ci.com/sanosdole/nodeclrhost) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-_Latest release_ __v0.8.2__: [![Build status release](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=v0.8.2 )](https://travis-ci.com/sanosdole/nodeclrhost)
+_Latest release_ __v0.8.3__: [![Build status release](https://travis-ci.com/sanosdole/nodeclrhost.svg?branch=v0.8.3 )](https://travis-ci.com/sanosdole/nodeclrhost)
 
 This project enables writing node/electron applications with .NET core.
 This is achieved by a native node module (`coreclr-hosting`) that runs a .NET core application.
