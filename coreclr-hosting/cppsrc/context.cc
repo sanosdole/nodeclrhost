@@ -57,7 +57,13 @@ void Context::SynchronizedFinalizerCallback::Call() {
   }
 }
 
-void Context::SynchronizedFinalizerCallback::Cancel() { context_ = nullptr; }
+void Context::SynchronizedFinalizerCallback::Cancel() {
+  // This must be called while mutex is locked
+  if (context_) {
+    context_ = nullptr;
+    callback_();
+  }
+}
 
 thread_local Context* Context::ThreadInstance::thread_instance_;
 
