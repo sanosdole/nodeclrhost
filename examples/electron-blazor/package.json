@@ -20,12 +20,12 @@
   "license": "MIT",
   "dependencies": {
     "coreclr-hosting": "file:../../coreclr-hosting",
-    "electron-blazor-glue": "file:../../electron-blazor-glue",
-    "typescript": "^4.2.3"
+    "electron-blazor-glue": "file:../../electron-blazor-glue"
   },
   "devDependencies": {
     "@types/mocha": "^8.2.2",
     "@types/node": "^14.14.35",
+    "typescript": "^4.2.3",
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "electron": "^12.0.2",

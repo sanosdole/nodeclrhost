@@ -25,8 +25,7 @@
   "license": "MIT",
   "dependencies": {
     "@dotnet/jsinterop": "^3.1.13",
-    "coreclr-hosting": "file:../coreclr-hosting",
-    "typescript": "^4.2.3"
+    "coreclr-hosting": "file:../coreclr-hosting"
   },
   "devDependencies": {
     "@types/node": "^14.14.35",
@@ -34,7 +33,8 @@
     "node-loader": "^1.0.2",
     "ts-loader": "^8.0.18",
     "webpack": "^5.27.2",
-    "webpack-cli": "^4.5.0"
+    "webpack-cli": "^4.5.0",
+    "typescript": "^4.2.3"
   },
   "keywords": [
     "dotnet",
