@@ -55,7 +55,6 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
   window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddress: ArrayBuffer, batchLength: number) => {
     try {
       var typedArray = new Uint8Array(batchAddress, 0, batchLength);
-      console.info(`rendering batch of size ${typedArray.length}/${typedArray.byteLength} and first byte ${typedArray[0]}`);
       renderBatch(browserRendererId, new OutOfProcessRenderBatch(typedArray));
     } catch (error) {
       console.error(error);
@@ -63,9 +62,8 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
   }  
 
   // DM 21.08.2019: Start the blazor app
-  var result = await coreclrhosting.runCoreApp(assemblyPath, ...args);
-  console.info("Main returned: " + result);
-
+  return await coreclrhosting.runCoreApp(assemblyPath, ...args);
+  
   // TODO DM 29.11.2019: Do we need any of this for RCLs to work?
   /*
     // Fetch the boot JSON file
