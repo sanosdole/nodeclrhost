@@ -18,5 +18,8 @@ window.exampleJsFunctions = {
             .then(r => console.log(r))
             .then(r => DotNet.invokeMethodAsync('BlazorApp', 'AsyncVoidTest', dotnetHelper))
             .then(r => console.log(r));
+    },
+    crash: function() {
+        require("process").crash();
     }
 };
