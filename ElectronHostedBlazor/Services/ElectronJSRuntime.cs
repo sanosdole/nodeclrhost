@@ -90,5 +90,33 @@ namespace ElectronHostedBlazor.Services
                                                                 ? JsonSerializer.Serialize(invocationResult.Result, JsonSerializerOptions)
                                                                 : invocationResult.Exception.ToString());
         }
+
+#if NET5_0
+        protected override string? InvokeJS(string identifier, string? argsJson, JSCallResultType resultType, long targetInstanceId)
+        {
+            // TODO: Use extra args
+            if (!_node.CheckAccess())
+                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson)).Result;
+
+            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson);
+        }
+
+        protected override void BeginInvokeJS(long taskId, string identifier, string? argsJson, JSCallResultType resultType, long targetInstanceId)
+        {
+            // TODO: Use extra args
+            if (!_node.CheckAccess())
+            {
+                // TODO DM 27.04.2020: Consider closing taskId on an exception
+                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson))
+                     .Wait();
+                return;
+            }
+
+            _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson);
+        }
+
+
+    
+#endif
     }
 }
