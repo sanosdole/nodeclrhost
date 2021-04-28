@@ -2,7 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Reflection;
+    using System.Diagnostics;
+    using System.Reflection;    
     using System.Runtime.InteropServices;
     using System.Text;
     using System.Threading.Tasks;
@@ -42,7 +43,7 @@
 
         public IntPtr MarshallCallback(DotNetCallback callback, out ReleaseDotNetValue releaseCallback)
         {
-            var holder = new CallbackHolder(callback, this);
+            var holder = new CallbackHolder(callback, _scheduler);
             _registry.Add(holder.CallbackPtr, holder);
             releaseCallback = _releaseCallback;
             return holder.CallbackPtr;
@@ -72,37 +73,43 @@
                                                            JsValue[] argv);
 
             public IntPtr CallbackPtr { get; }
-            public DotNetCallback Wrapped { get; }
-
+            
+            private static readonly JsValue[] EmptyJsValues = new JsValue[0];
             // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable as we want the GC Handle it brings
             private readonly CallbackSignature _wrapper;
-            private readonly NativeNodeHost _parent;
-            private static readonly JsValue[] EmptyJsValues = new JsValue[0];
+            private readonly DotNetCallback _wrapped;
+            private readonly NodeTaskScheduler _scheduler;
+            private readonly Func<object, object> _callWithContext;
 
-            public CallbackHolder(DotNetCallback toWrap, NativeNodeHost parent)
+            public CallbackHolder(DotNetCallback toWrap, NodeTaskScheduler scheduler)
             {
-                Wrapped = toWrap;
+                _scheduler = scheduler;
+                _wrapped = toWrap;
                 _wrapper = OnCalled;
+                _callWithContext = CallWithContext;
                 CallbackPtr = Marshal.GetFunctionPointerForDelegate(_wrapper);
-                _parent = parent;
             }
 
             private DotNetValue OnCalled(int argc, JsValue[] argv)
             {
-                System.Diagnostics.Debug.Assert(argc == (argv?.Length ?? 0), "Marshalling is broken");
+                Debug.Assert(argc == (argv?.Length ?? 0), "Marshalling is broken");
+                return (DotNetValue)_scheduler
+                                           .RunCallbackSynchronously(_callWithContext,
+                                                                     argv ?? EmptyJsValues);
+            }
 
+            private object CallWithContext(object args)
+            {
                 try
                 {
-                    return (DotNetValue)_parent._scheduler.RunCallbackSynchronously(
-                        state => Wrapped((JsValue[])state),
-                        argv ?? EmptyJsValues);
+                    return _wrapped((JsValue[])args);
                 }
                 catch (Exception exception)
                 {
                     if (exception is AggregateException aggregateException)
                         exception = UnwrapAggregateException(aggregateException);
-                    if (exception is TargetInvocationException targetInvocationexception)
-                        exception = targetInvocationexception.InnerException;
+                    if (exception is TargetInvocationException targetInvocationException)
+                        exception = targetInvocationException.InnerException;
 
                     return DotNetValue.FromException(exception);
                 }
