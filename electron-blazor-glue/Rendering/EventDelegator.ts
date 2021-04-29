@@ -21,6 +21,7 @@ const nonBubblingEvents = toLookup([
   'scroll',
   'submit',
   'unload',
+  'toggle',
   'DOMNodeInsertedIntoDocument',
   'DOMNodeRemovedFromDocument',
 ]);
@@ -63,6 +64,10 @@ export class EventDelegator {
       this.eventInfoStore.add(newInfo);
       infoForElement.setHandler(eventName, newInfo);
     }
+  }
+
+  public getHandler(eventHandlerId: number) {
+    return this.eventInfoStore.get(eventHandlerId);
   }
 
   public removeListener(eventHandlerId: number) {
@@ -171,6 +176,10 @@ class EventInfoStore {
     this.infosByEventHandlerId[info.eventHandlerId] = info;
 
     this.addGlobalListener(info.eventName);
+  }
+
+  public get(eventHandlerId: number) {
+    return this.infosByEventHandlerId[eventHandlerId];
   }
 
   public addGlobalListener(eventName: string) {

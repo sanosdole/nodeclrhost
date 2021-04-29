@@ -6,6 +6,7 @@ namespace ElectronHostedBlazor.Services
 {
     using System;
     using System.Text.Json;
+    using Microsoft.AspNetCore.Components;
     using Microsoft.JSInterop;
     using Microsoft.JSInterop.Infrastructure;
     using NodeHostEnvironment;
@@ -15,6 +16,12 @@ namespace ElectronHostedBlazor.Services
     {
         private readonly IBridgeToNode _node;
         private readonly dynamic _jsCallDispatcher;
+
+#if NET5_0
+        public ElementReferenceContext ElementReferenceContext { get; }
+#elif NETCOREAPP3_1
+
+#endif
 
         public ElectronJSRuntime(IBridgeToNode node)
         {
@@ -27,7 +34,14 @@ namespace ElectronHostedBlazor.Services
             dotnetDispatcher.beginInvokeDotNetFromJS = new Action<long, string, string, dynamic, string>(BeginInvokeDotNetFromJS);
             dotnetDispatcher.endInvokeJSFromDotNet = new Action<long, bool, string>(EndInvokeJSFromDotNet);
             dotNet.attachDispatcher(dotnetDispatcher);
-            JsonSerializerOptions.Converters.Add(new ElementReferenceJsonConverter());
+
+#if NET5_0
+        ElementReferenceContext = new WebElementReferenceContext(this);
+        JsonSerializerOptions.Converters.Add(new ElementReferenceJsonConverter(ElementReferenceContext));
+#elif NETCOREAPP3_1
+        JsonSerializerOptions.Converters.Add(new ElementReferenceJsonConverter());
+#endif
+            
         }
 
         private void EndInvokeJSFromDotNet(long callId, bool succeeded, string argsJson)
@@ -45,27 +59,6 @@ namespace ElectronHostedBlazor.Services
         {
             var callInfo = new DotNetInvocationInfo(assemblyName, methodIdentifier, dotNetObjectId == null ? default : (long)dotNetObjectId, null);
             return DotNetDispatcher.Invoke(this, callInfo, argsJson);
-        }
-
-        protected override string InvokeJS(string identifier, string argsJson)
-        {
-            if (!_node.CheckAccess())
-                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson)).Result;
-
-            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson);
-        }
-
-        protected override void BeginInvokeJS(long taskId, string identifier, string argsJson)
-        {
-            if (!_node.CheckAccess())
-            {
-                // TODO DM 27.04.2020: Consider closing taskId on an exception
-                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson))
-                     .Wait();
-                return;
-            }
-
-            _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson);
         }
 
         protected override void EndInvokeDotNet(DotNetInvocationInfo invocationInfo, in DotNetInvocationResult invocationResult)
@@ -96,9 +89,9 @@ namespace ElectronHostedBlazor.Services
         {
             // TODO: Use extra args
             if (!_node.CheckAccess())
-                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson)).Result;
+                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, (int)resultType, targetInstanceId)).Result;
 
-            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson);
+            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, (int)resultType, targetInstanceId);
         }
 
         protected override void BeginInvokeJS(long taskId, string identifier, string? argsJson, JSCallResultType resultType, long targetInstanceId)
@@ -107,16 +100,38 @@ namespace ElectronHostedBlazor.Services
             if (!_node.CheckAccess())
             {
                 // TODO DM 27.04.2020: Consider closing taskId on an exception
-                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson))
+                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson, (int)resultType, targetInstanceId))
                      .Wait();
                 return;
             }
 
-            _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson);
+            _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson, (int)resultType, targetInstanceId);
         }
 
 
-    
+    #elif NETCOREAPP3_1
+        protected override string InvokeJS(string identifier, string argsJson)
+        {
+            if (!_node.CheckAccess())
+                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, 0, 0)).Result;
+
+            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, 0, 0);
+        }
+
+        protected override void BeginInvokeJS(long taskId, string identifier, string argsJson)
+        {
+            if (!_node.CheckAccess())
+            {
+                // TODO DM 27.04.2020: Consider closing taskId on an exception
+                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson, 0, 0))
+                     .Wait();
+                return;
+            }
+
+            _jsCallDispatcher.beginInvokeJSFromDotNet(taskId, identifier, argsJson, 0, 0);
+        }
+
+        
 #endif
     }
 }

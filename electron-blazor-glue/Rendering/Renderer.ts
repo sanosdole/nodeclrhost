@@ -3,8 +3,6 @@
 // Modified by Daniel Martin for nodeclrhost
 
 /* eslint-disable @typescript-eslint/camelcase */
-import '../Platform/Platform';
-import '../Environment';
 import { RenderBatch } from './RenderBatch/RenderBatch';
 import { BrowserRenderer } from './BrowserRenderer';
 import { toLogicalElement, LogicalElement } from './LogicalElements';
@@ -33,6 +31,10 @@ export function attachRootComponentToElement(elementSelector: string, componentI
   // 'allowExistingContents' to keep any prerendered content until we do the first client-side render
   // Only client-side Blazor supplies a browser renderer ID
   attachRootComponentToLogicalElement(browserRendererId || 0, toLogicalElement(element, /* allow existing contents */ true), componentId);
+}
+
+export function getRendererer(browserRendererId: number) {
+  return browserRenderers[browserRendererId];
 }
 
 export function renderBatch(browserRendererId: number, batch: RenderBatch): void {
