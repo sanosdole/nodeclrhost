@@ -68,6 +68,9 @@ obj/
 bin/
 clr-api-generator/dist
 examples/electron-blazor/chromedriverlog.txt
+examples/electron-blazor/CrashDumps
+examples/electron-blazor/ClrDumps
+
 
 # Resharper & VS19
 _Resharper.Caches

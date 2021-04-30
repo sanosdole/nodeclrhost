@@ -1,0 +1,40 @@
+﻿@page "/virtualize"
+@using Microsoft.AspNetCore.Components.Web.Virtualization
+
+<h1>Test virtualization</h1>
+
+<div style="      height: 300px;
+      overflow-y: scroll;
+      border: blue 1px solid;
+">
+    <style>
+       .flex-row {
+          display: flex;
+          flex-direction: row;
+           height: 25px;
+       }
+       .higher {
+           height: 50px;
+       }
+        .flex-row > * {
+            flex-grow: 1;
+            padding: 4px;
+            border: green 1px solid;
+        }
+    </style>
+    <Virtualize Items="@_entries" Context="entry">
+        <div class="@($"flex-row{(entry.diffHeight ? " higher" : "")}")">
+            <div>@(entry.first)</div>
+            <div>@(entry.second)</div>
+        </div>
+    </Virtualize>
+</div>
+
+
+@code {    
+
+    private readonly List<(string first,string second,bool diffHeight)> _entries = Enumerable.Range(0, 10000)
+                                                                             .Select(c => ($"A {c}", $"B {c}", c%3 == 0))
+                                                                             .ToList();
+
+}

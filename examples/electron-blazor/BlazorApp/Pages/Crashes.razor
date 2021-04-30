@@ -1,0 +1,57 @@
+﻿@page "/crashes"
+
+@using System.Runtime.InteropServices
+@using NodeHostEnvironment
+
+@inject IJSRuntime JSRuntime
+
+<h1>Test crash dumps</h1>
+
+Test different types of renderer crashes:
+<br/>
+<button class="btn btn-primary" @onclick="CrashHard">Crash me unsafe</button>
+<br/>
+<button class="btn" @onclick="CrashJS">Crash me JS</button>
+<br/>
+<button class="btn" @onclick="CrashClr">Crash me clr</button>
+<br/>
+<button class="btn" @onclick="CrashBackground">Crash me background</button>
+<br/>
+<button class="btn" @onclick="CrashStack">Crash me stack</button>
+
+
+@code {    
+
+    [Inject]
+    public IBridgeToNode Node { get; set; }
+
+    private unsafe void CrashHard()
+    {
+        /*var p = (void*)42;
+        *((int*)p) = 5;*/
+        var ptr = new IntPtr(42);
+        Marshal.StructureToPtr(42, ptr, true); 
+        //Marshal.ReadInt32((IntPtr)42);
+    }
+
+    private async Task CrashJS()
+    {
+        await JSRuntime.InvokeVoidAsync(
+            "exampleJsFunctions.crash");
+    }
+
+    private void CrashClr()
+    {
+        Node.Global.require("process").crash();
+    }
+
+    private void CrashBackground()
+    {
+        Task.Run(() => CrashHard());
+    }
+
+    private void CrashStack() {
+        CrashStack();
+    }
+
+}

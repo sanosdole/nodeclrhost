@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
@@ -8,18 +8,15 @@ namespace ElectronHostedBlazor.Hosting
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.JSInterop;
     using NodeHostEnvironment;
 
     internal class ElectronHost : IElectronHost
     {
-        private readonly IJSRuntime _runtime;
         private readonly IBridgeToNode _node;
 
-        public ElectronHost(IServiceProvider services, IJSRuntime runtime, IBridgeToNode node)
+        public ElectronHost(IServiceProvider services, IBridgeToNode node)
         {
             Services = services ?? throw new ArgumentNullException(nameof(services));
-            _runtime = runtime ?? throw new ArgumentNullException(nameof(runtime));
             _node = node ?? throw new ArgumentNullException(nameof(node));
         }
 
@@ -30,9 +27,9 @@ namespace ElectronHostedBlazor.Hosting
         public async Task RunAsync(CancellationToken cancellationToken = default)
         {
             var scopeFactory = Services.GetRequiredService<IServiceScopeFactory>();
-            using (var _scope = scopeFactory.CreateScope())
+            using (var scope = scopeFactory.CreateScope())
             {
-                var startup = _scope.ServiceProvider.GetService<IBlazorStartup>();
+                var startup = scope.ServiceProvider.GetService<IBlazorStartup>();
                 if (startup == null)
                 {
                     var message =
@@ -43,12 +40,12 @@ namespace ElectronHostedBlazor.Hosting
 
                 // Note that we differ from the WebHost startup path here by using a 'scope' for the app builder
                 // as well as the Configure method.
-                var builder = new ElectronBlazorApplicationBuilder(_scope.ServiceProvider);
-                startup.Configure(builder, _scope.ServiceProvider);
+                var builder = new ElectronBlazorApplicationBuilder(scope.ServiceProvider);
+                startup.Configure(builder, scope.ServiceProvider);
 
-                using (var _renderer = await builder.CreateRendererAsync())
+                using (var renderer = await builder.CreateRendererAsync())
                 {
-                    _renderer.UnhandledSynchronizationException += OnUnhandledRendererException;
+                    renderer.UnhandledSynchronizationException += OnUnhandledRendererException;
                     var tcs = new TaskCompletionSource<object>();
                     _node.Global.window.addEventListener("unload",
                                                          new Action<dynamic>(e => tcs.SetResult(0)));

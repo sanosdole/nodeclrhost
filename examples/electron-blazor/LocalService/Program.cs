@@ -1,6 +1,7 @@
 ﻿namespace LocalService
 {
     using System;
+    using System.IO;
     using System.Threading.Tasks;
     using NodeHostEnvironment;
 
@@ -18,6 +19,13 @@
 
             console.log($"Running broswer app in {host.Global.process.pid}");
             var electron = host.Global.electron;
+            
+            electron.app.setPath("crashDumps", Path.GetFullPath(Path.Combine(".", "CrashDumps")));
+            var crashReporterOptions = host.New();
+            crashReporterOptions.submitURL = "https://deadend/"; // Required option even if uploadToServer is false
+            crashReporterOptions.uploadToServer = false;
+            electron.crashReporter.start(crashReporterOptions);
+
             electron.app.on("ready",
                             new Action<dynamic>((dynamic launchInfo) =>
                                                 {
@@ -39,8 +47,12 @@
                                                     //console.log("options:", options);
 
                                                     browserWindow = electron.BrowserWindow.CreateNewInstance(options);
-
+                                                    
                                                     browserWindow.loadFile("BlazorApp/wwwroot/index.html");
+                                                    browserWindow.webContents.on("render-process-gone", new Action<dynamic,dynamic>((_, details) => {
+                                                        Console.WriteLine($"Renderer gone: {(string)details.reason}");
+                                                        browserWindow.close();
+                                                    }));
                                                 }));
 
             electron.app.on("will-quit",

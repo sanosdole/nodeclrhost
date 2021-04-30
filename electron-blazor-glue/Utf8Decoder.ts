@@ -6,12 +6,9 @@ const nativeDecoder = typeof TextDecoder === 'function'
   ? new TextDecoder('utf-8')
   : null;
 
-// DM 15.05.2020: The native decoder was hanging (for unknown reasons :( ), so we always use the custom implementation.
-/*export const decodeUtf8: (bytes: Uint8Array) => string
-  = nativeDecoder ? nativeDecoder.decode.bind(nativeDecoder) : decodeImpl;*/
-
 export const decodeUtf8: (bytes: Uint8Array) => string
-  = decodeImpl;
+  = nativeDecoder ? nativeDecoder.decode.bind(nativeDecoder) : decodeImpl;
+
 /* !
 Logic in decodeImpl is derived from fast-text-encoding
 https://github.com/samthor/fast-text-encoding

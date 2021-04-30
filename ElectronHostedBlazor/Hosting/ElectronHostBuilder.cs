@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
@@ -20,7 +20,7 @@ namespace ElectronHostedBlazor.Hosting
         private readonly List<Action<ElectronHostBuilderContext, IServiceCollection>> _configureServicesActions = new List<Action<ElectronHostBuilderContext, IServiceCollection>>();
         private readonly List<Action<ElectronHostBuilderContext, ILoggingBuilder>> _configureLoggingActions = new List<Action<ElectronHostBuilderContext, ILoggingBuilder>>();
         private bool _hostBuilt;
-        private ElectronHostBuilderContext _BrowserHostBuilderContext;
+        private ElectronHostBuilderContext _browserHostBuilderContext;
         private IElectronServiceFactoryAdapter _serviceProviderFactory = new ElectronServiceFactoryAdapter<IServiceCollection>(new DefaultServiceProviderFactory());
         private IServiceProvider _appServices;
 
@@ -65,7 +65,7 @@ namespace ElectronHostedBlazor.Hosting
         /// <returns>The same instance of the <see cref="IElectronHostBuilder"/> for chaining.</returns>
         public IElectronHostBuilder UseServiceProviderFactory<TContainerBuilder>(Func<ElectronHostBuilderContext, IServiceProviderFactory<TContainerBuilder>> factory)
         {
-            _serviceProviderFactory = new ElectronServiceFactoryAdapter<TContainerBuilder>(() => _BrowserHostBuilderContext,
+            _serviceProviderFactory = new ElectronServiceFactoryAdapter<TContainerBuilder>(() => _browserHostBuilderContext,
                                                                                            factory ??
                                                                                            throw new ArgumentNullException(nameof(factory)));
             return this;
@@ -92,13 +92,13 @@ namespace ElectronHostedBlazor.Hosting
 
         private void CreateBrowserHostBuilderContext()
         {
-            _BrowserHostBuilderContext = new ElectronHostBuilderContext(Properties);
+            _browserHostBuilderContext = new ElectronHostBuilderContext(Properties);
         }
 
         private void CreateServiceProvider()
         {
             var services = new ServiceCollection();
-            services.AddSingleton(_BrowserHostBuilderContext);
+            services.AddSingleton(_browserHostBuilderContext);
 
             // Could use `Properties` to configure path
             var node = NodeHost.Instance;
@@ -131,14 +131,14 @@ namespace ElectronHostedBlazor.Hosting
 
             // Apply user customization
             foreach (var configureServicesAction in _configureServicesActions)
-                configureServicesAction(_BrowserHostBuilderContext, services);
+                configureServicesAction(_browserHostBuilderContext, services);
 
             // Add Logging and apply user customizations to it
             services.AddLogging(loggingBuilder =>
                                 {
                                     loggingBuilder.AddElectronConsole();
                                     foreach (var configureLoggingAction in _configureLoggingActions)
-                                        configureLoggingAction(_BrowserHostBuilderContext, loggingBuilder);
+                                        configureLoggingAction(_browserHostBuilderContext, loggingBuilder);
                                 });
 
             var builder = _serviceProviderFactory.CreateBuilder(services);
