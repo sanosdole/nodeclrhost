@@ -137,7 +137,7 @@ jobs:
       name: C# nuget packages      
       language: csharp
       mono: none
-      dotnet: 5.0.5
+      dotnet: 5.0
       script:
        - echo "Creating package version ""${TRAVIS_TAG:1}"
        - cd NodeHostEnvironment
