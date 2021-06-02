@@ -31,6 +31,7 @@ jobs:
            prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib)$";           
            prebuild -t 11.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 12.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 13.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
          fi
        # TODO: Why is process.env.DEBUG set when building production?
        - "cd ../electron-blazor-glue"
@@ -89,6 +90,7 @@ jobs:
            prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib)$";           
            prebuild -t 11.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
            prebuild -t 12.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 13.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
          fi
       script:
        - npm run build-testapp
@@ -115,10 +117,11 @@ jobs:
        - npm ci --build-from-source
        - if [ "$TRAVIS_TAG" != "" ]; then
            npm version "${TRAVIS_TAG:1}" --allow-same-version;
-           prebuild -t 12.17.0 --include-regex "\.(node|a|dll|so|dylib)$";
-           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib)$";           
-           prebuild -t 11.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
-           prebuild -t 12.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
+           prebuild -t 12.17.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";
+           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";           
+           prebuild -t 11.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib|pdb)$";
+           prebuild -t 12.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib|pdb)$";
+           prebuild -t 13.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib|pdb)$";
          fi
       script:
        - npm run build-testapp
