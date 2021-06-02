@@ -14,7 +14,8 @@
     "build-blazorapp": "dotnet build  BlazorApp/BlazorApp.csproj",
     "build": "npm run build-service && npm run build-blazorapp",
     "start": "npm run build && electron .",
-    "electron": "electron ."
+    "electron": "electron .",
+    "electron-rebuild-debug": "electron-rebuild --debug"
   },
   "author": "Daniel Martin",
   "license": "MIT",

@@ -273,13 +273,14 @@ JsHandle Context::GetMember(JsHandle& owner_handle, const char* name) {
   if (!owner_handle.SupportsMembers())
     return JsHandle::Error("JsHandle does not support member-access");
   if (!IsActiveContext())
-    return JsHandle::Error("Must be called on node thread");
+    return JsHandle::Error("Must be called on node thread");  
 
   auto owner = owner_handle.AsObject(env_);
-  auto owner_object = owner.As<Napi::Object>();
-  auto result = owner_object.Get(name);
-  if (env_.IsExceptionPending()) {
-    return JsHandle::Error(env_.GetAndClearPendingException().Message());
+  auto owner_object = owner.As<Napi::Object>();  
+  auto result = owner_object.Get(name);  
+  if (env_.IsExceptionPending()) {    
+    auto msg = env_.GetAndClearPendingException().Message();
+    return JsHandle::Error(msg);
   }
 
   return JsHandle::FromValue(result);
@@ -484,96 +485,22 @@ Napi::Function Context::CreateFunction(DotNetHandle* handle) {
   return function;
 }
 
-class Context::BufferCache {
-  std::map<void*, void (*)(DotNetType::Enum, void*)> release_callbacks_;
-  Napi::ObjectReference buffer_ref_;
-
- public:
-  BufferCache(Napi::Buffer<uint8_t> buffer, void* value,
-              void (*release)(DotNetType::Enum, void*))
-      : buffer_ref_(Napi::Weak((Napi::Object)buffer)) {
-    release_callbacks_[value] = release;
-  }
-
-  ~BufferCache() {
-    for (const auto& callback : release_callbacks_) {
-      callback.second(DotNetType::ByteArray, callback.first);
-    }
-    // release_callbacks_.clear();
-  }
-
-  Napi::Value UseValue(void* value, void (*release)(DotNetType::Enum, void*)) {
-    release_callbacks_[value] = release;
-    return buffer_ref_.Value();
-  }
-};
-
 Napi::Value Context::CreateArrayBuffer(DotNetHandle* handle) {
   auto value_copy = handle->value_;
-  auto release_array_func = handle->release_func_;
-  handle->release_func_ = nullptr;  // We delay the release
-
+  
   // We have a pointer to a struct { int32_t, void* } and interpret it like a
   // int32_t*
   auto array_value_ptr = reinterpret_cast<int32_t*>(value_copy);
   auto length = *array_value_ptr;
-  auto data_ptr = *reinterpret_cast<uint8_t**>(array_value_ptr + 1);
-
-  auto existing_buffer = buffers_.find(data_ptr);
-  if (existing_buffer != buffers_.end()) {
-    return existing_buffer->second->UseValue(value_copy, release_array_func);
-  }
-
-  auto finalizerData =
-      new SynchronizedFinalizerCallback(this, [this, data_ptr]() {
-        auto cache_node = buffers_.find(data_ptr);
-        auto cache = cache_node->second;
-        buffers_.erase(cache_node);
-        delete cache;
-      });
-
-  auto result = Napi::Buffer<uint8_t>::New(
-      env_, data_ptr, length,
-      [](napi_env env, void* data, SynchronizedFinalizerCallback* hint) {
-        hint->Call();
-        delete hint;
-      },
-      finalizerData);
-
-  auto cache = new BufferCache(result, value_copy, release_array_func);
-  buffers_[data_ptr] = cache;
-  return result;
-
-  // This makes a non-transferable array buffer => crashes electron when
-  // rendering
-  /*auto array_buf = Napi::ArrayBuffer::New(env_,
-     *reinterpret_cast<uint8_t**>(array_value_ptr + 1), length,
-      [](napi_env env, void* data, SynchronizedFinalizerCallback* hint) {
-        hint->Call();
-      },
-      finalizerData);*/
+  auto data_ptr = *reinterpret_cast<uint8_t**>(array_value_ptr + 1);  
 
   // This creates a transferable array_buffer, but does not use external memory
   // :(
-  /*auto array_buf = Napi::ArrayBuffer::New(env_, length);
-  memcpy(array_buf.Data(), *reinterpret_cast<uint8_t**>(array_value_ptr + 1),
-  length); */
+  auto array_buf = Napi::Buffer<uint8_t>::New(env_, length);
+  memcpy(array_buf.Data(), data_ptr,
+  length); 
 
-  // Do it manually without marking it as non-transferable (ATTENTION: New
-  // BackingStore API in newer v8 versions) This does not work either, we have
-  // many problems:
-  // - Different v8 Versions (Electron/Node)
-  // - It looks like externalized buffers can not be shared with worker threads
-  /*v8::Isolate* isolate = v8::Isolate::GetCurrent();
-  v8::Local<v8::ArrayBuffer> buffer =
-      v8::ArrayBuffer::New(isolate, *reinterpret_cast<uint8_t**>(array_value_ptr
-  + 1), length);
-
-  napi_value array_buf =  reinterpret_cast<napi_value>(*buffer);//
-  v8impl::JsValueFromV8LocalValue(buffer);
-
-  return Napi::Uint8Array::New(env_, length, Napi::ArrayBuffer(env_, array_buf),
-  0, napi_uint8_clamped_array);*/
+  return array_buf;  
 }
 
 int Context::TryAccessArrayBuffer(JsHandle& handle, void*& address,
