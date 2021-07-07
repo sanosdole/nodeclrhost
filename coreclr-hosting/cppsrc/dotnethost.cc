@@ -152,10 +152,22 @@ std::string StringUtf8FromT(const string_t &str_t) {
   return utf8;
 }
 
+inline bool FileExists(const std::string &name) {
+  auto sys_path = StringTFromUtf8(name);
+  std::ifstream f(sys_path);
+  return f.good();
+}
+
 #else
 
 string_t StringTFromUtf8(const std::string &utf8) { return utf8; }
 std::string StringUtf8FromT(const string_t &str_t) { return str_t; }
+
+inline bool FileExists(const std::string &name) {
+  std::ifstream f(name);
+  return f.good();
+}
+
 #endif
 
 namespace {
@@ -196,11 +208,6 @@ void free_library(LibraryHandle h) { dlclose(h); }
 template <typename TFuncPointer>
 TFuncPointer GetFunction(LibraryHandle library, const char *name) {
   return reinterpret_cast<TFuncPointer>(get_export(library, name));
-}
-
-inline bool FileExists(const std::string &name) {
-  std::ifstream f(name);
-  return f.good();
 }
 
 std::string GetDirectoryFromFilePath(const std::string &assembly) {
