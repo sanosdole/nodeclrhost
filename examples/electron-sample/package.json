@@ -13,6 +13,6 @@
   "license": "MIT",
   "dependencies": {
     "coreclr-hosting": "file:../../coreclr-hosting",
-    "electron": "^12.0.2"
+    "electron": "^12.1.0"
   }
 }
