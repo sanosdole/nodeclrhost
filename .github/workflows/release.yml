@@ -48,7 +48,7 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          npm version "${GITHUB_REF#refs/v*/}" --allow-same-version;
+          npm version "${GITHUB_REF:11}" --allow-same-version;
           prebuild -t 12.17.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";
           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";  
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$";         
@@ -111,7 +111,7 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          npm version "${GITHUB_REF#refs/v*/}" --allow-same-version;
+          npm version "${GITHUB_REF:11}" --allow-same-version;
           prebuild -t 12.17.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";
           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";  
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$";         
@@ -138,14 +138,14 @@ jobs:
         run: |
           cd coreclr-hosting
           echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-          echo "Publishing coreclr-hosting for tag ""${GITHUB_REF#refs/v*/}"
-          npm version "${GITHUB_REF#refs/v*/}" --allow-same-version
+          echo "Publishing coreclr-hosting for tag ""${GITHUB_REF:11}"
+          npm version "${GITHUB_REF:11}" --allow-same-version
           npm publish --access public --ignore-scripts
           cd ../electron-blazor-glue
           echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-          echo "Publishing electron-blazor-glue for tag $GITHUB_REF#refs/v*/"
-          sed -i 's!"coreclr-hosting": "file:../coreclr-hosting"!"coreclr-hosting": "'"${GITHUB_REF#refs/v*/}"'"!g' package.json
-          npm version "${GITHUB_REF#refs/v*/}" --allow-same-version
+          echo "Publishing electron-blazor-glue for tag $GITHUB_REF:11"
+          sed -i 's!"coreclr-hosting": "file:../coreclr-hosting"!"coreclr-hosting": "'"${GITHUB_REF:11}"'"!g' package.json
+          npm version "${GITHUB_REF:11}" --allow-same-version
           npm publish --access public --ignore-scripts
 
       - name: build nuget packages
@@ -160,11 +160,11 @@ jobs:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
         run: |
           cd NodeHostEnvironment/bin/Release
-          dotnet nuget push NodeHostEnvironment."${GITHUB_REF#refs/v*/}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-          dotnet nuget push NodeHostEnvironment."${GITHUB_REF#refs/v*/}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
+          dotnet nuget push NodeHostEnvironment."${GITHUB_REF:11}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
+          dotnet nuget push NodeHostEnvironment."${GITHUB_REF:11}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
           cd ../../../ElectronHostedBlazor/bin/Release
-          dotnet nuget push ElectronHostedBlazor."${GITHUB_REF#refs/v*/}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-          dotnet nuget push ElectronHostedBlazor."${GITHUB_REF#refs/v*/}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
+          dotnet nuget push ElectronHostedBlazor."${GITHUB_REF:11}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
+          dotnet nuget push ElectronHostedBlazor."${GITHUB_REF:11}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
           cd ../../..
 
       - uses: xresloader/upload-to-github-release@v1
@@ -208,7 +208,7 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          npm version "${GITHUB_REF#refs/v*/}" --allow-same-version;
+          npm version "${GITHUB_REF:11}" --allow-same-version;
           prebuild -t 12.17.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";
           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";  
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$";         
