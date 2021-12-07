@@ -16,7 +16,7 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  build-windows:
     # The type of runner that the job will run on
     runs-on: windows-latest
     
@@ -44,9 +44,106 @@ jobs:
       - name: Install prebuild
         run: npm i -g prebuild
         
-      - name: build coreclrhosting
+      - name: build & test coreclrhosting
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
+          npm run build-testapp
+          npm run mocha
+          cd ..
+
+      - name: build nuget packages
+        run: |
+          cd NodeHostEnvironment
+          dotnet pack -c Release
+          cd ../ElectronHostedBlazor
+          dotnet pack -c Release
+  
+  build-linux:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.5.0
+        with:
+          node-version: 16.x
+          
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'
+
+      - name: Show node version
+        run: node --version
+        
+      - name: Show dotnet version
+        run: dotnet --version
+        
+      - name: Install prebuild
+        run: npm i -g prebuild
+        
+      - name: build & test coreclrhosting
+        run: |
+          cd coreclr-hosting
+          npm ci --build-from-source
+          npm run build-testapp
+          npm run mocha
+          cd ..
+
+      - name: build nuget packages
+        run: |
+          cd NodeHostEnvironment
+          dotnet pack -c Release
+          cd ../ElectronHostedBlazor
+          dotnet pack -c Release
+
+  build-macos:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2.5.0
+        with:
+          node-version: 16.x
+          
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '3.1.x'
+
+      - name: Show node version
+        run: node --version
+        
+      - name: Show dotnet version
+        run: dotnet --version
+        
+      - name: Install prebuild
+        run: npm i -g prebuild
+        
+      - name: build & test coreclrhosting
+        run: |
+          cd coreclr-hosting
+          npm ci --build-from-source
+          npm run build-testapp
+          npm run mocha
+          cd ..
+
+      - name: build nuget packages
+        run: |
+          cd NodeHostEnvironment
+          dotnet pack -c Release
+          cd ../ElectronHostedBlazor
+          dotnet pack -c Release
+
 
       
