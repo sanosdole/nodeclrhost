@@ -175,10 +175,8 @@ jobs:
         run: |
           cd NodeHostEnvironment/bin/Release
           dotnet nuget push NodeHostEnvironment."${GITHUB_REF:11}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-          dotnet nuget push NodeHostEnvironment."${GITHUB_REF:11}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
           cd ../../../ElectronHostedBlazor/bin/Release
           dotnet nuget push ElectronHostedBlazor."${GITHUB_REF:11}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
-          dotnet nuget push ElectronHostedBlazor."${GITHUB_REF:11}".snupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
           cd ../../..
 
       - uses: xresloader/upload-to-github-release@v1
