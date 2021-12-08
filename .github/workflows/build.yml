@@ -53,6 +53,13 @@ jobs:
           npm run build-testapp
           npm run mocha
           cd ..
+      
+      - name: build electron-blazor-glue
+        run: |
+          cd electron-blazor-glue
+          npm ci
+          npm run build-js-glue:release
+          cd ..
 
       - name: build nuget packages
         run: |
@@ -98,6 +105,13 @@ jobs:
           npm run build-testapp
           npm run mocha
           cd ..
+      
+      - name: build electron-blazor-glue
+        run: |
+          cd electron-blazor-glue
+          npm ci
+          npm run build-js-glue:release
+          cd ..
 
       - name: build nuget packages
         run: |
@@ -142,6 +156,13 @@ jobs:
           npm ci --build-from-source
           npm run build-testapp
           npm run mocha
+          cd ..
+
+      - name: build electron-blazor-glue
+        run: |
+          cd electron-blazor-glue
+          npm ci
+          npm run build-js-glue:release
           cd ..
 
       - name: build nuget packages

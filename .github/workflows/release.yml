@@ -60,10 +60,13 @@ jobs:
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
           npm run build-testapp
           npm run mocha
-          cd ../electron-blazor-glue
+          cd ..
+
+      - name: build electron-blazor-glue
+        run: |
+          cd electron-blazor-glue
           npm ci
           npm run build-js-glue:release
-          cd ..
           cd ..
       
       - uses: xresloader/upload-to-github-release@v1
@@ -127,7 +130,11 @@ jobs:
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
           npm run build-testapp
           npm run mocha
-          cd ../electron-blazor-glue
+          cd ..
+
+      - name: build electron-blazor-glue
+        run: |
+          cd electron-blazor-glue
           npm ci
           npm run build-js-glue:release
           cd ..
@@ -227,10 +234,13 @@ jobs:
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
           npm run build-testapp
           npm run mocha
-          cd ../electron-blazor-glue
+          cd ..
+
+      - name: build electron-blazor-glue
+        run: |
+          cd electron-blazor-glue
           npm ci
           npm run build-js-glue:release
-          cd ..
           cd ..
       
       - uses: xresloader/upload-to-github-release@v1
