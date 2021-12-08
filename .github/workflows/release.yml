@@ -60,6 +60,10 @@ jobs:
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
           npm run build-testapp
           npm run mocha
+          cd ../electron-blazor-glue
+          npm ci
+          npm run build-js-glue:release
+          cd ..
           cd ..
       
       - uses: xresloader/upload-to-github-release@v1
@@ -123,6 +127,9 @@ jobs:
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
           npm run build-testapp
           npm run mocha
+          cd ../electron-blazor-glue
+          npm ci
+          npm run build-js-glue:release
           cd ..
       
       - uses: xresloader/upload-to-github-release@v1
@@ -143,7 +150,7 @@ jobs:
           npm publish --access public --ignore-scripts
           cd ../electron-blazor-glue
           echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
-          echo "Publishing electron-blazor-glue for tag $GITHUB_REF:11"
+          echo "Publishing electron-blazor-glue for tag ${GITHUB_REF:11}"
           sed -i 's!"coreclr-hosting": "file:../coreclr-hosting"!"coreclr-hosting": "'"${GITHUB_REF:11}"'"!g' package.json
           npm version "${GITHUB_REF:11}" --allow-same-version
           npm publish --access public --ignore-scripts
@@ -155,7 +162,7 @@ jobs:
           cd ../ElectronHostedBlazor
           dotnet pack -c Release
 
-      - name: publich nuget packages
+      - name: publish nuget packages
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
         run: |
@@ -220,6 +227,10 @@ jobs:
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
           npm run build-testapp
           npm run mocha
+          cd ../electron-blazor-glue
+          npm ci
+          npm run build-js-glue:release
+          cd ..
           cd ..
       
       - uses: xresloader/upload-to-github-release@v1
