@@ -43,7 +43,7 @@
             outputs.Add(5);
             await Task.Delay(0);
 
-            outputs.Should().BeEquivalentTo(0, 1, 2, 3, 4, 5);
+            outputs.Should().BeEquivalentTo(new [] { 0, 1, 2, 3, 4, 5 });
             outputs.Should().BeInAscendingOrder("ordered properly");
         }
 
@@ -65,7 +65,7 @@
 
             outputs.Add(await resultTask);
 
-            outputs.Should().BeEquivalentTo(0, 1, 2, 3, 4);
+            outputs.Should().BeEquivalentTo(new [] { 0, 1, 2, 3, 4 });
             outputs.Should().BeInAscendingOrder("ordered properly");
         }
 
