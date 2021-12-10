@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 
 namespace Microsoft.AspNetCore.Components
 {
-#if NET5_0
+#if NET5_0 || NET6_0
     internal sealed class ElementReferenceJsonConverter : JsonConverter<ElementReference>
     {
         private static readonly JsonEncodedText IdProperty = JsonEncodedText.Encode("__internalId");

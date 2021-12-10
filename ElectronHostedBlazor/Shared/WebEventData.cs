@@ -31,21 +31,23 @@ namespace Microsoft.AspNetCore.Components.Web
         public static WebEventData Parse(WebEventDescriptor eventDescriptor, string eventArgsJson)
         {
             return new WebEventData(
-                eventDescriptor.BrowserRendererId,
                 eventDescriptor.EventHandlerId,
                 InterpretEventFieldInfo(eventDescriptor.EventFieldInfo),
-                ParseEventArgsJson(eventDescriptor.EventHandlerId, eventDescriptor.EventArgsType, eventArgsJson));
+                ParseEventArgsJson(eventDescriptor.EventHandlerId,
+#if NET5_0 || NETCOREAPP3_1
+                    eventDescriptor.EventArgsType,
+#elif NET6_0
+                    eventDescriptor.EventName,
+#endif
+                    eventArgsJson));
         }
 
-        private WebEventData(int browserRendererId, ulong eventHandlerId, EventFieldInfo eventFieldInfo, EventArgs eventArgs)
+        private WebEventData(ulong eventHandlerId, EventFieldInfo eventFieldInfo, EventArgs eventArgs)
         {
-            BrowserRendererId = browserRendererId;
             EventHandlerId = eventHandlerId;
             EventFieldInfo = eventFieldInfo;
             EventArgs = eventArgs;
         }
-
-        public int BrowserRendererId { get; }
 
         public ulong EventHandlerId { get; }
 
@@ -57,22 +59,24 @@ namespace Microsoft.AspNetCore.Components.Web
         {
             try
             {
-                return eventArgsType switch
+                return eventArgsType
+                switch
                 {
                     "change" => DeserializeChangeEventArgs(eventArgsJson),
-                    "clipboard" => Deserialize<ClipboardEventArgs>(eventArgsJson),
-                    "drag" => Deserialize<DragEventArgs>(eventArgsJson),
-                    "error" => Deserialize<ErrorEventArgs>(eventArgsJson),
-                    "focus" => Deserialize<FocusEventArgs>(eventArgsJson),
-                    "keyboard" => Deserialize<KeyboardEventArgs>(eventArgsJson),
-                    "mouse" => Deserialize<MouseEventArgs>(eventArgsJson),
-                    "pointer" => Deserialize<PointerEventArgs>(eventArgsJson),
-                    "progress" => Deserialize<ProgressEventArgs>(eventArgsJson),
-                    "touch" => Deserialize<TouchEventArgs>(eventArgsJson),
-                    "unknown" => EventArgs.Empty,
-                    "wheel" => Deserialize<WheelEventArgs>(eventArgsJson),
-                    "toggle" => Deserialize<EventArgs>(eventArgsJson),
-                    _ => throw new InvalidOperationException($"Unsupported event type '{eventArgsType}'. EventId: '{eventHandlerId}'."),
+                        "clipboard" => Deserialize<ClipboardEventArgs>(eventArgsJson),
+                        "drag" => Deserialize<DragEventArgs>(eventArgsJson),
+                        "error" => Deserialize<ErrorEventArgs>(eventArgsJson),
+                        "focus" => Deserialize<FocusEventArgs>(eventArgsJson),
+                        "keyboard" => Deserialize<KeyboardEventArgs>(eventArgsJson),
+                        "mouse" => Deserialize<MouseEventArgs>(eventArgsJson),
+                        "pointer" => Deserialize<PointerEventArgs>(eventArgsJson),
+                        "progress" => Deserialize<ProgressEventArgs>(eventArgsJson),
+                        "touch" => Deserialize<TouchEventArgs>(eventArgsJson),
+                        "unknown" => EventArgs.Empty,
+                        "wheel" => Deserialize<WheelEventArgs>(eventArgsJson),
+                        "toggle" => Deserialize<EventArgs>(eventArgsJson),
+                        _ =>
+                        throw new InvalidOperationException($"Unsupported event type '{eventArgsType}'. EventId: '{eventHandlerId}'."),
                 };
             }
             catch (Exception e)
@@ -96,13 +100,13 @@ namespace Microsoft.AspNetCore.Components.Web
                         return new EventFieldInfo
                         {
                             ComponentId = fieldInfo.ComponentId,
-                            FieldValue = attributeValueJsonElement.GetBoolean()
+                                FieldValue = attributeValueJsonElement.GetBoolean()
                         };
                     default:
                         return new EventFieldInfo
                         {
                             ComponentId = fieldInfo.ComponentId,
-                            FieldValue = attributeValueJsonElement.GetString()
+                                FieldValue = attributeValueJsonElement.GetString()
                         };
                 }
             }
@@ -113,7 +117,7 @@ namespace Microsoft.AspNetCore.Components.Web
         private static ChangeEventArgs DeserializeChangeEventArgs(string eventArgsJson)
         {
             var changeArgs = Deserialize<ChangeEventArgs>(eventArgsJson);
-            var jsonElement = (JsonElement)changeArgs.Value;
+            var jsonElement = (JsonElement) changeArgs.Value;
             switch (jsonElement.ValueKind)
             {
                 case JsonValueKind.Null:

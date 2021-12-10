@@ -26,18 +26,21 @@ namespace ElectronHostedBlazor.Rendering
             using var sourceFieldInfo = eventDescriptor.eventFieldInfo;
             if (sourceFieldInfo != null)
             {
-                fieldInfo = new EventFieldInfo { ComponentId = (int)sourceFieldInfo.componentId, FieldValue = sourceFieldInfo.fieldValue };
+                fieldInfo = new EventFieldInfo { ComponentId = (int) sourceFieldInfo.componentId, FieldValue = sourceFieldInfo.fieldValue };
             }
 
             return DispatchEventOriginal(new WebEventDescriptor
-                                         {
-                                             // TODO DM 26.08.2019: Replace those casts once we support proper number handling
-                                             BrowserRendererId = (int)eventDescriptor.browserRendererId,
-                                             EventHandlerId = (ulong)eventDescriptor.eventHandlerId,
-                                             EventArgsType = eventDescriptor.eventArgsType,
-                                             EventFieldInfo = fieldInfo
-                                         },
-                                         eventArgsJson);
+                {
+                    // TODO DM 26.08.2019: Replace those casts once we support proper number handling
+                    EventHandlerId = (ulong) eventDescriptor.eventHandlerId,
+#if NET5_0 || NETCOREAPP3_1
+                        EventArgsType = eventDescriptor.eventArgsType,
+#elif NET6_0
+                        EventName = eventDescriptor.eventArgsType,
+#endif
+                        EventFieldInfo = fieldInfo
+                },
+                eventArgsJson);
         }
 
         /// <summary>
