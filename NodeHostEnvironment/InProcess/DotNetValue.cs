@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Runtime.InteropServices;
     using System.Threading.Tasks;
+    using NativeMemory = NodeHostEnvironment.NativeMemory;
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     internal delegate void ReleaseDotNetValue(DotNetType type, IntPtr value);

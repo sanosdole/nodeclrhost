@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using NodeHostEnvironment;
+    using NativeMemory = NodeHostEnvironment.NativeMemory;
 
     public sealed class Global_test_object : MochaTest
     {
