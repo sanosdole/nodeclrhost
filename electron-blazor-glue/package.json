@@ -24,7 +24,6 @@
   "author": "Daniel Martin",
   "license": "MIT",
   "dependencies": {
-    "@dotnet/jsinterop": "^3.1.21",
     "coreclr-hosting": "file:../coreclr-hosting"
   },
   "devDependencies": {
