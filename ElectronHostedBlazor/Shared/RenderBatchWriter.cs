@@ -1,15 +1,22 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-// Modified by Daniel Martin for nodeclrhost
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-namespace ElectronHostedBlazor.Rendering
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+#if !IGNITOR
+using Microsoft.AspNetCore.Components.RenderTree;
+#endif
+
+#if IGNITOR
+namespace Ignitor
+#elif BLAZOR_WEBVIEW
+namespace Microsoft.AspNetCore.Components.WebView
+#else
+namespace Microsoft.AspNetCore.Components.Server.Circuits
+#endif
 {
-    using System;
-    using System.Collections.Generic;
-    using System.IO;
-    using System.Text;
-    using Microsoft.AspNetCore.Components.RenderTree;
-
     // TODO: We should consider *not* having this type of infrastructure in the .Server
     // project, but instead in some new project called .Remote or similar, since it
     // would also be used in Electron and possibly WebWorker cases.
@@ -17,7 +24,7 @@ namespace ElectronHostedBlazor.Rendering
     /// <summary>
     /// Provides a custom binary serializer for <see cref="RenderBatch"/> instances.
     /// This is designed with both server-side and client-side perf in mind:
-    /// 
+    ///
     ///  * Array-like regions always have a fixed size per entry (even if some entry types
     ///    don't require as much space as others) so the recipient can index directly.
     ///  * The indices describing where field data starts, where each string value starts,
@@ -28,7 +35,7 @@ namespace ElectronHostedBlazor.Rendering
     ///  * We only serialize the data that the JS side will need. For example, we don't
     ///    emit frame sequence numbers, or any representation of nonstring attribute
     ///    values, or component instances, etc.
-    ///    
+    ///
     /// We don't have or need a .NET reader for this format. We only read it from JS code.
     /// </summary>
     internal class RenderBatchWriter : IDisposable
@@ -159,7 +166,6 @@ namespace ElectronHostedBlazor.Rendering
                         var attributeValueString = frame.AttributeValue as string;
                         WriteString(attributeValueString, allowDeduplication: string.IsNullOrEmpty(attributeValueString));
                     }
-
                     _binaryWriter.Write(frame.AttributeEventHandlerId); // 8 bytes
                     break;
                 case RenderTreeFrameType.Component:

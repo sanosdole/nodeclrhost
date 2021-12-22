@@ -1,67 +1,207 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 namespace ElectronHostedBlazor.Hosting
 {
     using System;
+    using System.Reflection.Metadata;
     using System.Threading;
     using System.Threading.Tasks;
+    using ElectronHostedBlazor.Services;
+    using Microsoft.AspNetCore.Components.Infrastructure;
+    using Microsoft.AspNetCore.Components.Web.Infrastructure;    
+    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
     using NodeHostEnvironment;
+    using Rendering;
 
-    internal class ElectronHost : IElectronHost
+    /// <summary>
+    /// A host object for Blazor running under Electron. Use <see cref="ElectronHostBuilder"/>
+    /// to initialize a <see cref="ElectronHost"/>.
+    /// </summary>
+    public sealed class ElectronHost : IAsyncDisposable
     {
+        private readonly AsyncServiceScope _scope;
+        private readonly IServiceProvider _services;
+        private readonly IConfiguration _configuration;
+        private readonly RootComponentMappingCollection _rootComponents;
+        private readonly string? _persistedState;
+        private readonly ElectronJSRuntime _jsRuntime;
         private readonly IBridgeToNode _node;
 
-        public ElectronHost(IServiceProvider services, IBridgeToNode node)
-        {
-            Services = services ?? throw new ArgumentNullException(nameof(services));
-            _node = node ?? throw new ArgumentNullException(nameof(node));
-        }
+        // NOTE: the host is disposable because it OWNs references to disposable things.
+        //
+        // The twist is that in general dispose is not going to run even if the user puts it in a using.
+        // When a user refreshes or navigates away that terminates the app, like a process.exit. So the
+        // dispose functionality here is basically so that it can be used in unit tests.
+        //
+        // Based on the APIs that exist in Blazor today it's not possible for the
+        // app to get disposed, however if we add something like that in the future, most of the work is
+        // already done.
+        private bool _disposed;
+        private bool _started;
+        private ElectronRenderer? _renderer;
 
-        public IServiceProvider Services { get; }
+        internal ElectronHost(
+            ElectronHostBuilder builder,
+            IServiceProvider services,
+            AsyncServiceScope scope,
+            string? persistedState)
+        {
+            // To ensure JS-invoked methods don't get linked out, have a reference to their enclosing types
+            //GC.KeepAlive(typeof(JSInteropMethods));
+
+            _services = services;
+            _scope = scope;
+            _configuration = builder.Configuration;
+            _rootComponents = builder.RootComponents;
+            _persistedState = persistedState;
+
+            _jsRuntime = builder.Runtime;
+            _node = builder.Node;
+        }
 
         public event UnhandledExceptionEventHandler UnhandledException;
 
-        public async Task RunAsync(CancellationToken cancellationToken = default)
+        /// <summary>
+        /// Gets the application configuration.
+        /// </summary>
+        public IConfiguration Configuration => _configuration;
+
+        /// <summary>
+        /// Gets the service provider associated with the application.
+        /// </summary>
+        public IServiceProvider Services => _scope.ServiceProvider;
+
+        /// <summary>
+        /// Disposes the host asynchronously.
+        /// </summary>
+        /// <returns>A <see cref="ValueTask"/> which respresents the completion of disposal.</returns>
+        public async ValueTask DisposeAsync()
         {
-            var scopeFactory = Services.GetRequiredService<IServiceScopeFactory>();
-            using (var scope = scopeFactory.CreateScope())
+            if (_disposed)
             {
-                var startup = scope.ServiceProvider.GetService<IBlazorStartup>();
-                if (startup == null)
-                {
-                    var message =
-                        $"Could not find a registered Blazor Startup class. " +
-                        $"Using {nameof(IElectronHost)} requires a call to {nameof(IElectronHostBuilder)}.UseBlazorStartup.";
-                    throw new InvalidOperationException(message);
-                }
+                return;
+            }
 
-                // Note that we differ from the WebHost startup path here by using a 'scope' for the app builder
-                // as well as the Configure method.
-                var builder = new ElectronBlazorApplicationBuilder(scope.ServiceProvider);
-                startup.Configure(builder, scope.ServiceProvider);
+            _disposed = true;
 
-                using (var renderer = await builder.CreateRendererAsync())
+            if (_renderer != null)
+            {
+                await _renderer.DisposeAsync();
+            }
+
+            await _scope.DisposeAsync();
+
+            if (_services is IAsyncDisposable asyncDisposableServices)
+            {
+                await asyncDisposableServices.DisposeAsync();
+            }
+            else if (_services is IDisposable disposableServices)
+            {
+                disposableServices.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// Runs the application associated with this host.
+        /// </summary>
+        /// <returns>A <see cref="Task"/> which represents exit of the application.</returns>
+        /// <remarks>
+        /// At this time, it's not possible to shut down a Blazor Electron application using imperative code.
+        /// The application only stops when the hosting page is reloaded or navigated to another page. As a result
+        /// the task returned from this method does not complete. This method is not suitable for use in unit-testing.
+        /// </remarks>
+        public Task RunAsync()
+        {
+            // RunAsyncCore will await until the CancellationToken fires. However, we don't fire it
+            // currently, so the app will "run" forever.
+            return RunAsyncCore(CancellationToken.None);
+        }
+
+        // Internal for testing.
+        internal async Task RunAsyncCore(CancellationToken cancellationToken/*, ElectronCultureProvider? cultureProvider = null*/)
+        {
+            if (_started)
+            {
+                throw new InvalidOperationException("The host has already started.");
+            }
+
+            _started = true;
+
+            /*cultureProvider ??= ElectronCultureProvider.Instance!;
+            cultureProvider.ThrowIfCultureChangeIsUnsupported();
+
+            // Application developers might have configured the culture based on some ambient state
+            // such as local storage, url etc as part of their Program.Main(Async).
+            // This is the earliest opportunity to fetch satellite assemblies for this selection.
+            await cultureProvider.LoadCurrentCultureResourcesAsync();*/
+
+            // TODO: Support prerendering component store?
+            /*var manager = Services.GetRequiredService<ComponentStatePersistenceManager>();
+            var store = !string.IsNullOrEmpty(_persistedState) ?
+                new PrerenderComponentApplicationStore(_persistedState) :
+                new PrerenderComponentApplicationStore();
+
+            await manager.RestoreStateAsync(store);*/
+
+            /*if (MetadataUpdater.IsSupported)
+            {
+                await ElectronHotReload.InitializeAsync();
+            }*/
+
+            var tcs = new TaskCompletionSource();
+
+            using (cancellationToken.Register(() => tcs.TrySetResult()))
+            {
+                var loggerFactory = Services.GetRequiredService<ILoggerFactory>();
+                var jsComponentInterop = new JSComponentInterop(_rootComponents.JSComponents);
+                _renderer = new ElectronRenderer(Services, loggerFactory, jsComponentInterop, _jsRuntime, _node);
+                _renderer.UnhandledSynchronizationException += OnUnhandledRendererException;
+
+                var initializationTcs = new TaskCompletionSource();
+                ElectronCallQueue.Schedule((_rootComponents, _renderer, initializationTcs), static async state =>
                 {
-                    renderer.UnhandledSynchronizationException += OnUnhandledRendererException;
-                    var tcs = new TaskCompletionSource<object>();
-                    _node.Global.window.addEventListener("unload",
-                                                         new Action<dynamic>(e => tcs.SetResult(0)));
-                    await tcs.Task;
-                }
+                    var (rootComponents, renderer, initializationTcs) = state;
+
+                    try
+                    {
+                        // Here, we add each root component but don't await the returned tasks so that the
+                        // components can be processed in parallel.
+                        var count = rootComponents.Count;
+                        var pendingRenders = new Task[count];
+                        for (var i = 0; i < count; i++)
+                        {
+                            var rootComponent = rootComponents[i];
+                            pendingRenders[i] = renderer.AddComponentAsync(
+                                rootComponent.ComponentType,
+                                rootComponent.Parameters,
+                                rootComponent.Selector);
+                        }
+
+                        // Now we wait for all components to finish rendering.
+                        await Task.WhenAll(pendingRenders);
+
+                        initializationTcs.SetResult();
+                    }
+                    catch (Exception ex)
+                    {
+                        initializationTcs.SetException(ex);
+                    }
+                });
+
+                await initializationTcs.Task;
+                //store.ExistingState.Clear(); // TODO: Support prerendering component store?
+
+                await tcs.Task;
             }
         }
 
         private void OnUnhandledRendererException(object sender, UnhandledExceptionEventArgs e)
         {
             UnhandledException?.Invoke(this, e);
-        }
-
-        public void Dispose()
-        {
-            (Services as IDisposable)?.Dispose();
         }
     }
 }
