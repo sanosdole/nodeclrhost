@@ -9,12 +9,15 @@ namespace BlazorApp
         public static Task<int> Main(string[] args)
         {
             //System.Diagnostics.Debugger.Launch();
-            return CreateHostBuilder(args).Build().Run();
-        }
 
-        public static IElectronHostBuilder CreateHostBuilder(string[] args) =>
-            BlazorElectronHost.CreateDefaultBuilder()
-                              .ConfigureLogging(loggingBuilder => loggingBuilder.AddConsole())
-                              .UseBlazorStartup<Startup>();
+            var builder = ElectronHostBuilder.CreateDefault(args);
+            builder.Logging.AddConsole();
+            var startup = new Startup();
+            startup.ConfigureServices(builder.Services);
+            startup.ConfigureLogging(builder.Logging);
+            startup.Configure(builder.RootComponents);
+
+            return builder.Build().Run();
+        }
     }
 }
