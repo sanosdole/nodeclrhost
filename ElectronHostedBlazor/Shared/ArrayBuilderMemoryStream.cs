@@ -1,16 +1,19 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-// Modified by Daniel Martin for nodeclrhost
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 
-namespace ElectronHostedBlazor.Rendering
+using System;
+using System.IO;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components.RenderTree;
+
+#if BLAZOR_WEBVIEW
+namespace Microsoft.AspNetCore.Components.WebView
+#else
+namespace Microsoft.AspNetCore.Components.Server.Circuits
+#endif
 {
-    using System;
-    using System.IO;
-    using System.Runtime.CompilerServices;
-    using System.Threading;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components.RenderTree;
-
     /// <summary>
     /// Writeable memory stream backed by a an <see cref="ArrayBuilder{T}"/>.
     /// </summary>
@@ -89,7 +92,8 @@ namespace ElectronHostedBlazor.Rendering
         }
 
         /// <inheritdoc />
-        //public override ValueTask DisposeAsync() => default;
+        public override ValueTask DisposeAsync() => default;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ValidateArguments(byte[] buffer, int offset, int count)
         {

@@ -2,12 +2,12 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net5.0;net6.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
     <PackageId>NodeHostEnvironment</PackageId>
-    <Version Condition="!$(GITHUB_REF.Contains('tags/v'))">0.9.11</Version>
+    <Version Condition="!$(GITHUB_REF.Contains('tags/v'))">6.0.0</Version>
     <Version Condition="$(GITHUB_REF.Contains('tags/v'))">$(GITHUB_REF.Substring(11))</Version>
     <Authors>sanosdole2</Authors>
     <Company>nodeclrhost</Company>

@@ -1,5 +1,6 @@
 ﻿@page "/"
 @page "/index.html"
+@using NodeHostEnvironment
 
 @inject NavigationManager UriHelper
 
@@ -7,39 +8,32 @@
 
 Welcome to your new app.
 <br/>
-You are at address: @LocationPath
+You are at address: @_locationAbsolute
+<br/>
+We are using node <strong>@_process.versions.node</strong>,
+Chrome <strong>@_process.versions.chrome</strong> and Electron <strong>@_process.versions.electron</strong>.
+<br/>
+We are in process @_process.pid.
 
 
 
 @code {
-    static readonly char[] _queryOrHashStartChar = new[] { '?', '#' };
-    string LocationPath = null;
-    string _baseUri;
-    string _locationAbsolute;
+    private string _locationAbsolute;
+    private dynamic _process;
+
+    [Inject]
+    public IBridgeToNode Node { get; set; }
 
     protected override void OnInitialized()
     {
-    /*UriHelper.LocationChanged += OnLocationChanged;
-        _baseUri = UriHelper.GetBaseUri();
-        _locationAbsolute = UriHelper.GetAbsoluteUri();
-        LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);*/
-    }
-
-    private string StringUntilAny(string str, char[] chars)
-    {
-        var firstIndex = str.IndexOfAny(chars);
-        return firstIndex < 0
-                   ? str
-                   : str.Substring(0, firstIndex);
+        UriHelper.LocationChanged += OnLocationChanged;
+        _locationAbsolute = UriHelper.Uri;
+        _process = Node.Global.require("process");
     }
 
     private void OnLocationChanged(object sender, LocationChangedEventArgs args)
     {
-    /*_baseUri = UriHelper.GetBaseUri();
-        _locationAbsolute = UriHelper.GetAbsoluteUri();
-        LocationPath = UriHelper.ToBaseRelativePath(_baseUri, _locationAbsolute);
-        LocationPath = StringUntilAny(LocationPath, _queryOrHashStartChar);        */
+        _locationAbsolute = UriHelper.Uri;
         StateHasChanged();
     }
 

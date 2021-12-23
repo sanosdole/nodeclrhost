@@ -1,6 +1,6 @@
 ﻿namespace BlazorApp
 {
-    using ElectronHostedBlazor.Builder;
+    using ElectronHostedBlazor.Hosting;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
@@ -16,9 +16,9 @@
                           .AddFilter("BlazorApp", LogLevel.Debug);
         }
 
-        public void Configure(IComponentsApplicationBuilder app)
+        public void Configure(RootComponentMappingCollection app)
         {
-            app.AddComponent<App>("app");
+            app.Add<App>("app");
         }
     }
 }

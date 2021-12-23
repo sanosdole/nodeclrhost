@@ -1,141 +1,133 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 namespace ElectronHostedBlazor.Rendering
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Components;
     using Microsoft.AspNetCore.Components.RenderTree;
+    using Microsoft.AspNetCore.Components.Web.Infrastructure;
+    using Hosting;
+    using Services;
     using Microsoft.Extensions.Logging;
+    using System.Threading.Tasks;
+    using System;
+    using Microsoft.AspNetCore.Components;
     using NodeHostEnvironment;
+    using Microsoft.AspNetCore.Components.Server.Circuits;
 
     /// <summary>
     /// Provides mechanisms for rendering <see cref="IComponent"/> instances in a
     /// web browser, dispatching events to them, and refreshing the UI as required.
     /// </summary>
-    internal class ElectronRenderer : Renderer
+    internal class ElectronRenderer : WebRenderer
     {
-        private bool _isDispatchingEvent;
-        private readonly Queue<IncomingEventInfo> _deferredIncomingEvents = new Queue<IncomingEventInfo>();
-        private readonly ILogger<ElectronRenderer> _logger;
+        private readonly ILogger _logger;
+        private readonly IBridgeToNode _node;
         private readonly dynamic _blazorInternal;
-        private readonly ElectronDispatcher _dispatcher;
         private readonly dynamic _blazorInternalRenderBatch;
         private readonly ReusableArrayBufferStream _reusableArrayBufferStream;
-        private readonly IBridgeToNode _node;
+        private readonly ElectronDispatcher _dispatcher;
 
-        /// <summary>
-        /// Constructs an instance of <see cref="ElectronRenderer"/>.
-        /// </summary>
-        /// <param name="serviceProvider">The <see cref="IServiceProvider"/> to use when initializing components.</param>
-        /// <param name="loggerFactory">The <see cref="ILoggerFactory"/>.</param>
-        /// <param name="node">The bridge to use for JS interop</param>
-        public ElectronRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, IBridgeToNode node) : base(serviceProvider, loggerFactory)
+        public ElectronRenderer(IServiceProvider serviceProvider, ILoggerFactory loggerFactory, JSComponentInterop jsComponentInterop, ElectronJSRuntime jSRuntime, IBridgeToNode node)
+            : base(serviceProvider, loggerFactory, /*DefaultElectronJSRuntime.Instance*/jSRuntime.ReadJsonSerializerOptions(), jsComponentInterop)
         {
-            _node = node;
+            // The Electron renderer registers and unregisters itself with the static registry
+            RendererId = /*RendererRegistry.Add(this)*/0;
             _logger = loggerFactory.CreateLogger<ElectronRenderer>();
+
+            ElementReferenceContext = /*DefaultElectronJSRuntime.Instance*/jSRuntime.ElementReferenceContext;
+
+            _node = node;
+
             _reusableArrayBufferStream = new ReusableArrayBufferStream(node);
             _blazorInternal = node.Global.window.Blazor._internal;
-            _dispatcher = new ElectronDispatcher(node);
-            var eventDispatcher = new ElectronEventDispatcher(this);
-            _blazorInternal.HandleRendererEvent = new Func<dynamic, string, Task>(eventDispatcher.DispatchEvent);
             _blazorInternalRenderBatch = _blazorInternal.renderBatch;
+
+            _dispatcher = new ElectronDispatcher(node);
         }
 
-        public override Dispatcher Dispatcher => _dispatcher;
+        public override Dispatcher Dispatcher => _dispatcher;// NullDispatcher.Instance;
 
-        /// <summary>
-        /// Attaches a new root component to the renderer,
-        /// causing it to be displayed in the specified DOM element.
-        /// </summary>
-        /// <typeparam name="TComponent">The type of the component.</typeparam>
-        /// <param name="domElementSelector">A CSS selector that uniquely identifies a DOM element.</param>
-        /// <returns>A <see cref="Task"/> that represents the asynchronous rendering of the added component.</returns>
-        /// <remarks>
-        /// Callers of this method may choose to ignore the returned <see cref="Task"/> if they do not
-        /// want to await the rendering of the added component.
-        /// </remarks>
-        public Task AddComponentAsync<TComponent>(string domElementSelector)
-            where TComponent : IComponent => AddComponentAsync(typeof(TComponent), domElementSelector);
-
-        /// <summary>
-        /// Associates the <see cref="IComponent"/> with the <see cref="ElectronRenderer"/>,
-        /// causing it to be displayed in the specified DOM element.
-        /// </summary>
-        /// <param name="componentType">The type of the component.</param>
-        /// <param name="domElementSelector">A CSS selector that uniquely identifies a DOM element.</param>
-        /// <returns>A <see cref="Task"/> that represents the asynchronous rendering of the added component.</returns>
-        /// <remarks>
-        /// Callers of this method may choose to ignore the returned <see cref="Task"/> if they do not
-        /// want to await the rendering of the added component.
-        /// </remarks>
-        public Task AddComponentAsync(Type componentType, string domElementSelector)
+        public Task AddComponentAsync(Type componentType, ParameterView parameters, string domElementSelector)
         {
-            var component = InstantiateComponent(componentType);
-            var componentId = AssignRootComponentId(component);
+            var componentId = AddRootComponent(componentType, domElementSelector);
+            return RenderRootComponentAsync(componentId, parameters);
+        }
 
-            // The only reason we're calling this synchronously is so that, if it throws,
-            // we get the exception back *before* attempting the first UpdateDisplayAsync
-            // (otherwise the logged exception will come from UpdateDisplayAsync instead of here)
-            // When implementing support for out-of-process runtimes, we'll need to call this
-            // asynchronously and ensure we surface any exceptions correctly.
-
-            /*NodeJSRuntime.Instance.Invoke<object>(
+        protected override void AttachRootComponentToBrowser(int componentId, string domElementSelector)
+        {
+            /*DefaultElectronJSRuntime.Instance.InvokeVoid(
                 "Blazor._internal.attachRootComponentToElement",
                 domElementSelector,
                 componentId,
-                _NodeRendererId); */
-            _blazorInternal.attachRootComponentToElement(domElementSelector, componentId, /*_NodeRendererId*/ 1);
-
-            return RenderRootComponentAsync(componentId);
+                RendererId);*/
+            _blazorInternal.attachRootComponentToElement(domElementSelector, componentId, RendererId);
         }
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
             base.Dispose(disposing);
-            _blazorInternal.HandleRendererEvent = null;
+            //RendererRegistry.TryRemove(RendererId);
         }
+
+        /// <inheritdoc />
+        protected override void ProcessPendingRender()
+        {
+            // For historical reasons, Blazor Electron doesn't enforce that you use InvokeAsync
+            // to dispatch calls that originated from outside the system. Changing that now would be
+            // too breaking, at least until we can make it a prerequisite for multithreading.
+            // So, we don't have a way to guarantee that calls to here are already on our work queue.
+            //
+            // We do need rendering to happen on the work queue so that incoming events can be deferred
+            // until we've finished this rendering process (and other similar cases where we want
+            // execution order to be consistent with Blazor Server, which queues all JS->.NET calls).
+            //
+            // So, if we find that we're here and are not yet on the work queue, get onto it. Either
+            // way, rendering must continue synchronously here and is not deferred until later.
+            if (ElectronCallQueue.IsInProgress)
+            {
+                base.ProcessPendingRender();
+            }
+            else
+            {
+                ElectronCallQueue.Schedule(this, static @this => @this.CallBaseProcessPendingRender());
+            }
+        }
+
+        private void CallBaseProcessPendingRender() => base.ProcessPendingRender();
 
         /// <inheritdoc />
         protected override Task UpdateDisplayAsync(in RenderBatch batch)
         {
-            // TODO DM 22.08.2019: Using out of process render batch is inefficient
-            //var arrayBuilder = new ArrayBuilder<byte>(2048);
-
+            /*DefaultElectronJSRuntime.Instance.InvokeUnmarshalled<int, RenderBatch, object>(
+                "Blazor._internal.renderBatch",
+                RendererId,
+                batch);*/
             _reusableArrayBufferStream.SetLength(0);
             _reusableArrayBufferStream.Position = 0;
             using (var writer = new RenderBatchWriter(_reusableArrayBufferStream, true))
                 writer.Write(batch);
 
-            // Prevent event dispatching while updating the DOM
-            var wasDispatchingEvent = _isDispatchingEvent;
-            _isDispatchingEvent = true;
+            _blazorInternalRenderBatch( RendererId, _reusableArrayBufferStream.Buffer.JsObject, _reusableArrayBufferStream.Length);
 
-            try
+            //----------------------
+            if (ElectronCallQueue.HasUnstartedWork)
             {
-                _blazorInternalRenderBatch( /*_NodeRendererId*/ 1, _reusableArrayBufferStream.Buffer.JsObject, _reusableArrayBufferStream.Length);
+                // Because further incoming calls from JS to .NET are already queued (e.g., event notifications),
+                // we have to delay the renderbatch acknowledgement until it gets to the front of that queue.
+                // This is for consistency with Blazor Server which queues all JS-to-.NET calls relative to each
+                // other, and because various bits of cleanup logic rely on this ordering.
+                var tcs = new TaskCompletionSource();
+                ElectronCallQueue.Schedule(tcs, static tcs => tcs.SetResult());
+                return tcs.Task;
             }
-            finally
+            else
             {
-                if (!wasDispatchingEvent)
-                {
-                    _isDispatchingEvent = false;
-
-                    if (_deferredIncomingEvents.Count > 0)
-                    {
-                        // Fire-and-forget because the task we return from this method should only reflect the
-                        // completion of its own event dispatch, not that of any others that happen to be queued.
-                        // Also, ProcessNextDeferredEventAsync deals with its own async errors.
-                        _ = ProcessNextDeferredEventAsync();
-                    }
-                }
+                // Nothing else is pending, so we can treat the renderbatch as acknowledged synchronously.
+                // This lets upstream code skip an expensive code path and avoids some allocations.
+                return Task.CompletedTask;
             }
-
-            return Task.CompletedTask;
         }
 
         /// <inheritdoc />
@@ -145,116 +137,35 @@ namespace ElectronHostedBlazor.Rendering
             {
                 foreach (var innerException in aggregateException.Flatten().InnerExceptions)
                 {
-                    _logger.LogError(innerException, "Unhandled exception while rendering a component");
+                    Log.UnhandledExceptionRenderingComponent(_logger, innerException);
                 }
             }
             else
             {
-                _logger.LogError(exception, "Unhandled exception while rendering a component");
+                Log.UnhandledExceptionRenderingComponent(_logger, exception);
             }
 
             _dispatcher.PublishRendererException(exception);
         }
 
-        private bool _pendingRenderQueued;
-
-        /// <summary>
-        /// Processses pending renders requests from components if there are any.
-        /// </summary>
-        protected override void ProcessPendingRender()
+        private static class Log
         {
-            if (_pendingRenderQueued)
-                return;
-            _pendingRenderQueued = true;
-            // The node scheduler will schedule this as micro task.
-            // So we queue up all rendering until the current stack is empty.
-            // In combination with the StateHasChanged implementation in ComponentBase this will prevent unnecessary
-            // renderings from components that call StateHasChanged in fast succession synchronously.
-            // Sadly the task has to be observed by the GC...
-            _node.Run(Execute);
+            private static readonly Action<ILogger, string, Exception> _unhandledExceptionRenderingComponent = LoggerMessage.Define<string>(
+                LogLevel.Critical,
+                EventIds.UnhandledExceptionRenderingComponent,
+                "Unhandled exception rendering component: {Message}");
 
-            void Execute()
+            private static class EventIds
             {
-                _pendingRenderQueued = false;
-                base.ProcessPendingRender();
+                public static readonly EventId UnhandledExceptionRenderingComponent = new EventId(100, "ExceptionRenderingComponent");
             }
-        }
 
-        /// <inheritdoc />
-        public override Task DispatchEventAsync(ulong eventHandlerId, EventFieldInfo eventFieldInfo, EventArgs eventArgs)
-        {
-            // Be sure we only run one event handler at once. Although they couldn't run
-            // simultaneously anyway (there's only one thread), they could run nested on
-            // the stack if somehow one event handler triggers another event synchronously.
-            // We need event handlers not to overlap because (a) that's consistent with
-            // server-side Blazor which uses a sync context, and (b) the rendering logic
-            // relies completely on the idea that within a given scope it's only building
-            // or processing one batch at a time.
-            //
-            // The only currently known case where this makes a difference is in the E2E
-            // tests in ReorderingFocusComponent, where we hit what seems like a Chrome bug
-            // where mutating the DOM cause an element's "change" to fire while its "input"
-            // handler is still running (i.e., nested on the stack) -- this doesn't happen
-            // in Firefox. Possibly a future version of Chrome may fix this, but even then,
-            // it's conceivable that DOM mutation events could trigger this too.
-
-            if (_isDispatchingEvent)
+            public static void UnhandledExceptionRenderingComponent(ILogger logger, Exception exception)
             {
-                var info = new IncomingEventInfo(eventHandlerId, eventFieldInfo, eventArgs);
-                _deferredIncomingEvents.Enqueue(info);
-                return info.TaskCompletionSource.Task;
-            }
-            else
-            {
-                try
-                {
-                    _isDispatchingEvent = true;
-                    return base.DispatchEventAsync(eventHandlerId, eventFieldInfo, eventArgs);
-                }
-                finally
-                {
-                    _isDispatchingEvent = false;
-
-                    if (_deferredIncomingEvents.Count > 0)
-                    {
-                        // Fire-and-forget because the task we return from this method should only reflect the
-                        // completion of its own event dispatch, not that of any others that happen to be queued.
-                        // Also, ProcessNextDeferredEventAsync deals with its own async errors.
-                        _ = ProcessNextDeferredEventAsync();
-                    }
-                }
-            }
-        }
-
-        private async Task ProcessNextDeferredEventAsync()
-        {
-            var info = _deferredIncomingEvents.Dequeue();
-            var taskCompletionSource = info.TaskCompletionSource;
-
-            try
-            {
-                await DispatchEventAsync(info.EventHandlerId, info.EventFieldInfo, info.EventArgs);
-                taskCompletionSource.SetResult(null);
-            }
-            catch (Exception ex)
-            {
-                taskCompletionSource.SetException(ex);
-            }
-        }
-
-        readonly struct IncomingEventInfo
-        {
-            public readonly ulong EventHandlerId;
-            public readonly EventFieldInfo EventFieldInfo;
-            public readonly EventArgs EventArgs;
-            public readonly TaskCompletionSource<object> TaskCompletionSource;
-
-            public IncomingEventInfo(ulong eventHandlerId, EventFieldInfo eventFieldInfo, EventArgs eventArgs)
-            {
-                EventHandlerId = eventHandlerId;
-                EventFieldInfo = eventFieldInfo;
-                EventArgs = eventArgs;
-                TaskCompletionSource = new TaskCompletionSource<object>();
+                _unhandledExceptionRenderingComponent(
+                    logger,
+                    exception.Message,
+                    exception);
             }
         }
     }

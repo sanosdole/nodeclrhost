@@ -21,9 +21,9 @@ namespace ElectronHostedBlazor.Hosting
         /// get a chance to gracefully shut down. For now, <see cref="Run(IElectronHost)"/> simply starts the host
         /// and allows execution to continue.
         /// </remarks>
-        public static async Task<int> Run(this IElectronHost host)
+        public static async Task<int> Run(this ElectronHost host)
         {
-            using (host)
+            await using (host)
             {
                 await host.RunAsync();
                 return 0;
@@ -33,7 +33,7 @@ namespace ElectronHostedBlazor.Hosting
         /// <summary>
         /// Adds an handler for rendering exceptions.
         /// </summary>
-        public static IElectronHost UseExceptionHandler(this IElectronHost host, UnhandledExceptionEventHandler handler)
+        public static ElectronHost UseExceptionHandler(this ElectronHost host, UnhandledExceptionEventHandler handler)
         {
             host.UnhandledException += handler;
             return host;

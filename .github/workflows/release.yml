@@ -5,7 +5,7 @@ name: Release
 # Controls when the workflow will run
 on:
   release:
-    types: [published]
+    types: [released]
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -30,6 +30,7 @@ jobs:
           dotnet-version:  | 
             3.1.x
             5.0.x
+            6.0.x
 
       - name: Show node version
         run: node --version
@@ -96,6 +97,7 @@ jobs:
           dotnet-version:  | 
             3.1.x
             5.0.x
+            6.0.x
 
       - name: Show node version
         run: node --version
@@ -195,6 +197,7 @@ jobs:
           dotnet-version:  | 
             3.1.x
             5.0.x
+            6.0.x
 
       - name: Show node version
         run: node --version

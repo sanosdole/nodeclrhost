@@ -47,9 +47,9 @@
                         // TODO: This will break on 32 bit systems!
                         releaseHandle = false;
                         var numberValue = BitConverter.Int64BitsToDouble((long)Value);
-                        if (targetType == typeof(int))
+                        if (targetType == typeof(int) || targetType == typeof(int?))
                             result = (int)numberValue;
-                        else if (targetType == typeof(long))
+                        else if (targetType == typeof(long) || targetType == typeof(long?))
                             result = (long)numberValue;
                         else
                             result = numberValue;

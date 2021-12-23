@@ -1,15 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
+@inject NavigationManager UriHelper
+
 <div class="sidebar">
-    <NavMenu/>
+   <NavMenu />
 </div>
 
 <div class="main">
-    <div class="top-row px-4">
-        <a href="https://docs.microsoft.com/en-us/aspnet/" target="_blank">About</a>
-    </div>
+   <div class="top-row px-4">
+      @UriHelper.ToBaseRelativePath(UriHelper.Uri)
+      <a href="https://docs.microsoft.com/en-us/aspnet/" target="_blank">About</a>
+   </div>
 
-    <div class="content px-4">
-        @Body
-    </div>
+   <div class="content px-4">
+      @Body
+   </div>
 </div>

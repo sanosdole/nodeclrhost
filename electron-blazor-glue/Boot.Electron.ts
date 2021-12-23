@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Modified by Daniel Martin for nodeclrhost
 
-import '@dotnet/jsinterop';
+import { DotNet } from './JsInterop/Microsoft.JSInterop';
 import './GlobalExports';
 import { renderBatch, getRendererer, attachRootComponentToElement, attachRootComponentToLogicalElement } from './Rendering/Renderer';
 import { OutOfProcessRenderBatch } from './Rendering/RenderBatch/OutOfProcessRenderBatch';
-import { setEventDispatcher } from './Rendering/RendererEventDispatcher';
+import { WebAssemblyComponentAttacher } from './Platform/WebAssemblyComponentAttacher';
+import { discoverComponents, discoverPersistedState, WebAssemblyComponentDescriptor } from './Services/ComponentDescriptorDiscovery';
+//import { setEventDispatcher } from './Rendering/RendererEventDispatcher';
 
 import coreclrhosting = require('coreclr-hosting');
 
@@ -26,8 +28,20 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
     DotNet.jsCallDispatcher.endInvokeDotNetFromJS(asyncCallId, success, success ? JSON.parse(resultOrExceptionMessage) : resultOrExceptionMessage);
   }
 
+
+  const discoveredComponents = discoverComponents(document, 'webassembly') as WebAssemblyComponentDescriptor[];
+  const componentAttacher = new WebAssemblyComponentAttacher(discoveredComponents);
+  window['Blazor']._internal.attachRootComponentToElement = (selector, componentId, rendererId) => {
+    const element = componentAttacher.resolveRegisteredElement(selector);
+    if (!element) {
+      attachRootComponentToElement(selector, componentId, rendererId);
+    } else {
+      attachRootComponentToLogicalElement(rendererId, element, componentId, false);
+    }
+  };
+
   //setEventDispatcher((eventDescriptor, eventArgs) => window['Blazor']._internal.HandleRendererEvent(eventDescriptor, JSON.stringify(eventArgs)));
-  setEventDispatcher((eventDescriptor, eventArgs) => {
+  /*setEventDispatcher((eventDescriptor, eventArgs) => {
     // It's extremely unusual, but an event can be raised while we're in the middle of synchronously applying a
     // renderbatch. For example, a renderbatch might mutate the DOM in such a way as to cause an <input> to lose
     // focus, in turn triggering a 'change' event. It may also be possible to listen to other DOM mutation events
@@ -37,7 +51,7 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
       //monoPlatform.invokeWhenHeapUnlocked(() => DotNet.invokeMethodAsync('Microsoft.AspNetCore.Components.WebAssembly', 'DispatchEvent', eventDescriptor, JSON.stringify(eventArgs)));
       window['Blazor']._internal.HandleRendererEvent(eventDescriptor, JSON.stringify(eventArgs))
     }
-  });
+  });*/
 
   // DM 21.08.2019: Setting up the renderer
   window['Blazor']._internal.renderBatch = (browserRendererId: number, batchAddress: ArrayBuffer, batchLength: number) => {
