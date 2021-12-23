@@ -1,8 +1,9 @@
 @page "/ImageBlob"
 @using NodeHostEnvironment
 @using System.IO
+@implements IDisposable
 
-<img src="@_source"/>
+<img src="@_source" style="max-width: 100%;"/>
 
 @code {
     private string _source;
@@ -22,9 +23,14 @@
         var opts = Node.New();
         opts.type = "image/jpeg";
 
-        var blob = Node.Global.Blob.CreateNewInstance(new dynamic[] { Node.Global.Uint8Array.from(bytes).buffer }, opts);
+        var blob = Node.Global.Blob.CreateNewInstance(new [] { Node.Global.Uint8Array.from(bytes).buffer }, opts);
 
         _source = (string)Node.Global.URL.createObjectURL(blob);
+    }
+
+    public void Dispose()
+    {
+        Node.Global.URL.revokeObjectURL(_source);
     }
 
 }
