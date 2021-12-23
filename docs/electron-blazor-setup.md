@@ -33,28 +33,23 @@ dotnet new blazorserver
 dotnet add package ElectronHostedBlazor
 ```
 
-Replace the `CreateHostBuilder` method in `~/RenderApp/Program.cs` with:
+Replace the `Main` method in `~/RenderApp/Program.cs` with:
 
 ```cs
-public static IElectronHostBuilder CreateHostBuilder(string[] args) =>
-            BlazorElectronHost.CreateDefaultBuilder()
-                .UseBlazorStartup<Startup>();
-```
-
-Also replace `~/RenderApp/Startup` with the following implementation:
-
-```cs
-public class Startup
+public static Task<int> Main(string[] args)
 {
-    public void ConfigureServices(IServiceCollection services)
-    {
-        services.AddSingleton<WeatherForecastService>();
-    }
+    var builder = ElectronHostBuilder.CreateDefault(args);
+    
+    // Use `builder.Logging` for logging config
+    builder.Logging.AddConsole();
+    
+    // Use `builder.Services` for DI config
+    builder.Services.AddSingleton<WeatherForecastService>();
+    
+    // Add root components
+    builder.RootComponents.Add<App>("app");
 
-    public void Configure(IComponentsApplicationBuilder app)
-    {
-        app.AddComponent<App>("app");
-    }
+    return builder.Build().Run();
 }
 ```
 
@@ -121,7 +116,7 @@ app.on("ready", function(launchInfo) {
 });
 ```
 
-This could also be implemented using a .NET console app and `coreclr-hosting`/`NodeHostEnvironment`.
+This could also be implemented using a .NET console app and `coreclr-hosting`/`NodeHostEnvironment`. This can be seen in the `electron-blazor` example in the source code.
 
 ## Run it
 
