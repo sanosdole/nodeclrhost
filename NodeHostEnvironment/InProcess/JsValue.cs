@@ -51,6 +51,10 @@
                             result = (int)numberValue;
                         else if (targetType == typeof(long) || targetType == typeof(long?))
                             result = (long)numberValue;
+                        else if (targetType == typeof(byte) || targetType == typeof(byte?))
+                            result = (byte)numberValue;
+                        else if (targetType == typeof(float) || targetType == typeof(float?))
+                            result = (float)numberValue;
                         else
                             result = numberValue;
                         return true;

@@ -21,5 +21,8 @@ window.exampleJsFunctions = {
     },
     crash: function() {
         require("process").crash();
+    },
+    getUInt8Array: function() {
+        return new Uint8Array(1000);
     }
 };

@@ -1,5 +1,7 @@
 @page "/JSInterop"
 @inject IJSRuntime JSRuntime
+@using System.IO
+
 
 <h1>JavaScript Interop</h1>
 
@@ -13,11 +15,17 @@
 
 <h3 id="welcome" style="color: green; font-style: italic"></h3>
 
-<button id="triggerdotnetfromjs" type="button" class="btn btn-primary" @onclick="TriggerNetInstanceMethod">
+<button id="triggerdotnetfromjs" type="button" class="btn" @onclick="TriggerNetInstanceMethod">
     Trigger .NET instance method HelloHelper.SayHello
 </button>
 
 <h3 id="dotnetinvocationcount" style="color: green; font-style: italic">@_invokeCounter</h3>
+
+<h3>Stream test</h3>
+
+<button id="streamtest" type="button" class="btn" @onclick="TriggerStreamTest">
+    Stream byte array from JS.
+</button>
 
 
 @code {
@@ -63,6 +71,14 @@
         await JSRuntime.InvokeVoidAsync(
             "exampleJsFunctions.displayWelcome",
             $"Hello {name}! Welcome to Blazor!");
+    }
+
+    public async Task TriggerStreamTest()
+    {
+        var streamRef = await JSRuntime.InvokeAsync<IJSStreamReference>("exampleJsFunctions.getUInt8Array");
+        var jsStream = await streamRef.OpenReadStreamAsync();
+        var memStream = new MemoryStream();
+        await jsStream.CopyToAsync(memStream);
     }
 
 }
