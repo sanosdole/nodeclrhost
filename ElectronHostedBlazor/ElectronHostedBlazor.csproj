@@ -10,7 +10,7 @@
 
     <PropertyGroup>
         <PackageId>ElectronHostedBlazor</PackageId>
-        <Version Condition="!$(GITHUB_REF.Contains('tags/v'))">6.0.1</Version>
+        <Version Condition="!$(GITHUB_REF.Contains('tags/v'))">6.0.2</Version>
         <Version Condition="$(GITHUB_REF.Contains('tags/v'))">$(GITHUB_REF.Substring(11))</Version>
         <Authors>sanosdole2</Authors>
         <Company>nodeclrhost</Company>
