@@ -30,12 +30,8 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Fix node-gyp
-        run: |
-          npm install -g node-gyp
-          cd "C:\Program Files\nodejs"
-          cd node_modules\npm\node_modules\@npmcli\run-script
-          npm install node-gyp@latest
+      - name: Add msbuild to PATH
+        uses: microsoft/setup-msbuild@v1.1
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v2
