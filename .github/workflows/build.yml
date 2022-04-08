@@ -26,9 +26,9 @@ jobs:
       - uses: actions/checkout@v2
       
       - name: Setup Node.js environment
-        uses: actions/setup-node@v2.5.0
+        uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: '16'
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
@@ -51,6 +51,7 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
+          prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$";  
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$";                   
           prebuild -t 14.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
           prebuild -t 15.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$";
