@@ -22,6 +22,10 @@
         'defines': [ 'NAPI_DISABLE_CPP_EXCEPTIONS', 'NODE_ADDON_API_DISABLE_DEPRECATED' ],
         #'defines': [ 'NAPI_CPP_EXCEPTIONS' ],
 
+        'variables' : {
+          'openssl_fips': '',
+        },
+
         'conditions': [
           ['OS=="linux"', {
             #'cflags_cc!': ['-std=gnu++1y'],    
