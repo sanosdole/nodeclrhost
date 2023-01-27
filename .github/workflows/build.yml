@@ -54,14 +54,6 @@ jobs:
           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 18.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 14.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 15.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 17.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 20.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 21.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 22.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"  
           npm run build-testapp
           npm run mocha
@@ -116,16 +108,7 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 14.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 15.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 17.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 20.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 21.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 22.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"  
           npm run build-testapp
           npm run mocha
@@ -180,16 +163,7 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 14.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 15.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 17.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 20.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 21.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 22.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"  
           npm run build-testapp
           npm run mocha
