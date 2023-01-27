@@ -22,7 +22,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '18'
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v2
@@ -89,7 +89,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.5.0
         with:
-          node-version: 16.x
+          node-version: 18.x
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
@@ -115,9 +115,16 @@ jobs:
           npm ci --build-from-source
           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
           prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 18.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 14.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 15.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 17.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 18.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 19.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 20.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 21.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 22.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"          
           npm run build-testapp
           npm run mocha
           cd ..
@@ -189,7 +196,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v2.5.0
         with:
-          node-version: 16.x
+          node-version: 18.x
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v1
@@ -214,10 +221,17 @@ jobs:
           npm ci --build-from-source
           npm version "${GITHUB_REF:11}" --allow-same-version
           prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
-          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"       
+          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 18.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 14.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 15.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 16.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 17.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 18.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 19.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 20.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 21.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 22.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"  
           npm run build-testapp
           npm run mocha
           cd ..

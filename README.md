@@ -2,7 +2,7 @@
 
 ![Build status master](https://github.com/sanosdole/nodeclrhost/actions/workflows/build.yml/badge.svg)
 
-_Latest release_ __v6.0.2__: ![Build status release](https://github.com/sanosdole/nodeclrhost/actions/workflows/release.yml/badge.svg)
+_Latest release_ __v6.0.3__: ![Build status release](https://github.com/sanosdole/nodeclrhost/actions/workflows/release.yml/badge.svg)
 
 This project enables writing node/electron applications with .NET.
 This is achieved by a native node module (`coreclr-hosting`) that runs a .NET application.
