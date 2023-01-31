@@ -11,7 +11,7 @@ namespace ElectronHostedBlazor.Logging
         private readonly object _syncObject = new object();
         private readonly IBridgeToNode _node;
         private readonly dynamic _console;
-        private List<Tuple<LogLevel, string>> _queuedEntries;
+        private List<Tuple<LogLevel, string>>? _queuedEntries;
 
         public ElectronConsoleWriter(IBridgeToNode node)
         {

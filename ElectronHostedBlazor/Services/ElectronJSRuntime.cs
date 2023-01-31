@@ -177,7 +177,7 @@ namespace ElectronHostedBlazor.Services
                         JsonSerializer.Serialize(
                             result.ResultJson,
                             JsonSerializerOptions) :
-                        result.Exception.ToString()))
+                        result.Exception?.ToString()))
                     .Wait();
                 return;
             }
@@ -188,7 +188,7 @@ namespace ElectronHostedBlazor.Services
                 JsonSerializer.Serialize(
                     dispatchResult.ResultJson,
                     JsonSerializerOptions) :
-                dispatchResult.Exception.ToString());
+                dispatchResult.Exception?.ToString());
         }
 
         /// <inheritdoc />
