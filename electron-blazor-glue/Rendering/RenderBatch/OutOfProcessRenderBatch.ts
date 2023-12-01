@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 import { RenderBatch, ArrayRange, RenderTreeDiff, ArrayValues, RenderTreeEdit, RenderTreeFrame, RenderTreeDiffReader, RenderTreeFrameReader, RenderTreeEditReader, ArrayRangeReader, ArrayBuilderSegmentReader, ArrayBuilderSegment } from './RenderBatch';
@@ -216,7 +216,7 @@ class OutOfProcessArrayBuilderSegmentReader implements ArrayBuilderSegmentReader
   constructor(private batchDataUint8: Uint8Array) {
   }
 
-  offset<T>(arrayBuilderSegment: ArrayBuilderSegment<T>) {
+  offset<T>(_arrayBuilderSegment: ArrayBuilderSegment<T>): number {
     // Not used by the out-of-process representation of RenderBatch data.
     // This only exists on the ArrayBuilderSegmentReader for the shared-memory representation.
     return 0;

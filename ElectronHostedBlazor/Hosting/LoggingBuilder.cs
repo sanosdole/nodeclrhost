@@ -7,7 +7,7 @@ namespace ElectronHostedBlazor.Hosting
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
 
-    internal class LoggingBuilder : ILoggingBuilder
+    internal sealed class LoggingBuilder : ILoggingBuilder
     {
         public LoggingBuilder(IServiceCollection services)
         {

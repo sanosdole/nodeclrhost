@@ -1,10 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 export interface EventTypeOptions {
   browserEventName?: string;
-  createEventArgs?: (event: Event) => any;
+  createEventArgs?: (event: Event) => unknown;
 }
 
 const eventTypeRegistry: Map<string, EventTypeOptions> = new Map();
@@ -61,46 +61,107 @@ function registerBuiltInEventType(eventNames: string[], options: EventTypeOption
 }
 
 registerBuiltInEventType(['input', 'change'], {
-  createEventArgs: parseChangeEvent
+  createEventArgs: parseChangeEvent,
 });
 
-registerBuiltInEventType(['copy', 'cut', 'paste'], createBlankEventArgsOptions);
-
-registerBuiltInEventType(['drag', 'dragend', 'dragenter', 'dragleave', 'dragover', 'dragstart', 'drop'], {
-  createEventArgs: e => parseDragEvent(e as DragEvent)
+registerBuiltInEventType([
+  'copy',
+  'cut',
+  'paste',
+], {
+  createEventArgs: e => parseClipboardEvent(e as ClipboardEvent),
 });
 
-registerBuiltInEventType(['focus', 'blur', 'focusin', 'focusout'], createBlankEventArgsOptions);
-
-registerBuiltInEventType(['keydown', 'keyup', 'keypress'], {
-  createEventArgs: e => parseKeyboardEvent(e as KeyboardEvent)
+registerBuiltInEventType([
+  'drag',
+  'dragend',
+  'dragenter',
+  'dragleave',
+  'dragover',
+  'dragstart',
+  'drop',
+], {
+  createEventArgs: e => parseDragEvent(e as DragEvent),
 });
 
-registerBuiltInEventType(['contextmenu', 'click', 'mouseover', 'mouseout', 'mousemove', 'mousedown', 'mouseup', 'dblclick'], {
-  createEventArgs: e => parseMouseEvent(e as MouseEvent)
+registerBuiltInEventType([
+  'focus',
+  'blur',
+  'focusin',
+  'focusout',
+], {
+  createEventArgs: e => parseFocusEvent(e as FocusEvent),
+});
+
+registerBuiltInEventType([
+  'keydown',
+  'keyup',
+  'keypress',
+], {
+  createEventArgs: e => parseKeyboardEvent(e as KeyboardEvent),
+});
+
+registerBuiltInEventType([
+  'contextmenu',
+  'click',
+  'mouseover',
+  'mouseout',
+  'mousemove',
+  'mousedown',
+  'mouseup',
+  'mouseleave',
+  'mouseenter',
+  'dblclick',
+], {
+  createEventArgs: e => parseMouseEvent(e as MouseEvent),
 });
 
 registerBuiltInEventType(['error'], {
-  createEventArgs: e => parseErrorEvent(e as ErrorEvent)
+  createEventArgs: e => parseErrorEvent(e as ErrorEvent),
 });
 
-registerBuiltInEventType(['loadstart', 'timeout', 'abort', 'load', 'loadend', 'progress'], {
-  createEventArgs: e => parseProgressEvent(e as ProgressEvent)
+registerBuiltInEventType([
+  'loadstart',
+  'timeout',
+  'abort',
+  'load',
+  'loadend',
+  'progress',
+], {
+  createEventArgs: e => parseProgressEvent(e as ProgressEvent),
 });
 
-registerBuiltInEventType(['touchcancel', 'touchend', 'touchmove', 'touchenter', 'touchleave', 'touchstart'], {
-  createEventArgs: e => parseTouchEvent(e as TouchEvent)
+registerBuiltInEventType([
+  'touchcancel',
+  'touchend',
+  'touchmove',
+  'touchenter',
+  'touchleave',
+  'touchstart',
+], {
+  createEventArgs: e => parseTouchEvent(e as TouchEvent),
 });
 
-registerBuiltInEventType(['gotpointercapture', 'lostpointercapture', 'pointercancel', 'pointerdown', 'pointerenter', 'pointerleave', 'pointermove', 'pointerout', 'pointerover', 'pointerup'], {
-  createEventArgs: e => parsePointerEvent(e as PointerEvent)
+registerBuiltInEventType([
+  'gotpointercapture',
+  'lostpointercapture',
+  'pointercancel',
+  'pointerdown',
+  'pointerenter',
+  'pointerleave',
+  'pointermove',
+  'pointerout',
+  'pointerover',
+  'pointerup',
+], {
+  createEventArgs: e => parsePointerEvent(e as PointerEvent),
 });
 
 registerBuiltInEventType(['wheel', 'mousewheel'], {
-  createEventArgs: e => parseWheelEvent(e as WheelEvent)
+  createEventArgs: e => parseWheelEvent(e as WheelEvent),
 });
 
-registerBuiltInEventType(['toggle'], createBlankEventArgsOptions);
+registerBuiltInEventType(['cancel', 'close', 'toggle'], createBlankEventArgsOptions);
 
 function parseChangeEvent(event: Event): ChangeEventArgs {
   const element = event.target as Element;
@@ -154,7 +215,19 @@ function parseTouchEvent(event: TouchEvent): TouchEventArgs {
     shiftKey: event.shiftKey,
     altKey: event.altKey,
     metaKey: event.metaKey,
-    type: event.type
+    type: event.type,
+  };
+}
+
+function parseFocusEvent(event: FocusEvent): FocusEventArgs {
+  return {
+    type: event.type,
+  };
+}
+
+function parseClipboardEvent(event: ClipboardEvent): ClipboardEventArgs {
+  return {
+    type: event.type,
   };
 }
 
@@ -163,6 +236,7 @@ function parseProgressEvent(event: ProgressEvent<EventTarget>): ProgressEventArg
     lengthComputable: event.lengthComputable,
     loaded: event.loaded,
     total: event.total,
+    type: event.type,
   };
 }
 
@@ -172,6 +246,7 @@ function parseErrorEvent(event: ErrorEvent): ErrorEventArgs {
     filename: event.filename,
     lineno: event.lineno,
     colno: event.colno,
+    type: event.type,
   };
 }
 
@@ -185,6 +260,7 @@ function parseKeyboardEvent(event: KeyboardEvent): KeyboardEventArgs {
     shiftKey: event.shiftKey,
     altKey: event.altKey,
     metaKey: event.metaKey,
+    type: event.type,
   };
 }
 
@@ -230,12 +306,15 @@ function parseMouseEvent(event: MouseEvent): MouseEventArgs {
     offsetY: event.offsetY,
     pageX: event.pageX,
     pageY: event.pageY,
+    movementX: event.movementX,
+    movementY: event.movementY,
     button: event.button,
     buttons: event.buttons,
     ctrlKey: event.ctrlKey,
     shiftKey: event.shiftKey,
     altKey: event.altKey,
     metaKey: event.metaKey,
+    type: event.type,
   };
 }
 
@@ -317,6 +396,7 @@ interface ErrorEventArgs {
   filename: string;
   lineno: number;
   colno: number;
+  type: string;
 
   // omitting 'error' here since we'd have to serialize it, and it's not clear we will want to
   // do that. https://developer.mozilla.org/en-US/docs/Web/API/ErrorEvent
@@ -331,6 +411,7 @@ interface KeyboardEventArgs {
   shiftKey: boolean;
   altKey: boolean;
   metaKey: boolean;
+  type: string;
 }
 
 interface MouseEventArgs {
@@ -343,12 +424,15 @@ interface MouseEventArgs {
   offsetY: number;
   pageX: number;
   pageY: number;
+  movementX: number;
+  movementY: number;
   button: number;
   buttons: number;
   ctrlKey: boolean;
   shiftKey: boolean;
   altKey: boolean;
   metaKey: boolean;
+  type: string;
 }
 
 interface PointerEventArgs extends MouseEventArgs {
@@ -366,6 +450,7 @@ interface ProgressEventArgs {
   lengthComputable: boolean;
   loaded: number;
   total: number;
+  type: string;
 }
 
 interface TouchEventArgs {
@@ -395,4 +480,12 @@ interface WheelEventArgs extends MouseEventArgs {
   deltaY: number;
   deltaZ: number;
   deltaMode: number;
+}
+
+interface FocusEventArgs {
+  type: string;
+}
+
+interface ClipboardEventArgs {
+  type: string;
 }

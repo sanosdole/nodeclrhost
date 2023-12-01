@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 import { DotNet } from '../JsInterop/Microsoft.JSInterop';
@@ -25,8 +25,7 @@ export const RootComponentsFunctions = {
     pendingRootComponentContainers.set(containerIdentifier, toElement);
 
     // Instruct .NET to add and render the new root component
-    const componentId = await getRequiredManager().invokeMethodAsync<number>(
-      'AddRootComponent', componentIdentifier, containerIdentifier);
+    const componentId = await getRequiredManager().invokeMethodAsync<number>('AddRootComponent', componentIdentifier, containerIdentifier);
     const component = new DynamicRootComponent(componentId, jsComponentParametersByIdentifier[componentIdentifier]);
     await component.setParameters(initialParameters);
     return component;
@@ -44,13 +43,13 @@ export function getAndRemovePendingRootComponentContainer(containerIdentifier: s
 class EventCallbackWrapper {
   private _callback: any;
 
-  private _selfJSObjectReference: any;
+  private _selfJSObjectReference: unknown;
 
-  invoke(arg: any) {
+  invoke(arg: unknown) {
     return this._callback(arg);
   }
 
-  setCallback(callback: any): void {
+  setCallback(callback: unknown): void {
     if (!this._selfJSObjectReference) {
       this._selfJSObjectReference = DotNet.createJSObjectReference(this);
     }
@@ -135,7 +134,7 @@ export function enableJSRootComponents(
   // on the .NET side - just those of them that require some JS-side initialization (e.g., to register them
   // as custom elements).
   for (const [initializerIdentifier, componentIdentifiers] of Object.entries(jsComponentInitializers)) {
-    const initializerFunc = DotNet.jsCallDispatcher.findJSFunction(initializerIdentifier, 0) as JSComponentInitializerCallback;
+    const initializerFunc = DotNet.findJSFunction(initializerIdentifier, 0) as JSComponentInitializerCallback;
     for (const componentIdentifier of componentIdentifiers) {
       const parameters = jsComponentParameters[componentIdentifier];
       initializerFunc(componentIdentifier, parameters);

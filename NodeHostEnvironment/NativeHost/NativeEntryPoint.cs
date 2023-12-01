@@ -55,21 +55,40 @@
                                                                     BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public);
 
                 var result = host.Scheduler
-                                 .RunCallbackSynchronously(s =>
+                                 .RunCallbackSynchronously(s =>                                 
                                                                entryPoint.Invoke(null,
                                                                                  new object[] { argv.Skip(1).ToArray() }),
                                                            null);
 
                 Marshal.StructureToPtr(DotNetValue.FromObject(result, host), resultValue, false);
-            }
-            catch (TargetInvocationException tie)
-            {
-                Marshal.StructureToPtr(DotNetValue.FromObject(tie.InnerException, host), resultValue, false);
-            }
+            }            
             catch (Exception e)
             {
-                Marshal.StructureToPtr(DotNetValue.FromObject(e, host), resultValue, false);
+                Marshal.StructureToPtr(DotNetValue.FromObject(UnwrapExceptions(e), host), resultValue, false);
             }
+        }
+
+        private static Exception UnwrapExceptions(Exception exception)
+        {
+            switch (exception)
+            {
+                case AggregateException ae:
+                    return UnwrapExceptions(UnwrapAggregateException(ae));
+                case TargetInvocationException tie:
+                    return UnwrapExceptions(tie.InnerException);
+                default:
+                    return exception;
+            }
+        }
+
+        private static Exception UnwrapAggregateException(AggregateException exception)
+        {
+            if (null == exception)
+                return null;
+            exception = exception.Flatten();
+            if (exception.InnerExceptions.Count == 1)            
+                return exception.InnerExceptions[0];
+            return exception;
         }
     }
 }

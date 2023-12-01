@@ -79,6 +79,8 @@
         var jsStream = await streamRef.OpenReadStreamAsync();
         var memStream = new MemoryStream();
         await jsStream.CopyToAsync(memStream);
+        _invokeCounter = (int)memStream.Length;
+
     }
 
 }

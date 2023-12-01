@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
@@ -34,14 +34,13 @@ namespace ElectronHostedBlazor.Services
             _node = node;
 
             using var dotNet = node.Global.DotNet;
-            _jsCallDispatcher = dotNet.jsCallDispatcher;
-
+            
             using var dotnetDispatcher = node.New();
             dotnetDispatcher.invokeDotNetFromJS = new Func<string, string, long?, string, string?>(InvokeDotNet);
             dotnetDispatcher.beginInvokeDotNetFromJS = new Action<long, string, string, long?, string>(BeginInvokeDotNet);
             dotnetDispatcher.endInvokeJSFromDotNet = new Action<long, bool, string>(EndInvokeJS);
             dotnetDispatcher.sendByteArray = new Action<int, byte[]>(NotifyByteArrayAvailable);
-            dotNet.attachDispatcher(dotnetDispatcher);
+            _jsCallDispatcher = dotNet.attachDispatcher(dotnetDispatcher);
         }       
 
         // TODO: We need to register at JS Code for callbacks
@@ -171,24 +170,20 @@ namespace ElectronHostedBlazor.Services
                 // TODO DM 27.04.2020: This seems to happen in electron, we should investigate how this is possible as dotnet uses TaskScheduler.Current
                 // Exceptions do not propagate here
                 var result = dispatchResult;
-                _node.Run(() => _jsCallDispatcher.endInvokeDotNetFromJSWithJson(callInfo.CallId,
+                _node.Run(() => _jsCallDispatcher.endInvokeDotNetFromJS(callInfo.CallId,
                         result.Success,
                         result.Success ?
-                        JsonSerializer.Serialize(
-                            result.ResultJson,
-                            JsonSerializerOptions) :
-                        result.Exception?.ToString()))
+                            result.ResultJson :
+                            result.Exception?.ToString()))
                     .Wait();
                 return;
             }
 
-            _jsCallDispatcher.endInvokeDotNetFromJSWithJson(callInfo.CallId,
+            _jsCallDispatcher.endInvokeDotNetFromJS(callInfo.CallId,
                 dispatchResult.Success,
                 dispatchResult.Success ?
-                JsonSerializer.Serialize(
-                    dispatchResult.ResultJson,
-                    JsonSerializerOptions) :
-                dispatchResult.Exception?.ToString());
+                    dispatchResult.ResultJson :
+                    dispatchResult.Exception?.ToString());
         }
 
         /// <inheritdoc />

@@ -1,12 +1,12 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 import './JsInterop/Microsoft.JSInterop';
 
 export const domFunctions = {
   focus,
-  focusBySelector,
+  focusBySelector
 };
 
 function focus(element: HTMLOrSVGElement, preventScroll: boolean): void {
@@ -23,7 +23,7 @@ function focus(element: HTMLOrSVGElement, preventScroll: boolean): void {
   }
 }
 
-function focusBySelector(selector: string) {
+function focusBySelector(selector: string, preventScroll: boolean): void {
   const element = document.querySelector(selector) as HTMLElement;
   if (element) {
     // If no explicit tabindex is defined, mark it as programmatically-focusable.
@@ -33,6 +33,6 @@ function focusBySelector(selector: string) {
       element.tabIndex = -1;
     }
 
-    element.focus();
+    element.focus({ preventScroll: true });
   }
 }

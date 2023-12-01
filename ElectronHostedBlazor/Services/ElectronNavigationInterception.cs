@@ -20,7 +20,7 @@ namespace ElectronHostedBlazor.Services
         public Task EnableNavigationInterceptionAsync()
         {
             //NodeJSRuntime.Instance.Invoke<object>(Interop.EnableNavigationInterception);
-            _navigationManager.enableNavigationInterception();
+            _navigationManager.enableNavigationInterception(4);
             return Task.CompletedTask;
         }
     }

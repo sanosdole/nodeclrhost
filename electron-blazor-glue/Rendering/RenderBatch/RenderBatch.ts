@@ -1,5 +1,5 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 export interface RenderBatch {
@@ -58,13 +58,13 @@ export interface RenderTreeFrameReader {
   attributeEventHandlerId(frame: RenderTreeFrame): number;
 }
 
-export interface ArrayRange<T> { ArrayRange__DO_NOT_IMPLEMENT: any }
-export interface ArrayBuilderSegment<T> { ArrayBuilderSegment__DO_NOT_IMPLEMENT: any }
-export interface ArrayValues<T> { ArrayValues__DO_NOT_IMPLEMENT: any }
+export interface ArrayRange<T> { ArrayRange__DO_NOT_IMPLEMENT: unknown }
+export interface ArrayBuilderSegment<T> { ArrayBuilderSegment__DO_NOT_IMPLEMENT: unknown }
+export interface ArrayValues<T> { ArrayValues__DO_NOT_IMPLEMENT: unknown }
 
-export interface RenderTreeDiff { RenderTreeDiff__DO_NOT_IMPLEMENT: any }
-export interface RenderTreeFrame { RenderTreeFrame__DO_NOT_IMPLEMENT: any }
-export interface RenderTreeEdit { RenderTreeEdit__DO_NOT_IMPLEMENT: any }
+export interface RenderTreeDiff { RenderTreeDiff__DO_NOT_IMPLEMENT: unknown }
+export interface RenderTreeFrame { RenderTreeFrame__DO_NOT_IMPLEMENT: unknown }
+export interface RenderTreeEdit { RenderTreeEdit__DO_NOT_IMPLEMENT: unknown }
 
 export enum EditType {
   // The values must be kept in sync with the .NET equivalent in RenderTreeEditType.cs
@@ -89,4 +89,5 @@ export enum FrameType {
   region = 5,
   elementReferenceCapture = 6,
   markup = 8,
+  namedEvent = 10,
 }

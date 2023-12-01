@@ -8,6 +8,7 @@ namespace BlazorApp
     {
         public static Task<int> Main(string[] args)
         {
+            //throw new System.InvalidOperationException("TEST");
             //System.Diagnostics.Debugger.Launch();
 
             var builder = ElectronHostBuilder.CreateDefault(args);

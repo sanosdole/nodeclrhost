@@ -152,7 +152,7 @@
                     {
                         _task.ContinueWith(t =>
                                            {
-                                               var exception = UnwrapAggregateException(t.Exception);
+                                               var exception = UnwrapAggregateException(t.Exception);                                               
                                                var value = exception == null
                                                                ? DotNetValue.FromObject(GetResult(t), _parent)
                                                                : DotNetValue.FromException(exception);
@@ -211,7 +211,10 @@
                 return null;
             exception = exception.Flatten();
             if (exception.InnerExceptions.Count == 1)
-                return exception.InnerExceptions[0];
+            {
+                var inner = exception.InnerExceptions[0];
+                return inner is AggregateException innerAggregate ? UnwrapAggregateException(innerAggregate) : inner;
+            }
             return exception;
         }
 
