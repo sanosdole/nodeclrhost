@@ -92,7 +92,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 16.x
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3
@@ -155,7 +155,7 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: 18.x
+          node-version: 16.x
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3
