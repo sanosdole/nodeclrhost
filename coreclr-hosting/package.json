@@ -44,8 +44,8 @@
     "benchr": "^4.3.0",
     "mocha": "^10.2.0",
     "node-addon-api": "^7.0.0",
-    "node-gyp": "^9.4.0",
-    "prebuild": "^11.0.4"
+    "node-gyp": "^10.0.1",
+    "prebuild": "^12.1.0"
   },
   "dependencies": {
     "bindings": "^1.5.0",

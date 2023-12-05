@@ -34,5 +34,5 @@ global.callLater = function(cb) {
   }, 1000)
 }
 
-var runResult = coreclrHosting.runCoreApp(__dirname + '/SampleApp/bin/Debug/net6.0/SampleApp.dll');
+var runResult = coreclrHosting.runCoreApp(__dirname + '/SampleApp/bin/Debug/net8.0/SampleApp.dll');
 console.log('RunResult=' + runResult);

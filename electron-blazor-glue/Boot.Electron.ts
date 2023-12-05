@@ -1,20 +1,25 @@
-// Copyright (c) .NET Foundation. All rights reserved.
-// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
 import { DotNet } from './JsInterop/Microsoft.JSInterop';
-import './GlobalExports';
-import { renderBatch, getRendererer, attachRootComponentToElement, attachRootComponentToLogicalElement } from './Rendering/Renderer';
+import { Blazor } from './GlobalExports';
+import { renderBatch, attachRootComponentToElement, attachRootComponentToLogicalElement } from './Rendering/Renderer';
 import { OutOfProcessRenderBatch } from './Rendering/RenderBatch/OutOfProcessRenderBatch';
 import { WebAssemblyComponentAttacher } from './Platform/WebAssemblyComponentAttacher';
-import { discoverComponents, discoverPersistedState, WebAssemblyComponentDescriptor } from './Services/ComponentDescriptorDiscovery';
-//import { setEventDispatcher } from './Rendering/RendererEventDispatcher';
+import { discoverComponents, WebAssemblyComponentDescriptor } from './Services/ComponentDescriptorDiscovery';
+import { fetchAndInvokeInitializers } from './JSInitializers/JSInitializers.Electron';
+import { InitialRootComponentsList } from './Services/InitialRootComponentsList';
+import { JSEventRegistry } from './Services/JSEventRegistry';
 
 import coreclrhosting = require('coreclr-hosting');
 
 let started = false;
-export async function runBlazorApp(assemblyPath: string, ...args: string[]): Promise<void> {
 
+export let dispatcher: DotNet.ICallDispatcher;
+window['DotNet'] = DotNet;
+
+export async function runBlazorApp(assemblyPath: string, ...args: string[]): Promise<void> {
   if (started) {
     throw new Error('Blazor has already started.');
   }
@@ -22,15 +27,13 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
 
   window['electron'] = require('electron');
 
-  // DM 07.09.2020: Server side blazor uses JSON.parse while WASM uses some Mono internal function. So reviving is probably broken.
-  //                We need this as the dotnet/jsinterop does not parse the result json directly.
-  DotNet.jsCallDispatcher['endInvokeDotNetFromJSWithJson'] = function (asyncCallId: string, success: boolean, resultOrExceptionMessage: any): void {
-    DotNet.jsCallDispatcher.endInvokeDotNetFromJS(asyncCallId, success, success ? JSON.parse(resultOrExceptionMessage) : resultOrExceptionMessage);
-  }
+  //const jsInitializer = await fetchAndInvokeInitializers();
 
+  JSEventRegistry.create(Blazor);
+  const webAssemblyComponents = discoverComponents(document, 'webassembly') as WebAssemblyComponentDescriptor[];
+  const components = new InitialRootComponentsList(webAssemblyComponents);
 
-  const discoveredComponents = discoverComponents(document, 'webassembly') as WebAssemblyComponentDescriptor[];
-  const componentAttacher = new WebAssemblyComponentAttacher(discoveredComponents);
+  const componentAttacher = new WebAssemblyComponentAttacher(components);
   window['Blazor']._internal.attachRootComponentToElement = (selector, componentId, rendererId) => {
     const element = componentAttacher.resolveRegisteredElement(selector);
     if (!element) {
@@ -68,7 +71,7 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
   const getLocationHref = window['Blazor']._internal.navigationManager.getLocationHref;
   window['Blazor']._internal.navigationManager.getUnmarshalledBaseURI = () => BINDING.js_string_to_mono_string(getBaseUri());
   window['Blazor']._internal.navigationManager.getUnmarshalledLocationHref = () => BINDING.js_string_to_mono_string(getLocationHref());*/
-
+/*
   window['Blazor']._internal.navigationManager.listenForNavigationEvents(async (uri: string, intercepted: boolean): Promise<void> => {
     await DotNet.invokeMethodAsync(
       'Microsoft.AspNetCore.Components.WebAssembly',
@@ -76,7 +79,7 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
       uri,
       intercepted
     );
-  });
+  });*/
 
   /*
   // Get the custom environment setting if defined
@@ -112,6 +115,9 @@ export async function runBlazorApp(assemblyPath: string, ...args: string[]): Pro
     WebAssemblyResourceLoader.initAsync(bootConfigResult.bootConfig, options || {}),
     WebAssemblyConfigLoader.initAsync(bootConfigResult)]);
 */
+
+  
+  //await jsInitializer.invokeAfterStartedCallbacks(Blazor);
 
   // DM 21.08.2019: Start the blazor app
   return await coreclrhosting.runCoreApp(assemblyPath, ...args);

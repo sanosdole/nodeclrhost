@@ -25,6 +25,7 @@ namespace ElectronHostedBlazor.Hosting
     using Microsoft.Extensions.Hosting;
 
 
+
     /// <summary>
     /// A builder for configuring and creating a <see cref="ElectronHost"/>.
     /// </summary>
@@ -265,9 +266,10 @@ namespace ElectronHostedBlazor.Hosting
             Services.AddSingleton<IBridgeToNode>(node);
             Runtime = new ElectronJSRuntime(node);
             Services.AddSingleton<IJSRuntime>(Runtime);            
-            Services.AddSingleton<NavigationManager, ElectronNavigationManager>(/*ElectronNavigationManager.Instance*/);
+            Services.AddSingleton<IScrollToLocationHash, ElectronScrollToLocationHash>();
+            Services.AddSingleton<NavigationManager, ElectronNavigationManager>();
             Services.AddSingleton<INavigationInterception, ElectronNavigationInterception>();
-            //Services.AddSingleton<INavigationInterception>(ElectronNavigationInterception.Instance);
+            
 
             //Services.AddSingleton(new LazyAssemblyLoader(DefaultElectronJSRuntime.Instance));
             Services.AddSingleton<ComponentStatePersistenceManager>();

@@ -20,10 +20,6 @@
             {
                 switch (Type)
                 {
-                    case JsType.Null:
-                        releaseHandle = false;
-                        result = null;
-                        return true;
                     case JsType.Object:
                     case JsType.Function:
                         releaseHandle = false;
@@ -66,10 +62,12 @@
                         // This is not for error objects. This is whenever js code threw an exception!
                         throw new InvalidOperationException(host.StringFromNativeUtf8(Value));
 
+                    case JsType.Null:
                     case JsType.Undefined:
                         releaseHandle = false;
                         result = null;
-                        return false;
+                        // DM: 29.11.2023: Undefined/Null can be mapped to null for nullable types only.
+                        return !targetType.IsValueType || (Nullable.GetUnderlyingType(targetType) != null);
                     default:
                         throw new InvalidOperationException($"Unsupported JsType '{Type}'");
                 }

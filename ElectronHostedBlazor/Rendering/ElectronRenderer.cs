@@ -32,10 +32,9 @@ namespace ElectronHostedBlazor.Rendering
             : base(serviceProvider, loggerFactory, /*DefaultElectronJSRuntime.Instance*/jSRuntime.ReadJsonSerializerOptions(), jsComponentInterop)
         {
             // The Electron renderer registers and unregisters itself with the static registry
-            RendererId = /*RendererRegistry.Add(this)*/0;
             _logger = loggerFactory.CreateLogger<ElectronRenderer>();
 
-            ElementReferenceContext = /*DefaultElectronJSRuntime.Instance*/jSRuntime.ElementReferenceContext;
+            ElementReferenceContext = jSRuntime.ElementReferenceContext;
 
             _node = node;
 
