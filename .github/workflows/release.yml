@@ -57,6 +57,11 @@ jobs:
           prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 28.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 29.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 30.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 31.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 32.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           npm run build-testapp
           npm run mocha
           cd ..
@@ -126,7 +131,12 @@ jobs:
           prebuild -t 24.6.1 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"    
+          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 28.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 29.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 30.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 31.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 32.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"    
           npm run build-testapp
           npm run mocha
           cd ..
@@ -232,6 +242,11 @@ jobs:
           prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 28.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 29.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 30.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 31.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 32.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           npm run build-testapp
           npm run mocha
           cd ..

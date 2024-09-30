@@ -27,12 +27,12 @@
     "coreclr-hosting": "file:../coreclr-hosting"
   },
   "devDependencies": {
-    "@types/node": "^20.10.1",
-    "electron": "^27.1.2",
+    "@types/node": "^22.7.4",
+    "electron": "^32.1.2",
     "node-loader": "^2.0.0",
     "ts-loader": "^9.5.1",
-    "typescript": "^5.3.2",
-    "webpack": "^5.89.0",
+    "typescript": "^5.6.2",
+    "webpack": "^5.95.0",
     "webpack-cli": "^5.1.4"
   },
   "keywords": [
