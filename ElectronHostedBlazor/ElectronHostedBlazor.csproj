@@ -3,14 +3,14 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
 
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <PropertyGroup>
         <PackageId>ElectronHostedBlazor</PackageId>
-        <Version Condition="!$(GITHUB_REF.Contains('tags/v'))">8.0.0-alpha</Version>
+        <Version Condition="!$(GITHUB_REF.Contains('tags/v'))">10.0.0-alpha</Version>
         <Version Condition="$(GITHUB_REF.Contains('tags/v'))">$(GITHUB_REF.Substring(11))</Version>
         <Authors>sanosdole2</Authors>
         <Company>nodeclrhost</Company>

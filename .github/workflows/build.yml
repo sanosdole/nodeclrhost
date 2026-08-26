@@ -28,16 +28,14 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '22'
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version:  | 
-            3.1.x
-            5.0.x
-            6.0.x
             8.0.x
+            10.0.x
 
       - name: Show node version
         run: node --version
@@ -52,21 +50,13 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
-          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.14.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 21.0.0 --include-regex "\.(node|a|dll|so|dylib)$"          
-          prebuild -t 24.6.1 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 28.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 29.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 30.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 31.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 32.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
+          prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 26.0.0 --include-regex "\.(node|a|dll|so|dylib)$"          
+          prebuild -t 40.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 42.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 44.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           npm run build-testapp
           npm run mocha
           cd ..
@@ -97,16 +87,14 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 22.x
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version:  | 
-            3.1.x
-            5.0.x
-            6.0.x
             8.0.x
+            10.0.x
 
       - name: Show node version
         run: node --version
@@ -121,13 +109,13 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.14.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 24.6.1 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 26.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 40.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 42.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 44.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           npm run build-testapp
           npm run mocha
           cd ..
@@ -158,16 +146,14 @@ jobs:
       - name: Setup Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 22.x
           
       - name: Setup dotnet
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version:  | 
-            3.1.x
-            5.0.x
-            6.0.x
             8.0.x
+            10.0.x
 
       - name: Show node version
         run: node --version
@@ -182,13 +168,13 @@ jobs:
         run: |
           cd coreclr-hosting
           npm ci --build-from-source
-          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.14.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 24.6.1 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 26.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 40.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 42.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 44.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           npm run build-testapp
           npm run mocha
           cd ..

@@ -387,7 +387,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
 
   auto runtime_config = assembly_path;
 #ifdef WINDOWS
-  auto dll_index = runtime_config.find_last_of(u8".dll");
+  auto dll_index = runtime_config.find_last_of(".dll");
 #else
   auto dll_index = runtime_config.find_last_of(".dll");
 #endif
@@ -395,7 +395,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
     return DotNetHostCreationResult::kAssemblyNotFound;
 #ifdef WINDOWS
   runtime_config =
-      runtime_config.substr(0, dll_index - 3) + u8".runtimeconfig.json";
+      runtime_config.substr(0, dll_index - 3) + ".runtimeconfig.json";
 #else
   runtime_config =
       runtime_config.substr(0, dll_index - 3) + ".runtimeconfig.json";
@@ -600,7 +600,7 @@ DotNetHostCreationResult::Enum DotNetHost::Create(
   prop_buffer);*/
 #ifdef WINDOWS
   auto app_context_deps_file =
-      runtime_config.substr(0, dll_index - 3) + u8".deps.json";
+      runtime_config.substr(0, dll_index - 3) + ".deps.json";
 #else
   auto app_context_deps_file =
       runtime_config.substr(0, dll_index - 3) + ".deps.json";

@@ -10,7 +10,7 @@
   },
   "homepage": "https://github.com/sanosdole/nodeclrhost",
   "engines": {
-    "node": ">=12.17"
+    "node": ">=20"
   },
   "keywords": [
     "dotnet"
@@ -34,17 +34,18 @@
     "mocha": "mocha -s 0",
     "prepare": "npm run build",
     "install": "prebuild-install || npm run rebuild",
-    "prebuild-node": "node node_modules/prebuild/bin.js -t 12.16.3 --include-regex \"\\.(node|a|dll|so|dylib)$\"",
-    "prebuild-electron": "prebuild -t 32.0.0 -r electron --include-regex \"\\.(node|a|dll|so|dylib)$\""
+    "prebuild-node": "node node_modules/prebuild/bin.js -t 22.0.0 --include-regex \"\\.(node|a|dll|so|dylib)$\"",
+    "prebuild-electron": "prebuild -t 44.0.0 -r electron --include-regex \"\\.(node|a|dll|so|dylib)$\""
   },
   "author": "Daniel Martin",
   "license": "MIT",
   "devDependencies": {
     "benchmark": "^2.1.4",
     "benchr": "^4.3.0",
-    "mocha": "^10.2.0",
-    "node-addon-api": "^8.1.0",
-    "node-gyp": "^10.2.0",
+    "mocha": "^11.8.0",
+    "node-abi": "^3.95.0",
+    "node-addon-api": "^8.9.2",
+    "node-gyp": "^13.0.2",
     "prebuild": "^13.0.1"
   },
   "dependencies": {
