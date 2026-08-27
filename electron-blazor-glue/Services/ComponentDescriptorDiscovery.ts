@@ -2,6 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
+// Licensed to the .NET Foundation under one or more agreements.
+// The .NET Foundation licenses this file to you under the MIT license.
+// Modified by Daniel Martin for nodeclrhost
+
+// Metadata comments are consumed during discovery and should not be part of the logical tree.
+// They include: WebAssembly options, component state, and web initializers.
+export function isMetadataComment(node: Node): boolean {
+  if (node.nodeType !== Node.COMMENT_NODE) {
+    return false;
+  }
+  const content = node.textContent || '';
+  return content.trim().startsWith('Blazor-Server-Component-State:') ||
+         content.trim().startsWith('Blazor-WebAssembly-Component-State:') ||
+         content.trim().startsWith('Blazor-Web-Initializers:') ||
+         content.trim().startsWith('Blazor-WebAssembly:');
+}
+
 export function discoverComponents(root: Node, type: 'webassembly' | 'server' | 'auto'): ComponentDescriptor[] {
   switch (type) {
     case 'webassembly':
@@ -16,6 +33,16 @@ export function discoverComponents(root: Node, type: 'webassembly' | 'server' | 
 const blazorServerStateCommentRegularExpression = /^\s*Blazor-Server-Component-State:(?<state>[a-zA-Z0-9+/=]+)$/;
 const blazorWebAssemblyStateCommentRegularExpression = /^\s*Blazor-WebAssembly-Component-State:(?<state>[a-zA-Z0-9+/=]+)$/;
 const blazorWebInitializerCommentRegularExpression = /^\s*Blazor-Web-Initializers:(?<initializers>[a-zA-Z0-9+/=]+)$/;
+const blazorWebAssemblyOptionsCommentRegularExpression = /^\s*Blazor-WebAssembly:[^{]*(?<options>.*)$/;
+
+export function discoverWebAssemblyOptions(root: Node): WebAssemblyServerOptions | undefined {
+  const optionsJson = discoverBlazorComment(root, blazorWebAssemblyOptionsCommentRegularExpression, 'options');
+  if (!optionsJson) {
+    return undefined;
+  }
+  const options = JSON.parse(optionsJson);
+  return options;
+}
 
 export function discoverServerPersistedState(node: Node): string | null | undefined {
   return discoverBlazorComment(node, blazorServerStateCommentRegularExpression);
@@ -339,6 +366,11 @@ export type ComponentMarker = ServerComponentMarker | WebAssemblyComponentMarker
 export type ServerComponentDescriptor = ServerComponentMarker & DescriptorData;
 export type WebAssemblyComponentDescriptor = WebAssemblyComponentMarker & DescriptorData;
 export type AutoComponentDescriptor = AutoComponentMarker & DescriptorData;
+
+export type WebAssemblyServerOptions = {
+  environmentName: string,
+  environmentVariables: { [i: string]: string; }
+};
 
 type DescriptorData = {
   uniqueId: number;

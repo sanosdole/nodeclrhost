@@ -174,16 +174,100 @@ N-API/ABI-stable, a Node-built binary loads fine under Electron.
 
 ---
 
-## 5. Docs & version consistency
+## 5. Blazor migration (electron-blazor-glue + ElectronHostedBlazor)
+
+Blazor is *not* a blind copy — the electron hosting differs from official
+Blazor (it bridges via `coreclr-hosting`/`NodeHostEnvironment` instead of
+WebSockets/WASM). The approach: take the **official v10.0.11 code**, see what
+changed, and **adapt** it to the electron-specific files — while never breaking
+hosting or rebuilding it completely.
+
+Reference checkouts (sparse-clonned the aspnetcore repo at tag `v10.0.11`):
+
+- `electron-blazor-glue` ⇄ `aspnetcore/src/Components/Web.JS/src`
+- `ElectronHostedBlazor` ⇄ `aspnetcore/src/Components/WebAssembly/WebAssembly/src`
+  (mainly) + `Components/Server/src`; re-implements some `Components/Components/src`
+  internals.
+
+### Key adaptations for the electron bridge
+
+- The glue uses a **local** `JsInterop/Microsoft.JSInterop.ts` (electron
+  bridge), *not* `@microsoft/dotnet-js-interop`. Keep local imports.
+- `Boot.Electron.ts` / `JsInterop/Microsoft.JSInterop.ts` are electron-only
+  (no upstream counterpart) — never overwrite them.
+- `WebRootComponentManager` deliberately omits the WebAssembly/Server platform
+  bootstrap imports (`Boot.Server.Common`, `Boot.WebAssembly.Common`) because
+  electron hosts via `coreclr-hosting`. Keep those commented out; only add the
+  interface members they need (e.g. `setWebAssemblyOptions` to satisfy
+  `DescriptorHandler`).
+
+### v8 → v10 changes applied (bug fixes + features)
+
+- `StreamingInterop.ts` — `ReadableStreamDefaultController<Uint8Array>` +
+  `byteOffset` chunk fix (streaming bug fix).
+- `DomWrapper.ts` — dropped `preventScroll` param from `focusBySelector`.
+- `AttributeSync.ts` — sync `integrity` on `HTMLLinkElement`/`HTMLScriptElement`
+  (SRI bug fix).
+- `DomSync.ts` — checkbox/radio value sync; `setWebAssemblyOptions`;
+  comment typo.
+- `EventTypes.ts` — `isComposing` on `KeyboardEventArgs`.
+- `EventDelegator.ts` — `removeListenersForElement`, `decrementCountByEventName`,
+  `addActiveGlobalListener` (passive:false for wheel/touch preventDefault),
+  `isRendererAttached` guard, `enumerateHandlers`.
+- `Virtualize.ts` — `isConnected` guards + always dispose (`dotNetHelper`)
+  to avoid disposed-component errors.
+- `BrowserRenderer.ts` — `appendContent` logical child container,
+  `detachEventHandlersFromElement`,
+  export `markAsInteractiveRootComponentElement` + `setClearContentOnRootComponentRerender`.
+- `LogicalElements.ts` — skip metadata comments; `comment`-based insertion;
+  `depthFirstNodeTreeTraversal`.
+- `ComponentDescriptorDiscovery.ts` — `isMetadataComment`,
+  `discoverWebAssemblyOptions`, `WebAssemblyServerOptions` type.
+- `JSEventRegistry.ts` — `enhancednavigationstart/end` events.
+- `NavigationUtils/Manager/Enhancement` — `isSamePageWithHash`, `isForSamePath`,
+  `resetScroll*`, scroll-to-hash handling, `Element` (not `HTMLElement`),
+  `notifyEnhancedNavigationListeners` rename.
+- `JSInitializers.ts` — `new URL(...)` relative-path resolution.
+- `StreamingRendering.ts` — `not-found`/`redirection` (larger; tied to
+  `performEnhancedPageLoad` signature) — verify before applying.
+
+### Not applied (deliberately)
+
+- WebAssembly platform bootstrap / circuit imports — electron does not use them.
+- `FileInput`/WASM-specific paths — electron uses the node bridge.
+
+### Verify after migrating
+
+```bash
+cd electron-blazor-glue && npm run build-js-glue:release   # must compile
+cd ../examples/electron-blazor && npm run build && electron .   # must boot + render
+```
+
+Note: `webpack` production-minifies the bundle (method names are mangled), so an
+application-only tests in
+`examples/electron-blazor` are the real confirmation.
+
+The renderer may crash intermittently in a headless/`ClrDumps` environment —
+running a few times confirms it boots reliably; an occasional "Renderer gone:
+crashed" is pre-existing environment flakiness, not a code regression.
+
+```text
+[x] Blazor glue (electron-blazor-glue) diff ported to v10 (hosting preserved)
+[ ] ElectronHostedBlazor full re-diff/port (more involved; WebAssembly+Server+Components)
+```
+
+---
+
+## 6. Docs & version consistency
 
 - Bump the `Version`/alpha lines in both packages and keep the asset version
   in `README.md` in sync once a release is cut.
 - Keep `.github/workflows/*.yml` in lock-step: the `prebuild -t` targets, the
   `dotnet` runtimes and the `node` runtimes must all match what was verified
   locally.
-- Only after hosting is green, take on the **Blazor rendering**/DOM diffing
-  future step (see the `electron-blazor-glue` + `ElectronHostedBlazor`
-  section) — those are tracked separately to keep this change focused.
+- The glue (`electron-blazor-glue`) is now ported to v10 (see section 5). Full
+  re-diff/port of the C# `ElectronHostedBlazor` re-implementation is a
+  follow-up (more involved; draws from WebAssembly + Server + Components).
 
 ```text
 Approximate checklist summary:
@@ -193,5 +277,6 @@ Approximate checklist summary:
 [x] regenerated Electron-44 (ABI v149) prebuild
 [x] coreclr-hosting + Node-HostEnvironment tests pass (40)
 [x] sample & electron-sample run
-[ ] Blazor diff (future step)
+[x] electron-blazor-glue diff ported to v10 (hosting preserved)
+[ ] ElectronHostedBlazor full re-diff/port (more involved)
 ```

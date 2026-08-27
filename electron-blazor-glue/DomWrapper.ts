@@ -6,7 +6,7 @@ import './JsInterop/Microsoft.JSInterop';
 
 export const domFunctions = {
   focus,
-  focusBySelector
+  focusBySelector,
 };
 
 function focus(element: HTMLOrSVGElement, preventScroll: boolean): void {
@@ -23,7 +23,7 @@ function focus(element: HTMLOrSVGElement, preventScroll: boolean): void {
   }
 }
 
-function focusBySelector(selector: string, preventScroll: boolean): void {
+function focusBySelector(selector: string) {
   const element = document.querySelector(selector) as HTMLElement;
   if (element) {
     // If no explicit tabindex is defined, mark it as programmatically-focusable.

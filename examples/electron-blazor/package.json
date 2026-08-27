@@ -13,7 +13,9 @@
     "build": "npm run build-service && npm run build-blazorapp",
     "start": "npm run build && electron .",
     "electron": "electron .",
-    "electron-rebuild-debug": "electron-rebuild --debug"
+    "electron-rebuild-debug": "electron-rebuild --debug",
+    "e2e-client-issues": "electron e2e-client-issues.js",
+    "e2e-virtualize": "electron e2e-virtualize.js"
   },
   "author": "Daniel Martin",
   "license": "MIT",

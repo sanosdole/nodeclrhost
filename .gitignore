@@ -76,3 +76,5 @@ examples/electron-blazor/ClrDumps
 _Resharper.Caches
 .vs
 examples/electron-blazor/LocalService/LocalService.csproj.user
+examples/CrashDumps/metadata
+examples/CrashDumps/settings.dat
