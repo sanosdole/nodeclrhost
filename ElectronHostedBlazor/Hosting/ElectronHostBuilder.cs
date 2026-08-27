@@ -274,7 +274,9 @@ namespace ElectronHostedBlazor.Hosting
             //Services.AddSingleton(new LazyAssemblyLoader(DefaultElectronJSRuntime.Instance));
             Services.AddSingleton<ComponentStatePersistenceManager>();
             Services.AddSingleton<PersistentComponentState>(sp => sp.GetRequiredService<ComponentStatePersistenceManager>().State);
+            Services.AddSupplyValueFromPersistentComponentStateProvider();
             Services.AddSingleton<IErrorBoundaryLogger, ElectronErrorBoundaryLogger>();
+            Services.AddSupplyValueFromQueryProvider();
             Services.AddLogging(builder => builder.AddElectronConsole());
         }
     }

@@ -236,6 +236,38 @@ Reference checkouts (sparse-clonned the aspnetcore repo at tag `v10.0.11`):
 - WebAssembly platform bootstrap / circuit imports — electron does not use them.
 - `FileInput`/WASM-specific paths — electron uses the node bridge.
 
+### C# adaptations (ElectronHostedBlazor) for Net10
+
+`ElectronHostedBlazor` is an adapted `WebAssembly` host. Comparing it to
+`aspnetcore/src/Components/WebAssembly/WebAssembly/src` (plus the shared
+`Components` internal bits) surfaced the following **required** Net 10
+adaptations. The rendering mechanism differs (electron pushes render batches
+via `coreclr-hosting`), so the render pipeline needs more extrapolation, but the
+interop/service code maps almost 1:1.
+
+- **`Services/ElectronNavigationManager.cs`** — implementing
+  `SetNavigationLockState(bool)`. In .NET 10 the base `NavigationManager`
+  gained this hook to support the `NavigationLock` component; the default
+  throws `NotSupportedException`, so without the override `NavigationLock`
+  breaks. Mirror `WebAssemblyNavigationManager` by forwarding to
+  `setHasLocationChangingListeners(rendererId, value)`. Keep the renderer id
+  consistent with the registered nav listener (`listenForNavigationEvents(0,…)`).
+- **`Hosting/ElectronHostBuilder.cs`** — register the .NET 10 client-side
+  value suppliers, mirroring the `WebAssemblyHostBuilder.InitializeDefaultServices`:
+  - `AddSupplyValueFromPersistentComponentStateProvider()` — supports
+    `[SupplyParameterFromPersistentComponentState]`.
+  - `AddSupplyValueFromQueryProvider()` — supports `[SupplyParameterFromQuery]`.
+
+### Not applied (deliberately)
+
+- **`AntiforgeryStateProvider`** / `ResourceCollectionProvider` — these are
+  geared toward WebAssembly SSR/antiforgery and resource loading; electron hosts
+  via `coreclr-hosting` and uses its own loader. Only add if a concrete
+  component needs them.
+- **`WebRenderer.GetWebRendererId()`** override — electron historically relies on
+  the base default and rendering works; do not change without a concrete
+  consumer.
+
 ### Verify after migrating
 
 ```bash
