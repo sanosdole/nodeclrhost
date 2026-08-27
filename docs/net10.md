@@ -107,11 +107,39 @@ Native binaries are compiled per Node.js/Electron ABI and shipped as
   but CI still emits one per target for safety.
 - ABI mapping (`node -e "require('node-abi').getAbi(ver, 'node')"`):
   Node `20→v115, 22→v127, 24→v137, 26→v147`;
-  Electron `40→v143, 42→v146, 44→v149`.
+  Electron `24.6.1→v114, 28→v119, 32→v128, 36→v135, 40→v143, 42→v146, 44→v149`.
+
+### Release-artifact isolation (do not break previous releases/prebuilds)
+
+This is a hard requirement: there are downstream builds pinned to *older*
+releases of this project. Each released version must keep working forever.
+The migration must not (and does not) violate this. How it is guaranteed:
+
+1. **Prebuilds are version-keyed and immutable.** Released assets are named
+   `coreclr-hosting-<npm-version>-<runtime>-v<abi>-<platform>-<arch>.tar.gz`,
+   where `<npm-version>` is taken from the release tag via
+   `npm version "${GITHUB_REF:11}"` (e.g. `v8.0.1` → `...-v8.0.1-electron-v128-...`).
+   A `v10.0.x` release therefore produces assets named `...-v10.0.x-...`,
+   entirely separate from the `v8.0.1`/`v6.0.4` assets — no collision.
+2. **`prebuild-install` is pinned by version.** A consumer installing
+   `coreclr-hosting@8.0.1` resolves the GitHub release tagged exactly `v8.0.1`
+   and downloads *that* version's prebuilds. It never consults the newest
+   workflow. Old releases stay usable.
+3. **Uploads are release-scoped.** `upload-to-github-release` with `tags: true`
+   attaches prebuilds only to the current release tag; old tags are untouched.
+4. **`prebuilds/` is gitignored** — artifacts are always generated per release,
+   never shared between versions.
+5. **Keep the CI prebuild matrix ADDITIVE.** When bumping versions, keep every
+   previously-shipped ABI target and *add* the new ones. The matrix must be a
+   strict superset of what older releases shipped. Current matrix (all three
+   platforms): Node `14.16,16.13,18.14,19,20,21,22,24,26` and
+   Electron `24.6,25,26,27,28,29,30,31,32,36,40,42,44`. Do *not* delete
+   historical prebuild lines when adding newer ones — they serve downstream
+   builds still running older Node/Electron ABIs.
 - `.github/workflows/build.yml` and `release.yml` list the exact
-  `prebuild -t <ver> [-r electron]` invocations. Update these to the new
-  Node/Electron targets. Release CI also bumps the `setup-dotnet` runtimes
-  (`8.0.x;10.0.x`) and uploads all `prebuilds/*`.
+  `prebuild -t <ver> [-r electron]` invocations. Update only by adding new
+  targets. Release CI also bumps the `setup-dotnet` runtimes (`8.0.x;10.0.x`)
+  and uploads all `prebuilds/*`.
 
 ### Pitfall 1 (local): node-gyp vs newer Visual Studio
 `prebuild@13` and `@electron/rebuild@3` bundle an older node-gyp that does not
