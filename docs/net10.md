@@ -285,7 +285,8 @@ crashed" is pre-existing environment flakiness, not a code regression.
 
 ```text
 [x] Blazor glue (electron-blazor-glue) diff ported to v10 (hosting preserved)
-[ ] ElectronHostedBlazor full re-diff/port (more involved; WebAssembly+Server+Components)
+[x] ElectronHostedBlazor adapted to NET10 (navigation locks, value suppliers)
+[~] ElectronHostedBlazor exhaustive re-diff/port (WebAssembly+Server+Components) — optional, if a specific feature is needed
 ```
 
 ---
@@ -297,9 +298,11 @@ crashed" is pre-existing environment flakiness, not a code regression.
 - Keep `.github/workflows/*.yml` in lock-step: the `prebuild -t` targets, the
   `dotnet` runtimes and the `node` runtimes must all match what was verified
   locally.
-- The glue (`electron-blazor-glue`) is now ported to v10 (see section 5). Full
-  re-diff/port of the C# `ElectronHostedBlazor` re-implementation is a
-  follow-up (more involved; draws from WebAssembly + Server + Components).
+- The glue (`electron-blazor-glue`) is now ported to v10 (see section 5). The
+  C# `ElectronHostedBlazor` re-implementation has been adapted for the key
+  NET10 features (navigation locks, `[SupplyParameterFromQuery]` / persistent
+  state). A further exhaustive re-diff is optional and only needed if a
+  specific feature not yet used by the electron examples is required.
 
 ```text
 Approximate checklist summary:
@@ -310,5 +313,5 @@ Approximate checklist summary:
 [x] coreclr-hosting + Node-HostEnvironment tests pass (40)
 [x] sample & electron-sample run
 [x] electron-blazor-glue diff ported to v10 (hosting preserved)
-[ ] ElectronHostedBlazor full re-diff/port (more involved)
+[x] ElectronHostedBlazor adapted to NET10 (navigation locks, value suppliers)
 ```
