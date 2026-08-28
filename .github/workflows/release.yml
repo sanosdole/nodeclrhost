@@ -78,9 +78,12 @@ jobs:
   
   build-linux:
     environment: deploy
-    # Required for npm Trusted Publishing (OIDC) via npm publish --provenance.
+    # Requires BOTH:
+    # - contents: write  -> upload prebuilds + NuGet artifacts to the GitHub release
+    #                      (xresloader/upload-to-github-release uses GITHUB_TOKEN)
+    # - id-token: write  -> npm Trusted Publishing (OIDC) via npm publish --provenance
     permissions:
-      contents: read
+      contents: write
       id-token: write   # Required: allows GitHub Actions to mint an OIDC token
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
