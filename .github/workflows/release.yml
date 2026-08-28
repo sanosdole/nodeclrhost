@@ -8,7 +8,7 @@ on:
     types: [published]
 
 permissions:
-  contents: write    # upload prebuilds/NuGet artifacts to the GitHub release
+  contents: read
   id-token: write    # Required for OIDC (npm Trusted Publishing)
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -108,6 +108,9 @@ jobs:
         
       - name: Show dotnet version
         run: dotnet --version
+
+      - name: Update npm to latest
+        run: npm i -g npm@latest
         
       - name: Install prebuild
         run: npm i -g prebuild

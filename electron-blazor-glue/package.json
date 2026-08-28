@@ -6,7 +6,7 @@
   "types": "dist/Boot.Electron.d.ts",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sanosdole/nodeclrhost.git"
+    "url": "git+https://github.com/sanosdole/nodeclrhost.git"
   },
   "homepage": "https://github.com/sanosdole/nodeclrhost",
   "engines": {
