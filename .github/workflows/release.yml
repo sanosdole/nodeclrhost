@@ -6,7 +6,11 @@ name: Release
 on:
   release:
     types: [published]
-  
+
+permissions:
+  contents: write    # upload prebuilds/NuGet artifacts to the GitHub release
+  id-token: write    # Required for OIDC (npm Trusted Publishing)
+
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
@@ -78,13 +82,7 @@ jobs:
   
   build-linux:
     environment: deploy
-    # Requires BOTH:
-    # - contents: write  -> upload prebuilds + NuGet artifacts to the GitHub release
-    #                      (xresloader/upload-to-github-release uses GITHUB_TOKEN)
-    # - id-token: write  -> npm Trusted Publishing (OIDC) via npm publish --provenance
-    permissions:
-      contents: write
-      id-token: write   # Required: allows GitHub Actions to mint an OIDC token
+    # Permissions are declared at workflow level (contents: write + id-token: write).
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     
@@ -149,12 +147,12 @@ jobs:
           cd coreclr-hosting
           echo "Publishing coreclr-hosting for tag ""${GITHUB_REF:11}"
           npm version "${GITHUB_REF:11}" --allow-same-version
-          npm publish --access public --ignore-scripts --provenance
+          npm publish --access public --ignore-scripts
           cd ../electron-blazor-glue
           echo "Publishing electron-blazor-glue for tag ${GITHUB_REF:11}"
           sed -i 's!"coreclr-hosting": "file:../coreclr-hosting"!"coreclr-hosting": "'"${GITHUB_REF:11}"'"!g' package.json
           npm version "${GITHUB_REF:11}" --allow-same-version
-          npm publish --access public --ignore-scripts --provenance
+          npm publish --access public --ignore-scripts
 
       - name: build nuget packages
         run: |
