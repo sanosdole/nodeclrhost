@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
-import { ComponentDescriptor } from '../Services/ComponentDescriptorDiscovery';
+import { ComponentDescriptor, isMetadataComment } from '../Services/ComponentDescriptorDiscovery';
 
 /*
   A LogicalElement plays the same role as an Element instance from the point of view of the
@@ -110,6 +110,12 @@ export function toLogicalElement(element: Node, allowExistingContents?: boolean)
     }
 
     element.childNodes.forEach(child => {
+      // Skip metadata comments that will be consumed during discovery
+      // These are not components and should not be part of the logical tree
+      if (isMetadataComment(child)) {
+        return;
+      }
+
       const childLogicalElement = toLogicalElement(child, /* allowExistingContents */ true);
       childLogicalElement[logicalParentPropname] = element;
       childrenArray.push(childLogicalElement);
@@ -150,12 +156,13 @@ export function insertLogicalChildBefore(child: Node, parent: LogicalElement, be
 export function insertLogicalChild(child: Node, parent: LogicalElement, childIndex: number): void {
   const childAsLogicalElement = child as unknown as LogicalElement;
 
-  // If the child is a component comment with logical siblings, its siblings also
+  // If the child is a component comment with logical children, its children
   // need to be inserted into the parent node
   let nodeToInsert = child;
-  if (isLogicalElement(child)) {
-    const lastNodeToInsert = findLastDomNodeInRange(childAsLogicalElement);
-    if (lastNodeToInsert !== child) {
+  if (child instanceof Comment) {
+    const existingGranchildren = getLogicalChildrenArray(childAsLogicalElement);
+    if (existingGranchildren?.length > 0) {
+      const lastNodeToInsert = findLastDomNodeInRange(childAsLogicalElement);
       const range = new Range();
       range.setStartBefore(child);
       range.setEndAfter(lastNodeToInsert);
@@ -366,6 +373,16 @@ function findLastDomNodeInRange(element: LogicalElement): Node {
       ? logicalParent.lastChild!
       : findLastDomNodeInRange(logicalParent);
   }
+}
+
+// This function returns all the descendants of the logical element before yielding the element
+// itself.
+export function *depthFirstNodeTreeTraversal(element: LogicalElement): Iterable<LogicalElement> {
+  const children = getLogicalChildrenArray(element);
+  for (const child of children) {
+    yield* depthFirstNodeTreeTraversal(child);
+  }
+  yield element;
 }
 
 // Nominal type to represent a logical element without needing to allocate any object for instances

@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
+import { resetScrollAfterNextBatch, resetScrollIfNeeded } from '../Rendering/Renderer';
 import { synchronizeDomContent } from '../Rendering/DomMerging/DomSync';
-import { attachProgrammaticEnhancedNavigationHandler, handleClickForNavigationInterception, hasInteractiveRouter, notifyEnhancedNavigationListners } from './NavigationUtils';
+import { attachProgrammaticEnhancedNavigationHandler, handleClickForNavigationInterception, hasInteractiveRouter, isForSamePath, isSamePageWithHash, notifyEnhancedNavigationListeners, performScrollToElementOnTheSamePage } from './NavigationUtils';
 
 /*
 In effect, we have two separate client-side navigation mechanisms:
@@ -68,11 +69,17 @@ export function detachProgressivelyEnhancedNavigationListener() {
   window.removeEventListener('popstate', onPopState);
 }
 
-function performProgrammaticEnhancedNavigation(absoluteInternalHref: string, replace: boolean) {
+function performProgrammaticEnhancedNavigation(absoluteInternalHref: string, replace: boolean) : void {
+  const originalLocation = location.href;
+
   if (replace) {
     history.replaceState(null, /* ignored title */ '', absoluteInternalHref);
   } else {
     history.pushState(null, /* ignored title */ '', absoluteInternalHref);
+  }
+
+  if (!isForSamePath(absoluteInternalHref, originalLocation)) {
+    resetScrollAfterNextBatch();
   }
 
   performEnhancedPageLoad(absoluteInternalHref, /* interceptedLink */ false);
@@ -83,13 +90,26 @@ function onDocumentClick(event: MouseEvent) {
     return;
   }
 
-  if (event.target instanceof HTMLElement && !enhancedNavigationIsEnabledForElement(event.target)) {
+  if (event.target instanceof Element && !enhancedNavigationIsEnabledForElement(event.target)) {
     return;
   }
 
   handleClickForNavigationInterception(event, absoluteInternalHref => {
+    const originalLocation = location.href;
+
+    const shouldScrollToHash = isSamePageWithHash(originalLocation, absoluteInternalHref);
     history.pushState(null, /* ignored title */ '', absoluteInternalHref);
-    performEnhancedPageLoad(absoluteInternalHref, /* interceptedLink */ true);
+
+    if (shouldScrollToHash) {
+      performScrollToElementOnTheSamePage(absoluteInternalHref);
+    } else {
+      let isSelfNavigation = isForSamePath(absoluteInternalHref, originalLocation);
+      performEnhancedPageLoad(absoluteInternalHref, /* interceptedLink */ true);
+      if (!isSelfNavigation) {
+        resetScrollAfterNextBatch();
+        resetScrollIfNeeded();
+      }
+    }
   });
 }
 
@@ -151,7 +171,7 @@ export async function performEnhancedPageLoad(internalDestinationHref: string, i
   currentEnhancedNavigationAbortController?.abort();
 
   // Notify any interactive runtimes that an enhanced navigation is starting
-  notifyEnhancedNavigationListners(internalDestinationHref, interceptedLink);
+  notifyEnhancedNavigationListeners(internalDestinationHref, interceptedLink);
 
   // Now request the new page via fetch, and a special header that tells the server we want it to inject
   // framing boundaries to distinguish the initial document and each subsequent streaming SSR update.
@@ -392,7 +412,7 @@ function splitStream(frameBoundaryMarker: string) {
   });
 }
 
-function enhancedNavigationIsEnabledForElement(element: HTMLElement): boolean {
+function enhancedNavigationIsEnabledForElement(element: Element): boolean {
   // For links, they default to being enhanced, but you can override at any ancestor level (both positively and negatively)
   const closestOverride = element.closest('[data-enhance-nav]');
   if (closestOverride) {

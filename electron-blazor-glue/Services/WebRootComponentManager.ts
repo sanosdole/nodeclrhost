@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
-import { ComponentDescriptor, ComponentMarker, descriptorToMarker } from './ComponentDescriptorDiscovery';
+import { ComponentDescriptor, ComponentMarker, WebAssemblyServerOptions, descriptorToMarker } from './ComponentDescriptorDiscovery';
 import { isRendererAttached, registerRendererAttachedListener } from '../Rendering/WebRendererInteropMethods';
 import { WebRendererId } from '../Rendering/WebRendererId';
 import { DescriptorHandler } from '../Rendering/DomMerging/DomSync';
@@ -65,6 +65,8 @@ export class WebRootComponentManager implements DescriptorHandler, RootComponent
 
   private _circuitInactivityTimeoutId: any;
 
+  private _webAssemblyOptions: WebAssemblyServerOptions | undefined;
+
   // Implements RootComponentManager.
   // An empty array becuase all root components managed
   // by WebRootComponentManager are added and removed dynamically.
@@ -113,6 +115,10 @@ export class WebRootComponentManager implements DescriptorHandler, RootComponent
 
     this._seenDescriptors.add(descriptor);
     this._rootComponentsBySsrComponentId.set(ssrComponentId, { descriptor, ssrComponentId });
+  }
+
+  public setWebAssemblyOptions(webAssemblyOptions: WebAssemblyServerOptions | undefined): void {
+    this._webAssemblyOptions = webAssemblyOptions;
   }
 
   private unregisterComponent(component: RootComponentInfo) {

@@ -1,0 +1,82 @@
+# Verify npm + NuGet credentials without publishing anything.
+#
+# Manually trigger with: Actions -> "Verify registry auth" -> Run workflow.
+# This authenticates to npmjs.org and api.nuget.org using the configured
+# secrets (NPM_TOKEN, NUGET_TOKEN) and reports whether they are valid,
+# WITHOUT publishing any package. Safe to run at any time.
+name: Verify registry auth
+
+on:
+  workflow_dispatch:
+    inputs:
+      scope:
+        description: 'What to check (npm, nuget, all)'
+        required: true
+        default: 'all'
+
+jobs:
+  verify-npm:
+    if: ${{ inputs.scope == 'all' || inputs.scope == 'npm' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Validate npm token
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          # Configure registry auth from the secret without writing it to a file
+          # committed to the repo (it's referenced inline at runtime).
+          npm config set //registry.npmjs.org/:_authToken "${NPM_TOKEN}"
+          npm config set registry https://registry.npmjs.org/
+          npm whoami
+          echo "npm auth OK"
+
+  verify-nuget:
+    if: github.event.inputs.scope == 'all' || github.event.inputs.scope == 'nuget'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Verify NuGet token (non-destructive)
+        env:
+          NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+        run: |
+          # NuGet has no read-only "whoami". The definitive check is a push;
+          # this step stays non-destructive and confirms the secret is set and
+          # the registry is reachable. To do a full auth test, push a throwaway
+          # `*-ci` package and delete it (see step 'Full NuGet auth test' below).
+          if [ -z "${NUGET_TOKEN}" ]; then
+            echo "NUGET_TOKEN secret is not set."
+            exit 1
+          fi
+          echo "NUGET_TOKEN is set (length ${#NUGET_TOKEN})."
+          dotnet nuget list source
+          curl -sS -o /dev/null -w "nuget.org v3 index reachable: HTTP %{http_code}\n" \
+            https://api.nuget.org/v3/index.json
+          echo "Non-destructive NuGet check complete."
+
+      # Definitive NuGet auth test (throwaway package: push then delete).
+      # Uncomment to actually push a package to nuget.org and delete it again,
+      # which is the only way to truly validate the API key end-to-end.
+      # - name: Full NuGet auth test (push + delete)
+      #   env:
+      #     NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
+      #   run: |
+      #     cd NodeHostEnvironment
+      #     dotnet pack -c Release -p:Version=0.0.0-ci -p:PackageVersion=0.0.0-ci -o /tmp/ci
+      #     dotnet nuget push /tmp/ci/NodeHostEnvironment.0.0.0-ci.nupkg \
+      #       -k "${NUGET_TOKEN}" -s https://api.nuget.org/v3/index.json \
+      #       --skip-duplicate
+      #     dotnet nuget delete NodeHostEnvironment 0.0.0-ci \
+      #       -k "${NUGET_TOKEN}" -s https://api.nuget.org/v3/index.json || echo "delete may need web/manual (private packages)"

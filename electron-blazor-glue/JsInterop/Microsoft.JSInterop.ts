@@ -21,44 +21,50 @@ export module DotNet {
   // Provides access to the "current" call dispatcher without having to flow it through nested function calls.
   let currentCallDispatcher : CallDispatcher | undefined;
 
+  /**
+   * Represents the type of operation that should be performed in JS.
+   */
+  export enum JSCallType {
+      FunctionCall = 1,
+      ConstructorCall = 2,
+      GetValue = 3,
+      SetValue = 4
+  }
+
   class JSObject {
-      _cachedFunctions: Map<string, Function>;
+      _cachedHandlers: Map<string, { [k in JSCallType]?: Function }>;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       constructor(private _jsObject: any) {
-          this._cachedFunctions = new Map<string, Function>();
+          this._cachedHandlers = new Map();
       }
 
-      public findFunction(identifier: string) {
-          const cachedFunction = this._cachedFunctions.get(identifier);
+      public resolveInvocationHandler(identifier: string, callType: JSCallType): Function {
+          const cachedFunction = this._cachedHandlers.get(identifier)?.[callType];
 
           if (cachedFunction) {
               return cachedFunction;
           }
 
-          let result: any = this._jsObject;
-          let lastSegmentValue: any;
+          const [parent, memberName] = findObjectMember(this._jsObject, identifier);
+          const func = wrapJSCallAsFunction(parent, memberName, callType, identifier);
+          this.addHandlerToCache(identifier, func, callType);
 
-          identifier.split(".").forEach(segment => {
-              if (segment in result) {
-                  lastSegmentValue = result;
-                  result = result[segment];
-              } else {
-                  throw new Error(`Could not find '${identifier}' ('${segment}' was undefined).`);
-              }
-          });
-
-          if (result instanceof Function) {
-              result = result.bind(lastSegmentValue);
-              this._cachedFunctions.set(identifier, result);
-              return result;
-          }
-
-          throw new Error(`The value '${identifier}' is not a function.`);
+          return func;
       }
 
       public getWrappedObject() {
           return this._jsObject;
+      }
+
+      private addHandlerToCache(identifier: string, func: Function, callType: JSCallType) {
+          const cachedIdentifier = this._cachedHandlers.get(identifier);
+
+          if (cachedIdentifier) {
+            cachedIdentifier[callType] = func;
+          } else {
+            this._cachedHandlers.set(identifier, { [callType]: func });
+          }
       }
   }
 
@@ -67,7 +73,7 @@ export module DotNet {
       [windowJSObjectId]: new JSObject(window)
   };
 
-  cachedJSObjectsById[windowJSObjectId]._cachedFunctions.set("import", (url: any) => {
+  cachedJSObjectsById[windowJSObjectId]._cachedHandlers.set("import", { [JSCallType.FunctionCall]: (url: any) => {
       // In most cases developers will want to resolve dynamic imports relative to the base HREF.
       // However since we're the one calling the import keyword, they would be resolved relative to
       // this framework bundle URL. Fix this by providing an absolute URL.
@@ -76,7 +82,7 @@ export module DotNet {
       }
 
       return import(/* webpackIgnore: true */ url);
-  });
+  }});
 
   let nextJsObjectId = 1; // Start at 1 because zero is reserved for "window"
 
@@ -145,7 +151,13 @@ export module DotNet {
    * @throws Error if the given value is not an Object.
    */
   export function createJSObjectReference(jsObject: any): any {
-      if (jsObject && typeof jsObject === "object") {
+      if (jsObject === null || jsObject === undefined) {
+          return {
+              [jsObjectIdKey]: -1
+          };
+      }
+
+      if (jsObject && (typeof jsObject === "object" || jsObject instanceof Function)) {
           cachedJSObjectsById[nextJsObjectId] = new JSObject(jsObject);
 
           const result = {
@@ -312,7 +324,7 @@ export module DotNet {
      * @param targetInstanceId The instance ID of the target JS object.
      * @returns JSON representation of the invocation result.
      */
-    invokeJSFromDotNet(identifier: string, argsJson: string, resultType: JSCallResultType, targetInstanceId: number): string | null;
+    invokeJSFromDotNet(identifier: string, argsJson: string, resultType: JSCallResultType, targetInstanceId: number, callType: JSCallType): string | null;
 
     /**
      * Invokes the specified synchronous or asynchronous JavaScript function.
@@ -323,7 +335,7 @@ export module DotNet {
      * @param resultType The type of result expected from the JS interop call.
      * @param targetInstanceId The ID of the target JS object instance.
      */
-    beginInvokeJSFromDotNet(asyncHandle: number, identifier: string, argsJson: string | null, resultType: JSCallResultType, targetInstanceId: number): void;
+    beginInvokeJSFromDotNet(asyncHandle: number, identifier: string, argsJson: string | null, resultType: JSCallResultType, targetInstanceId: number, callType: JSCallType): void;
 
     /**
      * Receives notification that an async call from JS to .NET has completed.
@@ -387,9 +399,9 @@ export module DotNet {
           return this._dotNetCallDispatcher;
       }
 
-      invokeJSFromDotNet(identifier: string, argsJson: string, resultType: JSCallResultType, targetInstanceId: number): string | null {
+      invokeJSFromDotNet(identifier: string, argsJson: string, resultType: JSCallResultType, targetInstanceId: number, callType: JSCallType): string | null {
           const args = parseJsonWithRevivers(this, argsJson);
-          const jsFunction = findJSFunction(identifier, targetInstanceId);
+          const jsFunction = findJSFunction(identifier, targetInstanceId, callType);
           const returnValue = jsFunction(...(args || []));
           const result = createJSCallResult(returnValue, resultType);
 
@@ -404,12 +416,12 @@ export module DotNet {
     this.endInvokeDotNetFromJS(asyncCallId, success, success ? JSON.parse(resultOrExceptionMessage) : resultOrExceptionMessage);
   }*/
 
-      beginInvokeJSFromDotNet(asyncHandle: number, identifier: string, argsJson: string | null, resultType: JSCallResultType, targetInstanceId: number): void {
+      beginInvokeJSFromDotNet(asyncHandle: number, identifier: string, argsJson: string | null, resultType: JSCallResultType, targetInstanceId: number, callType: JSCallType): void {
           // Coerce synchronous functions into async ones, plus treat
           // synchronous exceptions the same as async ones
           const promise = new Promise<any>(resolve => {
               const args = parseJsonWithRevivers(this, argsJson);
-              const jsFunction = findJSFunction(identifier, targetInstanceId);
+              const jsFunction = findJSFunction(identifier, targetInstanceId, callType);
               const synchronousResultOrPromise = jsFunction(...(args || []));
               resolve(synchronousResultOrPromise);
           });
@@ -551,14 +563,123 @@ export module DotNet {
       return error ? error.toString() : "null";
   }
 
-  export function findJSFunction(identifier: string, targetInstanceId: number): Function {
+  export function findJSFunction(identifier: string, targetInstanceId: number, callType?: JSCallType): Function {
       const targetInstance = cachedJSObjectsById[targetInstanceId];
 
       if (targetInstance) {
-          return targetInstance.findFunction(identifier);
+          return targetInstance.resolveInvocationHandler(identifier, callType ?? JSCallType.FunctionCall);
       }
 
       throw new Error(`JS object instance with ID ${targetInstanceId} does not exist (has it been disposed?).`);
+  }
+
+  export function findObjectMember(obj: any, identifier: string): [any, string] {
+      const keys = identifier.split(".");
+      let current = obj;
+
+      // First, we iterate over all but the last key. We throw error for missing intermediate keys.
+      // Error handling in case of undefined last key depends on the type of operation.
+      for (let i = 0; i < keys.length - 1; i++) {
+          const key = keys[i];
+
+          if (current && typeof current === 'object' && key in current) {
+              current = current[key];
+          } else {
+              throw new Error(`Could not find '${identifier}' ('${key}' was undefined).`);
+          }
+      }
+
+      return [current, keys[keys.length - 1]];
+  }
+
+  /** Takes an object member and a call type and returns a function that performs the operation specified by the call type on the member.
+   *
+   * @param parent Immediate parent of the accessed object member.
+   * @param memberName Name (key) of the accessed member.
+   * @param callType The type of the operation to perform on the member.
+   * @param identifier The full member identifier. Only used for error messages.
+   * @returns A function that performs the operation on the member.
+   */
+  function wrapJSCallAsFunction(parent: any, memberName: string, callType: JSCallType, identifier: string): Function {
+      switch (callType) {
+          case JSCallType.FunctionCall:
+              const func = parent[memberName];
+              if (func instanceof Function) {
+                  return func.bind(parent);
+              } else {
+                  throw new Error(`The value '${identifier}' is not a function.`);
+              }
+          case JSCallType.ConstructorCall:
+              const ctor = parent[memberName];
+              if (ctor instanceof Function) {
+                  const bound = ctor.bind(parent);
+                  return (...args: any[]) => new bound(...args);
+              } else {
+                  throw new Error(`The value '${identifier}' is not a function.`);
+              }
+          case JSCallType.GetValue:
+              if (!isReadableProperty(parent, memberName)) {
+                  throw new Error(`The property '${identifier}' is not defined or is not readable.`);
+              }
+              return () => parent[memberName];
+          case JSCallType.SetValue:
+              if (!isWritableProperty(parent, memberName)) {
+                  throw new Error(`The property '${identifier}' is not writable.`);
+              }
+              return (...args: any[]) => parent[memberName] = args[0];
+      }
+  }
+
+  function isReadableProperty(obj: any, propName: string) {
+      // Return false for missing property.
+      if (!(propName in obj)) {
+          return false;
+      }
+
+      // If the property is present we examine its descriptor, potentially needing to walk up the prototype chain.
+      while (obj !== undefined) {
+          const descriptor = Object.getOwnPropertyDescriptor(obj, propName);
+
+          if (descriptor) {
+              // Return true for data property
+              if (descriptor.hasOwnProperty('value')) {
+                  return true
+              }
+
+              // Return true for accessor property with defined getter.
+              return descriptor.hasOwnProperty('get') && typeof descriptor.get === 'function';
+          }
+
+          obj = Object.getPrototypeOf(obj);
+      }
+
+      return false;
+  }
+
+  function isWritableProperty(obj: any, propName: string) {
+      // Return true for missing property if the property can be added.
+      if (!(propName in obj)) {
+          return Object.isExtensible(obj);
+      }
+
+      // If the property is present we examine its descriptor, potentially needing to walk up the prototype chain.
+      while (obj !== undefined) {
+          const descriptor = Object.getOwnPropertyDescriptor(obj, propName);
+
+          if (descriptor) {
+              // Return true for writable data property.
+              if (descriptor.hasOwnProperty('value') && descriptor.writable) {
+                  return true;
+              }
+
+              // Return true for accessor property with defined setter.
+              return descriptor.hasOwnProperty('set') && typeof descriptor.set === 'function';
+          }
+
+          obj = Object.getPrototypeOf(obj);
+      }
+
+      return false;
   }
 
   export function disposeJSObjectReferenceById(id: number) {

@@ -12,26 +12,24 @@ jobs:
   # This workflow contains a single job called "build"
   build-windows:
     # The type of runner that the job will run on
-    runs-on: windows-2019
+    runs-on: windows-2022
     
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version:  | 
-            3.1.x
-            5.0.x
-            6.0.x
             8.0.x
+            10.0.x
 
       - name: Show node version
         run: node --version
@@ -47,21 +45,12 @@ jobs:
           cd coreclr-hosting
           npm version "%GITHUB_REF:~11%" --allow-same-version;
           npm ci --build-from-source          
-          prebuild -t 14.16.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
-          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.14.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 21.0.0 --include-regex "\.(node|a|dll|so|dylib)$"          
-          prebuild -t 24.6.1 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 28.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 29.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 30.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 31.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 32.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
+          prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 40.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 42.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 44.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           npm run build-testapp
           npm run mocha
           cd ..
@@ -73,7 +62,7 @@ jobs:
           npm run build-js-glue:release
           cd ..
       
-      - uses: xresloader/upload-to-github-release@v1
+      - uses: xresloader/upload-to-github-release@v1.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -95,21 +84,19 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.x
+          node-version: 22.x
           
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version:  | 
-            3.1.x
-            5.0.x
-            6.0.x
             8.0.x
+            10.0.x
 
       - name: Show node version
         run: node --version
@@ -125,18 +112,12 @@ jobs:
           cd coreclr-hosting
           npm version "${GITHUB_REF:11}" --allow-same-version
           npm ci --build-from-source
-          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.14.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 24.6.1 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 28.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 29.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 30.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 31.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 32.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"    
+          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 40.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 42.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 44.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"    
           npm run build-testapp
           npm run mocha
           cd ..
@@ -149,7 +130,7 @@ jobs:
           npm run build-js-glue:release
           cd ..
       
-      - uses: xresloader/upload-to-github-release@v1
+      - uses: xresloader/upload-to-github-release@v1.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -189,7 +170,7 @@ jobs:
           dotnet nuget push ElectronHostedBlazor."${GITHUB_REF:11}".nupkg -k "$NUGET_TOKEN" -s https://api.nuget.org/v3/index.json
           cd ../../..
 
-      - uses: xresloader/upload-to-github-release@v1
+      - uses: xresloader/upload-to-github-release@v1.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -203,21 +184,19 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.x
+          node-version: 22.x
           
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version:  | 
-            3.1.x
-            5.0.x
-            6.0.x
             8.0.x
+            10.0.x
 
       - name: Show node version
         run: node --version
@@ -233,18 +212,12 @@ jobs:
           cd coreclr-hosting
           npm ci --build-from-source
           npm version "${GITHUB_REF:11}" --allow-same-version
-          prebuild -t 16.13.1 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 18.14.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 19.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 24.6.1 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 25.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 26.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 27.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 28.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 29.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 30.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 31.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
-          prebuild -t 32.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 40.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 42.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
+          prebuild -t 44.0.0 -r electron --include-regex "\.(node|a|dll|so|dylib)$"
           npm run build-testapp
           npm run mocha
           cd ..
@@ -256,7 +229,7 @@ jobs:
           npm run build-js-glue:release
           cd ..
       
-      - uses: xresloader/upload-to-github-release@v1
+      - uses: xresloader/upload-to-github-release@v1.6.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

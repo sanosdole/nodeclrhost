@@ -88,6 +88,12 @@ function init(dotNetHelper: DotNet.DotNetObject, spacerBefore: HTMLElement, spac
         return;
       }
 
+      // If the component was disposed before the JS interop call completed, the element references may be null
+      // or the elements may have been disconnected from the DOM. Return early to avoid errors.
+      if (!spacerBefore || !spacerAfter || !spacerBefore.isConnected || !spacerAfter.isConnected) {
+        return;
+      }
+
       // To compute the ItemSize, work out the separation between the two spacers. We can't just measure an individual element
       // because each conceptual item could be made from multiple elements. Using getBoundingClientRect allows for the size to be
       // a fractional value. It's important not to add or subtract any such fractional values (e.g., to subtract the 'top' of
@@ -97,6 +103,11 @@ function init(dotNetHelper: DotNet.DotNetObject, spacerBefore: HTMLElement, spac
       rangeBetweenSpacers.setEndBefore(spacerAfter);
       const spacerSeparation = rangeBetweenSpacers.getBoundingClientRect().height;
       const containerSize = entry.rootBounds?.height;
+
+      // Check if the spacers are still in the DOM. They may have been removed if the component was disposed.
+      if (!spacerBefore.isConnected || !spacerAfter.isConnected) {
+        return;
+      }
 
       if (entry.target === spacerBefore) {
         dotNetHelper.invokeMethodAsync('OnSpacerBeforeVisible', entry.intersectionRect.top - entry.boundingClientRect.top, spacerSeparation, containerSize);
@@ -139,8 +150,10 @@ function dispose(dotNetHelper: DotNet.DotNetObject): void {
     observers.mutationObserverBefore.disconnect();
     observers.mutationObserverAfter.disconnect();
 
-    dotNetHelper.dispose();
-
     delete observersByDotNetObjectId[id];
   }
+
+  // Always dispose the dotNetHelper to release the DotNetObjectReference,
+  // even if init() returned early and no observers were created.
+  dotNetHelper.dispose();
 }

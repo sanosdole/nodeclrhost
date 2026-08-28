@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // Modified by Daniel Martin for nodeclrhost
 
-import { AutoComponentDescriptor, ComponentDescriptor, ServerComponentDescriptor, WebAssemblyComponentDescriptor, canMergeDescriptors, discoverComponents, mergeDescriptors } from '../../Services/ComponentDescriptorDiscovery';
+import { AutoComponentDescriptor, ComponentDescriptor, ServerComponentDescriptor, WebAssemblyComponentDescriptor, WebAssemblyServerOptions, canMergeDescriptors, discoverComponents, discoverWebAssemblyOptions, mergeDescriptors } from '../../Services/ComponentDescriptorDiscovery';
 import { isInteractiveRootComponentElement } from '../BrowserRenderer';
 import { applyAnyDeferredValue } from '../DomSpecialPropertyUtil';
 import { LogicalElement, getLogicalChildrenArray, getLogicalNextSibling, getLogicalParent, getLogicalRootDescriptor, insertLogicalChild, insertLogicalChildBefore, isLogicalElement, toLogicalElement, toLogicalRootCommentElement } from '../LogicalElements';
@@ -14,6 +14,7 @@ let descriptorHandler: DescriptorHandler | null = null;
 
 export interface DescriptorHandler {
   registerComponent(descriptor: ComponentDescriptor): void;
+  setWebAssemblyOptions(options: WebAssemblyServerOptions | undefined): void;
 }
 
 export function attachComponentDescriptorHandler(handler: DescriptorHandler) {
@@ -22,6 +23,8 @@ export function attachComponentDescriptorHandler(handler: DescriptorHandler) {
 
 export function registerAllComponentDescriptors(root: Node) {
   const descriptors = upgradeComponentCommentsToLogicalRootComments(root);
+  const webAssemblyOptions = discoverWebAssemblyOptions(root);
+  descriptorHandler?.setWebAssemblyOptions(webAssemblyOptions);
 
   for (const descriptor of descriptors) {
     descriptorHandler?.registerComponent(descriptor);
@@ -169,7 +172,7 @@ function treatAsMatch(destination: Node, source: Node) {
       }
 
       if (destinationRootDescriptor) {
-        // Update the existing descriptor with hte new descriptor's data
+        // Update the existing descriptor with the new descriptor's data
         mergeDescriptors(destinationRootDescriptor, sourceRootDescriptor);
 
         const isDestinationInteractive = isInteractiveRootComponentElement(destinationAsLogicalElement);
@@ -355,7 +358,7 @@ function ensureEditableValueSynchronized(destination: Element, value: any) {
   } else if (destination instanceof HTMLSelectElement && destination.selectedIndex !== value) {
     destination.selectedIndex = value as number;
   } else if (destination instanceof HTMLInputElement) {
-    if (destination.type === 'checkbox') {
+    if (destination.type === 'checkbox' || destination.type === 'radio') {
       if (destination.checked !== value) {
         destination.checked = value as boolean;
       }
@@ -369,7 +372,7 @@ function getEditableElementValue(elem: Element): string | boolean | number | nul
   if (elem instanceof HTMLSelectElement) {
     return elem.selectedIndex;
   } else if (elem instanceof HTMLInputElement) {
-    return elem.type === 'checkbox' ? elem.checked : (elem.getAttribute('value') || '');
+    return elem.type === 'checkbox' || elem.type === 'radio' ? elem.checked : (elem.getAttribute('value') || '');
   } else if (elem instanceof HTMLTextAreaElement) {
     return elem.value;
   } else {

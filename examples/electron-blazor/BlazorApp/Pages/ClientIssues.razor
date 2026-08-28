@@ -1,0 +1,130 @@
+@page "/clientissues"
+@inject IJSRuntime JSRuntime
+@inject NavigationManager UriHelper
+
+<h1>Client issue repro</h1>
+
+<hr />
+
+<h3>1. &lt;input type=&quot;file&quot; webkitDirectory&gt; + empty folder</h3>
+<p>
+    Pick a folder below. When an <em>empty</em> folder is selected a <code>change</code> event
+    should still fire. We observe it via both a Blazor (<code>&commat;onchange</code>) handler and a
+    native JS listener. The native count lets us tell whether the event never fires in Electron
+    at all, vs. whether Blazor's event wiring drops it.
+</p>
+<label class="btn btn-primary">
+    Choose folder
+    <input type="file" style="display:none" webkitdirectory @onchange="OnFolderSelected" />
+</label>
+<p>
+    Blazor change-event count: <strong id="dirCount">@DirBlazorCount</strong>
+    &nbsp;|&nbsp; native JS change-event count: <strong id="dirJsCount">@DirJsCount</strong>
+</p>
+<button class="btn btn-secondary" @onclick="ReadDirEventCount">Re-read native JS count</button>
+
+<hr />
+
+<h2>2. IJSRuntime.InvokeAsync&lt;IJSObjectReference?&gt; returning null</h2>
+<p>
+    Calls <code>exampleJsFunctions.returnsNullObject</code> (returns <code>null</code>) and asks
+    for an <code>IJSObjectReference?</code>. Expect a <code>null</code> result instead of an
+    exception.
+</p>
+<button class="btn btn-primary" @onclick="TestNullObject">Invoke null-returning JS function</button>
+<p>Result: <code id="nullResult">@NullResult</code></p>
+
+<hr />
+
+<h2>3. SetValueAsync / GetValueAsync on IJSObjectReference</h2>
+<p>
+    Gets a JS object via <code>IJSObjectReference</code>, then writes and reads a property on it.
+</p>
+<button class="btn btn-primary" @onclick="TestPropertyAccess">Read/write property on IJSObjectReference</button>
+<p>Result: <code id="propResult">@PropertyResult</code></p>
+
+@code {
+    private int DirBlazorCount;
+    private string DirJsCount = "?";
+    private string NullResult = "not run";
+    private string PropertyResult = "not run";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ReadDirEventCount();
+
+            // Auto-run the interop tests when the page is opened with '#autotest'.
+            // Results are written to window.__clientIssueResults (and console) so an
+            // external harness can assert on them deterministically.
+            if (UriHelper.Uri.EndsWith("#autotest", StringComparison.OrdinalIgnoreCase))
+            {
+                await TestNullObject();
+                await TestPropertyAccess();
+                await JSRuntime.InvokeVoidAsync("__setClientIssueResults", System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    nullResult = NullResult,
+                    propertyResult = PropertyResult,
+                }));
+            }
+        }
+    }
+
+    private async Task ReadDirEventCount()
+    {
+        // Read the count captured by the native JS listener installed in exampleJsInterop.
+        DirJsCount = (await JSRuntime.InvokeAsync<int>("exampleJsFunctions.getDirSelectionCount")).ToString();
+        StateHasChanged();
+    }
+
+    private async Task OnFolderSelected(ChangeEventArgs e)
+    {
+        DirBlazorCount++;
+        Console.WriteLine("[dir] Blazor change-event fired (count=" + DirBlazorCount + ").");
+        await ReadDirEventCount();
+    }
+
+    private async Task TestNullObject()
+    {
+        NullResult = "invoking...";
+        StateHasChanged();
+        try
+        {
+            var jsRef = await JSRuntime.InvokeAsync<IJSObjectReference?>("exampleJsFunctions.returnsNullObject");
+            NullResult = jsRef is null ? "OK: returned null" : ("UNEXPECTED: got object with id " + jsRef);
+        }
+        catch (Exception ex)
+        {
+            NullResult = "EXCEPTION: " + ex.GetBaseException().Message;
+        }
+        StateHasChanged();
+    }
+
+    private async Task TestPropertyAccess()
+    {
+        try
+        {
+            var jsObj = await JSRuntime.InvokeAsync<IJSObjectReference>("exampleJsFunctions.createJsObject");
+            if (jsObj is null)
+            {
+                PropertyResult = "EXCEPTION: createJsObject returned null unexpectedly";
+                StateHasChanged();
+                return;
+            }
+
+            await jsObj.SetValueAsync<int>("counter", 7);
+            var readBack = await jsObj.GetValueAsync<int>("counter");
+
+            await jsObj.SetValueAsync<string>("name", "updated");
+            var nameBack = await jsObj.GetValueAsync<string>("name");
+
+            PropertyResult = "OK: counter=" + readBack + ", name=" + nameBack;
+        }
+        catch (Exception ex)
+        {
+            PropertyResult = "EXCEPTION: " + ex.GetBaseException().Message;
+        }
+        StateHasChanged();
+    }
+}

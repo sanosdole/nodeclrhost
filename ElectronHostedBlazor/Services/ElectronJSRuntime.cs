@@ -126,9 +126,24 @@ namespace ElectronHostedBlazor.Services
                 : result;*/
                 // TODO: Use extra args
             if (!_node.CheckAccess())
-                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, (int) resultType, targetInstanceId)).Result;
+                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, (int) resultType, targetInstanceId, (int) JSCallType.FunctionCall)).Result;
 
-            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, (int) resultType, targetInstanceId);
+            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, (int) resultType, targetInstanceId, (int) JSCallType.FunctionCall);
+        }
+
+        /// <inheritdoc />
+        protected override string InvokeJS(in JSInvocationInfo invocationInfo)
+        {
+            var identifier = invocationInfo.Identifier;
+            var argsJson = invocationInfo.ArgsJson;
+            var resultType = (int) invocationInfo.ResultType;
+            var targetInstanceId = invocationInfo.TargetInstanceId;
+            var callType = (int) invocationInfo.CallType;
+
+            if (!_node.CheckAccess())
+                return _node.Run(() => _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, resultType, targetInstanceId, callType)).Result;
+
+            return _jsCallDispatcher.invokeJSFromDotNet(identifier, argsJson, resultType, targetInstanceId, callType);
         }
 
         /// <inheritdoc />
@@ -148,12 +163,32 @@ namespace ElectronHostedBlazor.Services
             if (!_node.CheckAccess())
             {
                 // TODO DM 27.04.2020: Consider closing taskId on an exception
-                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(asyncHandle, identifier, argsJson, (int) resultType, targetInstanceId))
+                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(asyncHandle, identifier, argsJson, (int) resultType, targetInstanceId, (int) JSCallType.FunctionCall))
                     .Wait();
                 return;
             }
 
-            _jsCallDispatcher.beginInvokeJSFromDotNet(asyncHandle, identifier, argsJson, (int) resultType, targetInstanceId);
+            _jsCallDispatcher.beginInvokeJSFromDotNet(asyncHandle, identifier, argsJson, (int) resultType, targetInstanceId, (int) JSCallType.FunctionCall);
+        }
+
+        /// <inheritdoc />
+        protected override void BeginInvokeJS(in JSInvocationInfo invocationInfo)
+        {
+            var asyncHandle = invocationInfo.AsyncHandle;
+            var identifier = invocationInfo.Identifier;
+            var argsJson = invocationInfo.ArgsJson;
+            var resultType = (int) invocationInfo.ResultType;
+            var targetInstanceId = invocationInfo.TargetInstanceId;
+            var callType = (int) invocationInfo.CallType;
+
+            if (!_node.CheckAccess())
+            {
+                _node.Run(() => _jsCallDispatcher.beginInvokeJSFromDotNet(asyncHandle, identifier, argsJson, resultType, targetInstanceId, callType))
+                    .Wait();
+                return;
+            }
+
+            _jsCallDispatcher.beginInvokeJSFromDotNet(asyncHandle, identifier, argsJson, resultType, targetInstanceId, callType);
         }
 
         /// <inheritdoc />

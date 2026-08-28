@@ -90,6 +90,12 @@ namespace ElectronHostedBlazor.Services
             
         }
 
+        // In .NET 10 the navigation lock feature registers a location-changing handler, and the
+        // setNavigationLockState must be forwarded to the JS side so it only invokes the callback
+        // path that re-validates the navigation. This mirrors aspnetcore's WebAssemblyNavigationManager.
+        protected override void SetNavigationLockState(bool value)
+            => _navigationManager.setHasLocationChangingListeners(0, value);
+
         private Task NotifyLocationChangedFromJs(string newAbsoluteUri, string state, bool isInterceptedLink)
         {
             SetLocation(newAbsoluteUri, state, isInterceptedLink);
