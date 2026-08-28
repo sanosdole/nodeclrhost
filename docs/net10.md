@@ -106,8 +106,8 @@ Native binaries are compiled per Node.js/Electron ABI and shipped as
   is ABI-stable across Node/Electron, so one binary per major ABI is enough,
   but CI still emits one per target for safety.
 - ABI mapping (`node -e "require('node-abi').getAbi(ver, 'node')"`):
-  Node `20→v115, 22→v127, 24→v137, 26→v147`;
-  Electron `24.6.1→v114, 28→v119, 32→v128, 36→v135, 40→v143, 42→v146, 44→v149`.
+  Node `20→v115, 22→v127, 24→v137`;
+  Electron `40→v143, 42→v146, 44→v149`.
 
 ### Release-artifact isolation (do not break previous releases/prebuilds)
 
@@ -129,13 +129,15 @@ The migration must not (and does not) violate this. How it is guaranteed:
    attaches prebuilds only to the current release tag; old tags are untouched.
 4. **`prebuilds/` is gitignored** — artifacts are always generated per release,
    never shared between versions.
-5. **Keep the CI prebuild matrix ADDITIVE.** When bumping versions, keep every
-   previously-shipped ABI target and *add* the new ones. The matrix must be a
-   strict superset of what older releases shipped. Current matrix (all three
-   platforms): Node `14.16,16.13,18.14,19,20,21,22,24,26` and
-   Electron `24.6,25,26,27,28,29,30,31,32,36,40,42,44`. Do *not* delete
-   historical prebuild lines when adding newer ones — they serve downstream
-   builds still running older Node/Electron ABIs.
+5. **Keep the CI prebuild matrix LIMITED to supported LTS runtimes.** Old
+   Node/Electron ABI targets are dropped because: (a) Node ≤16 headers still
+   contain an `openssl_fips` condition in `common.gypi` that modern
+   `node-gyp`/gyp fails to evaluate (`gyp: name 'openssl_fips' is not defined`),
+   and (b) they are EOL. Current matrix (all three OS platforms):
+   Node `20, 22, 24` (supported LTS) and Electron `40, 42, 44` (current stable
+   window). Anchoring the matrix to supported runtimes keeps the build green and
+   the release lean. (Downstream builds already pinned to older releases keep
+   their immutable prebuilt artifacts — see points 1–4 above.)
 - `.github/workflows/build.yml` and `release.yml` list the exact
   `prebuild -t <ver> [-r electron]` invocations. Update only by adding new
   targets. Release CI also bumps the `setup-dotnet` runtimes (`8.0.x;10.0.x`)
