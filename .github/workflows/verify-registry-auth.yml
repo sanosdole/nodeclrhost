@@ -16,6 +16,10 @@ on:
         required: true
         default: 'all'
 
+permissions:
+      contents: write
+      id-token: write   # Required: allows GitHub Actions to mint an OIDC token
+
 jobs:
   verify-npm:
     if: ${{ inputs.scope == 'all' || inputs.scope == 'npm' }}
@@ -23,10 +27,7 @@ jobs:
     # npm uses Trusted Publishing (OIDC); there is no NPM_TOKEN. This job only
     # confirms the OIDC plumbing (id-token: write) is enabled for the 'deploy'
     # environment; a real trust validation happens at publish time.
-    environment: deploy
-    permissions:
-      contents: read
-      id-token: write   # Required: allows GitHub Actions to mint an OIDC token
+    environment: deploy    
     steps:
       - uses: actions/checkout@v4
 
