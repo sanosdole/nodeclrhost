@@ -27,7 +27,7 @@ jobs:
     environment: deploy
     permissions:
       contents: read
-      id-token: write
+      id-token: write   # Required: allows GitHub Actions to mint an OIDC token
     steps:
       - uses: actions/checkout@v4
 
