@@ -78,6 +78,10 @@ jobs:
   
   build-linux:
     environment: deploy
+    # Required for npm Trusted Publishing (OIDC) via npm publish --provenance.
+    permissions:
+      contents: read
+      id-token: write   # Required: allows GitHub Actions to mint an OIDC token
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
     
@@ -137,21 +141,17 @@ jobs:
           file: "coreclr-hosting/prebuilds/*"
           tags: true
 
-      - name: deploy to npm
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: deploy to npm (Trusted Publishing / OIDC)
         run: |
           cd coreclr-hosting
-          echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
           echo "Publishing coreclr-hosting for tag ""${GITHUB_REF:11}"
           npm version "${GITHUB_REF:11}" --allow-same-version
-          npm publish --access public --ignore-scripts
+          npm publish --access public --ignore-scripts --provenance
           cd ../electron-blazor-glue
-          echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > .npmrc
           echo "Publishing electron-blazor-glue for tag ${GITHUB_REF:11}"
           sed -i 's!"coreclr-hosting": "file:../coreclr-hosting"!"coreclr-hosting": "'"${GITHUB_REF:11}"'"!g' package.json
           npm version "${GITHUB_REF:11}" --allow-same-version
-          npm publish --access public --ignore-scripts
+          npm publish --access public --ignore-scripts --provenance
 
       - name: build nuget packages
         run: |

@@ -1,9 +1,11 @@
-# Verify npm + NuGet credentials without publishing anything.
+# Verify registry auth without publishing anything.
 #
 # Manually trigger with: Actions -> "Verify registry auth" -> Run workflow.
-# This authenticates to npmjs.org and api.nuget.org using the configured
-# secrets (NPM_TOKEN, NUGET_TOKEN) and reports whether they are valid,
-# WITHOUT publishing any package. Safe to run at any time.
+# - npm: verifies the OIDC plumbing for npm Trusted Publishing (no NPM_TOKEN;
+#   a full trust validation only happens at publish time via --provenance).
+# - nuget: validates the NUGET_TOKEN (deploy environment) reaches nuget.org and
+#   the secret is set.
+# Safe to run at any time. This DOES NOT publish any package.
 name: Verify registry auth
 
 on:
@@ -18,8 +20,14 @@ jobs:
   verify-npm:
     if: ${{ inputs.scope == 'all' || inputs.scope == 'npm' }}
     runs-on: ubuntu-latest
-    # NPM_TOKEN is scoped to the 'deploy' environment (as in release.yml).
+    # npm now uses Trusted Publishing (OIDC) from the 'deploy' environment, so
+    # there is no NPM_TOKEN. This job verifies the OIDC plumbing for that
+    # environment (id-token: write + getting a token from GitHub). A real
+    # trust validation only happens at publish time (npm publish --provenance).
     environment: deploy
+    permissions:
+      contents: read
+      id-token: write   # Required: allows GitHub Actions to mint an OIDC token
     steps:
       - uses: actions/checkout@v4
 
@@ -28,16 +36,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Validate npm token
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Verify npm OIDC token (non-publishing)
         run: |
-          # Configure registry auth from the secret without writing it to a file
-          # committed to the repo (it's referenced inline at runtime).
-          npm config set //registry.npmjs.org/:_authToken "${NPM_TOKEN}"
-          npm config set registry https://registry.npmjs.org/
-          npm whoami
-          echo "npm auth OK"
+          # Request an OIDC token from GitHub for this workflow. If this fails,
+          # the 'deploy' environment is not configured with id-token: write.
+          TOKEN_JSON=$(curl -sS             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore")
+          echo "OIDC token requested. Contains subject claim:"
+          echo "$TOKEN_JSON" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);const v=JSON.parse(Buffer.from(j.value.split('.')[1],'base64').toString());console.log('  sub =',v.sub)}catch(e){console.log('  (could not parse claim; raw status: '+d.slice(0,120)+')')}})"
+          echo "npm OIDC plumbing OK"
 
   verify-nuget:
     if: github.event.inputs.scope == 'all' || github.event.inputs.scope == 'nuget'
