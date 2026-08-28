@@ -20,10 +20,10 @@ jobs:
   verify-npm:
     if: ${{ inputs.scope == 'all' || inputs.scope == 'npm' }}
     runs-on: ubuntu-latest
-    # npm now uses Trusted Publishing (OIDC) from the 'deploy' environment, so
-    # there is no NPM_TOKEN. This job verifies the OIDC plumbing for that
-    # environment (id-token: write + getting a token from GitHub). A real
-    # trust validation only happens at publish time (npm publish --provenance).
+    # npm uses Trusted Publishing (OIDC), so there is no NPM_TOKEN. This job
+    # prints the exact OIDC token claims; npm matches the "sub" (subject)
+    # against the trusted-publisher entry you registered (org, repo, workflow,
+    # environment must match exactly, including case).
     environment: deploy
     permissions:
       contents: read
@@ -36,28 +36,31 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify npm OIDC token (non-publishing)
+      - name: Show npm OIDC token claims
         run: |
-          # Request an OIDC token from GitHub for this workflow. If this fails,
-          # the 'deploy' environment is not configured with id-token: write.
-          TOKEN_JSON=$(curl -sS             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore")
-          echo "OIDC token requested. Contains subject claim:"
-          echo "$TOKEN_JSON" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);const v=JSON.parse(Buffer.from(j.value.split('.')[1],'base64').toString());console.log('  sub =',v.sub)}catch(e){console.log('  (could not parse claim; raw status: '+d.slice(0,120)+')')}})"
-          echo "npm OIDC plumbing OK"
-
-  verify-nuget:
-    if: github.event.inputs.scope == 'all' || github.event.inputs.scope == 'nuget'
-    runs-on: ubuntu-latest
-    # NUGET_TOKEN is scoped to the 'deploy' environment (as in release.yml).
-    environment: deploy
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '10.0.x'
-
+          node -e '
+            const https = require("https");
+            const req = https.get(process.env.ACTIONS_ID_TOKEN_REQUEST_URL + "&audience=sigstore", {
+              headers: { "Authorization": "bearer " + process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }
+            }, res => {
+              let d = "";
+              res.on("data", c => d += c);
+              res.on("end", () => {
+                try {
+                  const j = JSON.parse(d);
+                  const v = JSON.parse(Buffer.from(j.value.split(".")[1], "base64").toString());
+                  console.log("OIDC claims (must match npm trusted publisher):");
+                  console.log("  sub         = " + v.sub);
+                  console.log("  repository  = " + v.repository);
+                  console.log("  ref         = " + v.ref);
+                  console.log("  workflow    = " + v.workflow);
+                  console.log("  environment = " + v["environment"]);
+                  console.log("  issuer      = " + v.iss);
+                } catch (e) { console.log("OIDC request failed: " + d.slice(0, 300)); process.exit(1); }
+              });
+            });
+            req.on("error", e => { console.log("HTTP error: " + e.message); process.exit(1); });
+          '
       - name: Verify NuGet token (non-destructive)
         env:
           NUGET_TOKEN: ${{ secrets.NUGET_TOKEN }}
