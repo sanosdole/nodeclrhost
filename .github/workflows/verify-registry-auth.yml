@@ -20,10 +20,9 @@ jobs:
   verify-npm:
     if: ${{ inputs.scope == 'all' || inputs.scope == 'npm' }}
     runs-on: ubuntu-latest
-    # npm now uses Trusted Publishing (OIDC) from the 'deploy' environment, so
-    # there is no NPM_TOKEN. This job verifies the OIDC plumbing for that
-    # environment (id-token: write + getting a token from GitHub). A real
-    # trust validation only happens at publish time (npm publish --provenance).
+    # npm uses Trusted Publishing (OIDC); there is no NPM_TOKEN. This job only
+    # confirms the OIDC plumbing (id-token: write) is enabled for the 'deploy'
+    # environment; a real trust validation happens at publish time.
     environment: deploy
     permissions:
       contents: read
@@ -36,14 +35,9 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Verify npm OIDC token (non-publishing)
+      - name: Check npm OIDC env (non-secret)
         run: |
-          # Request an OIDC token from GitHub for this workflow. If this fails,
-          # the 'deploy' environment is not configured with id-token: write.
-          TOKEN_JSON=$(curl -sS             -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN"             "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sigstore")
-          echo "OIDC token requested. Contains subject claim:"
-          echo "$TOKEN_JSON" | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{try{const j=JSON.parse(d);const v=JSON.parse(Buffer.from(j.value.split('.')[1],'base64').toString());console.log('  sub =',v.sub)}catch(e){console.log('  (could not parse claim; raw status: '+d.slice(0,120)+')')}})"
-          echo "npm OIDC plumbing OK"
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN}"             && test -n "${ACTIONS_ID_TOKEN_REQUEST_URL}"             && echo "OIDC plumbing OK for environment 'deploy'"             || { echo "OIDC request token/URL not set"; exit 1; }
 
   verify-nuget:
     if: github.event.inputs.scope == 'all' || github.event.inputs.scope == 'nuget'
