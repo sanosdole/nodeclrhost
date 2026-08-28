@@ -49,7 +49,7 @@ jobs:
       - name: build & test coreclrhosting
         run: |
           cd coreclr-hosting
-          npm ci --build-from-source
+          npm ci
           prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
           prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
@@ -107,7 +107,7 @@ jobs:
       - name: build & test coreclrhosting
         run: |
           cd coreclr-hosting
-          npm ci --build-from-source
+          npm ci
           prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
@@ -164,7 +164,7 @@ jobs:
       - name: build & test coreclrhosting
         run: |
           cd coreclr-hosting
-          npm ci --build-from-source
+          npm ci
           prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
           prebuild -t 24.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
