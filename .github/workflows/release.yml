@@ -171,10 +171,6 @@ jobs:
         with:
           user: ${{ secrets.NUGET_USER }}
     
-      # Push the package
-      - name: NuGet push
-        run: dotnet nuget push artifacts/my-sdk.nupkg 
-
       - name: publish nuget packages        
         run: |
           cd NodeHostEnvironment/bin/Release
