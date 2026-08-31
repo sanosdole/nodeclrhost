@@ -46,6 +46,7 @@ jobs:
         run: npm i -g prebuild
         
       - name: build & test coreclrhosting
+        shell: bash
         run: |
           cd coreclr-hosting
           npm version "${GITHUB_REF:11}" --allow-same-version
