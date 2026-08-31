@@ -48,7 +48,7 @@ jobs:
       - name: build & test coreclrhosting
         run: |
           cd coreclr-hosting
-          npm version "%GITHUB_REF:~11%" --allow-same-version;
+          npm version "${GITHUB_REF:11}" --allow-same-version
           npm ci
           prebuild -t 20.0.0 --include-regex "\.(node|a|dll|so|dylib|pdb)$"
           prebuild -t 22.0.0 --include-regex "\.(node|a|dll|so|dylib)$"
