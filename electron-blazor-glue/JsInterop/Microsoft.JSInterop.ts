@@ -3,6 +3,13 @@
 // Modified by Daniel Martin for nodeclrhost
 // This is a single-file self-contained module to avoid the need for a Webpack build
 
+// Nodeclrhost: native dynamic import must live in a plain-JS helper (see dynamicImport.js) so that
+// webpack, not TypeScript, parses the `import()` expression. Under tsconfig "module": "commonjs",
+// TypeScript would lower `import(specifier)` to `require(specifier)`, dropping the webpackIgnore
+// magic comment, and webpack would then replace it with the empty "Cannot find module" context.
+// The right long-term fix is compiling the glue to es2020/esnext (see dynamicImport.js).
+import { nativeImport } from './dynamicImport';
+
 export module DotNet {
   export type JsonReviver = ((key: any, value: any) => any);
   const jsonRevivers: JsonReviver[] = [];
@@ -81,7 +88,7 @@ export module DotNet {
           url = new URL(url.substr(2), document.baseURI).toString();
       }
 
-      return import(/* webpackIgnore: true */ url);
+      return nativeImport(url);
   }});
 
   let nextJsObjectId = 1; // Start at 1 because zero is reserved for "window"

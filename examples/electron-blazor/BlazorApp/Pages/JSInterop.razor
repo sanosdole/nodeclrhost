@@ -21,6 +21,18 @@
 
 <h3 id="dotnetinvocationcount" style="color: green; font-style: italic">@_invokeCounter</h3>
 
+<h3>Import an ES module via IJSRuntime</h3>
+
+<button id="triggermoduleimport" type="button" class="btn" @onclick="TriggerModuleImport">
+    Import exampleJsImport.js and call getWelcomeMessage
+</button>
+
+<button id="releasemodule" type="button" class="btn" @onclick="ReleaseModule">
+    Release module reference
+</button>
+
+<h3 id="moduleimportresult" style="color: green; font-style: italic">@_moduleMessage</h3>
+
 <h3>Stream test</h3>
 
 <button id="streamtest" type="button" class="btn" @onclick="TriggerStreamTest">
@@ -31,6 +43,23 @@
 @code {
     private ElementReference _entryInput;
     private int _invokeCounter;
+    private IJSObjectReference _importedModule;
+    private string _moduleMessage;
+
+    public async Task TriggerModuleImport()
+    {
+        try
+        {
+            // A real ES module is loaded at runtime: "./exampleJsImport.js" is resolved
+            // relative to the document base URI before the actual dynamic import runs.
+            _importedModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./exampleJsImport.js");
+            _moduleMessage = await _importedModule.InvokeAsync<string>("getWelcomeMessage");
+        }
+        catch (Exception ex)
+        {
+            _moduleMessage = "EXCEPTION: " + ex.GetBaseException().Message;
+        }
+    }
 
     public async Task TriggerNetInstanceMethod()
     {
@@ -71,6 +100,17 @@
         await JSRuntime.InvokeVoidAsync(
             "exampleJsFunctions.displayWelcome",
             $"Hello {name}! Welcome to Blazor!");
+    }
+
+    // Release the reference to the imported module once it is no longer needed.
+    public async Task ReleaseModule()
+    {
+        if (_importedModule is not null)
+        {
+            await _importedModule.DisposeAsync();
+            _importedModule = null;
+            _moduleMessage = null;
+        }
     }
 
     public async Task TriggerStreamTest()
