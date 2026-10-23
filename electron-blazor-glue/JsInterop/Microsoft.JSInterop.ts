@@ -473,7 +473,9 @@ export module DotNet {
           if (this._dotNetCallDispatcher.invokeDotNetFromJS) {
               const argsJson = stringifyArgs(this, args);
               const resultJson = this._dotNetCallDispatcher.invokeDotNetFromJS(assemblyName, methodIdentifier, dotNetObjectId, argsJson);
-              return resultJson ? parseJsonWithRevivers(this, resultJson) : null;
+              // A null/undefined result (e.g. a void or null-returning .NET method) is legal here,
+              // but the unconstrained generic T forbids it, so cast explicitly.
+              return resultJson ? parseJsonWithRevivers(this, resultJson) : null as unknown as T;
           }
 
           throw new Error("The current dispatcher does not support synchronous calls from JS to .NET. Use invokeDotNetMethodAsync instead.");
